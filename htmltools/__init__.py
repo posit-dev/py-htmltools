@@ -1,4 +1,4 @@
-from .tags import html, html_dependency, tag, tag_list, tags
+from .tags import html, htmlDependency, tag, tagList, tags
 # https://github.com/rstudio/htmltools/blob/bc226a3d/R/tags.R#L697-L763
 p = tags.p
 h1 = tags.h1
