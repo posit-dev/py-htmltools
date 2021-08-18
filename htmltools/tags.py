@@ -17,21 +17,21 @@ class html(str):
   def __init__(self, *args: List[str]) -> None:
     self.dependencies = []
 
-  def attach_dependency(self, dep: 'htmlDependency', append: bool = True) -> None:
+  def attach_dependency(self, dep: 'html_dependency', append: bool = True) -> None:
     if append: 
       self.dependencies.append(dep)
     else:
       self.dependencies = [dep]
 
   # html() + html() should return html type
-  def __add__(self, other: Union[str, 'htmlDependency']) -> str:
+  def __add__(self, other: Union[str, 'html_dependency']) -> str:
     res = super().__add__(self, other)
-    return html(res) if isinstance(other, htmlDependency) else res
+    return html(res) if isinstance(other, html_dependency) else res
 
 # --------------------------------------------------------
 # html dependencies
 # --------------------------------------------------------
-class htmlDependency():
+class html_dependency():
   def __init__(self, name: str, version: str, src: Union[str, Dict[str, str]],
                      script: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
                      stylesheet: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
@@ -76,7 +76,7 @@ class htmlDependency():
     links = [tags.link(**s) for s in sheets]
     scripts = [tags.script(**s) for s in scripts]
     head = html(self.head) if self.head else None
-    return tagList(*metas, *links, *scripts, head).as_html()
+    return tag_list(*metas, *links, *scripts, head).as_html()
 
   def _src_path(self) -> str:
     dir = package_dir(self.package) if self.package else ""
@@ -92,7 +92,7 @@ class htmlDependency():
     raise Exception(f"Invalid type for {repr(val)} in HTML dependency {self.name}@{self.version}")
 
   def __repr__(self):
-    return f'<htmlDependency "{self.name}@{self.version}">'
+    return f'<html_dependency "{self.name}@{self.version}">'
 
   def __str__(self):
     return self.as_html()
@@ -110,6 +110,10 @@ class tag():
     if arguments: self.append_children(*arguments)
     if children: self.append_children(*children)
 
+  def __call__(self, *args: Any, **kwargs: Any) -> Any:
+      self.append_attrs(**kwargs)
+      self.append_children(*args)
+
   def append_attrs(self, **kwargs: Dict[str, str]) -> None:
     if kwargs: self.attrs.append(kwargs)
 
@@ -125,38 +129,27 @@ class tag():
   def append_children(self, *args: List) -> None:
     if args: self.children += args
 
-  def attach_dependency(self, dep: htmlDependency, append = True) -> None:
+  def attach_dependency(self, dep: html_dependency, append = True) -> None:
     if append: 
       self.dependencies.append(dep)
     else:
       self.dependencies = [dep]
   
-  def _retrieve_dependencies(self) -> List[htmlDependency]:
+  def _retrieve_dependencies(self) -> List[html_dependency]:
     deps = self.dependencies
     for x in self.children:
       if isinstance(x, (tag, html)):
         deps += x.dependencies
     return deps
 
-  def _retrieve_head(self) -> str:
-    head = tagList()
-    for x in self.children:
-      if isinstance(x, tag) and x.name == "head":
-        head.append_children(*x.children)
-    return head
-
-  # TODO: implement singletons?
+  # TODO: get rid tags.head()
   def render(self) -> Dict[str, Any]:
     return {
       "html": self.as_html(), 
-      "dependencies": self._retrieve_dependencies(),
-      "head": self._retrieve_head()
+      "dependencies": self._retrieve_dependencies()
     }
 
   def as_html(self, indent: int = 0, eol: str = '\n') -> html:
-    if isinstance(self, tag) and self.name == "head":
-      return html("")
-    
     indent_ = ' ' * indent
     html_ = indent_ + '<' + self.name
 
@@ -194,7 +187,7 @@ class tag():
     for x in children:
       html_ += next_indent_
       if is_list(x) and not isinstance(x, tag): 
-        x = tagList(*x)
+        x = tag_list(*x)
       html_ += x.as_html(indent, eol) if isinstance(x, tag) else normalize_text(x)
 
     return html(html_ + eol + indent_ + close)
@@ -213,12 +206,12 @@ class tag():
     else:
       raise Exception(f"Unknown renderer {renderer}")
 
-class tagList(tag):
+class tag_list(tag):
   def __init__(self, *args) -> None:
     tag.__init__(self, "", *args)
 
   def append_attrs(self, **kwargs: Dict[str, str]) -> None:
-      raise Exception("Cannot append attributes to tagList")
+      raise Exception("Cannot append attributes to tag_list")
 
   def as_html(self, indent: int = 0, eol: str = '\n') -> str:
     html = tag.as_html(self, indent, eol)
@@ -232,6 +225,7 @@ class tagList(tag):
       html = [re.sub('^  ', '', h) for h in html]
       return eol.join(html)
 
+# Export this more officially?
 def tag_factory(_name: str) -> tag:
   def __init__(self, *args: List, children: Optional[List] = None, **kwargs: Dict[str, str]) -> None:
     tag.__init__(self, _name, *args, children = children, **kwargs)
@@ -244,6 +238,10 @@ class createTags(Dict[str, tag]):
     with open(os.path.join(dir, 'known_tags.json')) as f:
       known_tags = json.load(f)
       for tag_ in known_tags:
+        # We don't have any immediate need for tags.head() since you can achieve the same effect
+        # with an 'anonymous' dependency (i.e., htmlDependency(head = ....))
+        if tag_ == "head":
+          continue
         self[tag_] = type(tag_, (tag, ), {"__init__": tag_factory(_name = tag_) })
 
   def __getattr__(self, name: str) -> tag:
