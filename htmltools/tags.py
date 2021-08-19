@@ -1,10 +1,8 @@
 import json
 import os
-import re
-import importlib
 from urllib.parse import quote
-from tempfile import TemporaryDirectory
-from typing import Optional, Union, List, Dict, Callable, Any
+from typing import Optional, Tuple, Union, List, Dict, Callable, Any
+from .util import *
 
 # --------------------------------------------------------
 # tag_list() is essentially a tag() without attributes
@@ -17,34 +15,19 @@ class tag_list():
   
   def append_children(self, *args: List) -> None:
     if args: 
-      self.children += [x for x in args if x is not None]
+      self.children += flatten(args)
 
   def _retrieve_dependencies(self) -> List['html_dependency']:
     deps = []
     for x in self.children:
       if isinstance(x, html_dependency):
         deps.append(x)
+      elif isinstance(x, tag_list):
+        deps += x._retrieve_dependencies()
     return deps
 
   def as_html(self, indent: int = 0, eol: str = '\n') -> 'html':
-    if not self.children: 
-      return html()
-    
-    html_ = ''
-    indent_ = ' ' * indent
-    for x in self.children:
-      if isinstance(x, html_dependency):
-        continue
-      if isinstance(x, (list, tuple)):
-        x = tag_list(*x)
-      if isinstance(x, tag):
-        html_ += x.as_html(indent, eol) + eol
-      elif isinstance(x, tag_list):
-        html_ += x.as_html(indent, eol)
-      else:
-        html_ += indent_ + normalize_text(x) + eol
-    
-    return html(html_)
+    return children_html(self.children, indent, eol)
     
   def render(self) -> Dict[str, Any]:
     return {
@@ -95,8 +78,7 @@ class tag(tag_list):
     return attrs
 
   def as_html(self, indent: int = 0, eol: str = '\n') -> 'html':
-    indent_ = ' ' * indent
-    html_ = indent_ + '<' + self.name
+    html_ = '<' + self.name
 
     # get/write (flattened) dictionary of attributes
     for key, val in self._get_attrs().items():
@@ -126,11 +108,30 @@ class tag(tag_list):
 
     # Write children
     html_ += eol
-    html_ += tag_list(*self.children).as_html(indent + 1, eol)
-    return html(html_ + indent_ + close)
+    html_ += children_html(self.children, indent + 1, eol)
+    return html(html_ + eol + ('  ' * indent) + close)
 
   def __repr__(self) -> str:
     return f'<{self.name} with {len(self._get_attrs())} attributes & {len(self.children)} children>'
+
+
+def children_html(children: List, indent: int = 0, eol: str = '\n') -> 'html':
+  indent_ = '  ' * indent
+  html_ = indent_
+  n = len(children)
+  for i, x in enumerate(children):
+    if isinstance(x, html_dependency):
+      continue
+    if isinstance(x, tag):
+      html_ += x.as_html(indent, eol)
+    elif isinstance(x, tag_list):
+      html_ += x.as_html(indent, eol)
+    else:
+      html_ += normalize_text(x) 
+      html_ += (eol + indent_) if i < n - 1 else ''
+  
+  return html(html_)
+
 
 # --------------------------------------------------------
 # tag factory
@@ -244,34 +245,5 @@ class html_dependency():
   def __str__(self):
     return self.as_html()
 
-# -----------------------------------
-# Utility functions
-# -----------------------------------
-
-def html_escape(text: str, attr: bool = False):
-  specials = {
-    "&": "&amp;",
-    ">": "&gt;",
-    "<": "&lt;",
-  }
-  if attr:
-    specials.update({
-      '"': "&quot;",
-      "'": "&apos;",
-      '\r': '&#13;',
-      '\n': '&#10;'
-    })
-  if not re.search("|".join(specials), text):
-    return text
-  for key, value in specials.items():
-    text = text.replace(key, value)
-  return text
-
 def normalize_text(txt: Any):
   return txt if isinstance(txt, html) else html_escape(str(txt), attr = False)
-
-# similar to base::system.file()
-def package_dir(package: str) -> str:
-  with TemporaryDirectory():
-    pkg_file = importlib.import_module('.', package = package).__file__
-    return os.path.dirname(pkg_file)
