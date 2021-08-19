@@ -147,7 +147,7 @@ def tag_factory(_name: str) -> tag:
   return type(_name, (tag,), {'__init__': tag_factory_(_name)})
 
 # Generate a class for each known tag
-class create_tags(Dict[str, tag]):
+class create_tags():
   def __init__(self) -> None:
     dir = os.path.dirname(__file__)
     with open(os.path.join(dir, 'known_tags.json')) as f:
@@ -156,13 +156,9 @@ class create_tags(Dict[str, tag]):
       # with an 'anonymous' dependency (i.e., htmlDependency(head = ....))
       known_tags.remove("head")
       for tag_ in known_tags:
-        self[tag_] = tag_factory(tag_)
+        setattr(self, tag_, tag_factory(tag_))
 
-  def __getattr__(self, name: str) -> tag:
-    return self[name]
-
-tags: Dict[str, tag] = create_tags()
-
+tags = create_tags()
 
 # --------------------------------------------------------
 # html strings
