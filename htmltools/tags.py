@@ -1,24 +1,24 @@
 import json
 import os
 from urllib.parse import quote
-from typing import Optional, Tuple, Union, List, Dict, Callable, Any
+from typing import Optional, Union, List, Dict, Callable, Any
 from .util import *
 
 # --------------------------------------------------------
 # tag_list() is essentially a tag() without attributes
 # --------------------------------------------------------
 class tag_list():
-  def __init__(self, *arguments: List) -> None:
-    self.children: List = []
-    if arguments: 
-      self.append_children(*arguments)
+  def __init__(self, *args: Any) -> None:
+    self.children: List[Any] = []
+    if args: 
+      self.append_children(*args)
   
-  def append_children(self, *args: List) -> None:
+  def append_children(self, *args: Any) -> None:
     if args: 
       self.children += flatten(args)
 
   def _retrieve_dependencies(self) -> List['html_dependency']:
-    deps = []
+    deps: List[Any] = []
     for x in self.children:
       if isinstance(x, html_dependency):
         deps.append(x)
@@ -36,7 +36,7 @@ class tag_list():
     }
   
   # TODO: can we get htmlDependencies working in IPython?
-  def show(self, renderer: str = "idisplay") -> None:
+  def show(self, renderer: str = "idisplay") -> Any:
     if renderer == "idisplay":
       from IPython.core.display import display as idisplay
       from IPython.core.display import HTML as ihtml
@@ -47,6 +47,11 @@ class tag_list():
   def __str__(self) -> str:
     return self.as_html()
 
+  def __eq__(self, other: Any) -> bool: 
+    if not isinstance(other, tag_list):
+      return False
+    return self.children == other.children
+
   def __repr__(self) -> str:
     return f'<tag_list with {len(self.children)} children>'
 
@@ -54,27 +59,41 @@ class tag_list():
 # Core tag logic
 # --------------------------------------------------------
 class tag(tag_list):
-  def __init__(self, _name: str, *arguments: List, children: Optional[List] = None, **kwargs: Dict[str, str]) -> None:
+  def __init__(self, _name: str, *arguments: Any, children: Optional[Any] = None, **kwargs: str) -> None:
     super().__init__(*arguments, children)
     self.name: str = _name
-    self.attrs: List = []
-    if kwargs: self.append_attrs(**kwargs)
+    self.attrs: List[Dict[str, str]] = []
+    self.append_attrs(**kwargs)
 
-  def __call__(self, *args: Any, **kwargs: Any) -> Any:
+  def __call__(self, *args: Any, **kwargs: str) -> 'tag':
       self.append_attrs(**kwargs)
       self.append_children(*args)
       return self
 
-  def append_attrs(self, **kwargs: Dict[str, str]) -> None:
-    if kwargs: self.attrs.append(kwargs)
+  def append_attrs(self, **kwargs: str) -> None:
+    if not kwargs:
+      return
+    for key, val in kwargs.items():
+      if not isinstance(val, str):
+        raise Exception(f"Attributes must be a type string ('{key}' is of type: {type(val)})")
+    self.attrs.append(kwargs)
+
+  def get_attr(self, key: str) -> Optional[str]:
+    return self._get_attrs().get(key)
+
+  def has_attr(self, key: str) -> bool:
+    return key in self._get_attrs()
+
+  def has_class(self, className: str) -> bool:
+    cl = self.get_attr("className")
+    return className in cl.split(" ") if cl else False
 
   def _get_attrs(self) -> Dict[str, str]:
-    attrs = {}
+    attrs: Dict[str, str] = {}
     for x in self.attrs:
       for key, val in x.items():
         if val is None: continue
-        val = val if isinstance(val, html) else str(val)
-        attrs[key] = (self.attrs.get(key) + val) if key in attrs else val
+        attrs[key] = (attrs.get(key) + " " + val) if key in attrs else val
     return attrs
 
   def as_html(self, indent: int = 0, eol: str = '\n') -> 'html':
@@ -83,9 +102,13 @@ class tag(tag_list):
     # get/write (flattened) dictionary of attributes
     for key, val in self._get_attrs().items():
       if val is None or False: continue
+      # e.g., _for_ -> for
+      if key.startswith('_') and key.endswith('_'):
+        key = key[1:-1]
       # e.g., data_foo -> data-foo
       key = key.replace('_', '-')
       # e.g., handle JSX alternatives for reserved words
+      # TODO: only do this when outside of a JSX tag
       key = 'class' if key == 'className' else key
       key = 'for' if key == 'htmlFor' else key
       # escape HTML attr values (unless they're wrapped in HTML())
@@ -94,7 +117,7 @@ class tag(tag_list):
 
     # Early exist for void elements http://dev.w3.org/html5/spec/single-page.html#void-elements
     if len(self.children) == 0 and self.name in ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]:
-      return html(html_ + ' />')
+      return html(html_ + '/>')
 
     # Early exit if no children
     html_ += '>'
@@ -111,11 +134,16 @@ class tag(tag_list):
     html_ += children_html(self.children, indent + 1, eol)
     return html(html_ + eol + ('  ' * indent) + close)
 
+  def __eq__(self, other: Any) -> bool: 
+    if not isinstance(other, tag):
+      return False
+    return self.name == other.name and self.attrs == other.attrs and self.children == other.children
+
   def __repr__(self) -> str:
     return f'<{self.name} with {len(self._get_attrs())} attributes & {len(self.children)} children>'
 
 
-def children_html(children: List, indent: int = 0, eol: str = '\n') -> 'html':
+def children_html(children: List[Any], indent: int = 0, eol: str = '\n') -> 'html':
   indent_ = '  ' * indent
   html_ = indent_
   n = len(children)
@@ -128,8 +156,7 @@ def children_html(children: List, indent: int = 0, eol: str = '\n') -> 'html':
       html_ += x.as_html(indent, eol)
     else:
       html_ += normalize_text(x) 
-      html_ += (eol + indent_) if i < n - 1 else ''
-  
+    html_ += (eol + indent_) if i < n - 1 else ''
   return html(html_)
 
 
@@ -137,13 +164,13 @@ def children_html(children: List, indent: int = 0, eol: str = '\n') -> 'html':
 # tag factory
 # --------------------------------------------------------
 
-def tag_factory_(_name: str) -> tag:
-  def __init__(self, *args: List, children: Optional[List] = None, **kwargs: Dict[str, str]) -> None:
+def tag_factory_(_name: str) -> Callable[[Any], 'tag']:
+  def __init__(self: tag, *args: Any, children: Optional[Any] = None, **kwargs: str) -> None:
     tag.__init__(self, _name, *args, children = children, **kwargs)
   return __init__
 
 # TODO: attribute verification?
-def tag_factory(_name: str) -> tag:
+def tag_factory(_name: str) -> Any:
   return type(_name, (tag,), {'__init__': tag_factory_(_name)})
 
 # Generate a class for each known tag
@@ -164,13 +191,13 @@ tags = create_tags()
 # html strings
 # --------------------------------------------------------
 class html(str):
-  def __new__(cls, *args: List[str]) -> str:
+  def __new__(cls, *args: str) -> 'html':
     return super().__new__(cls, '\n'.join(args))
 
-  # html() + html() should return html type
-  def __add__(self, other: Union[str, 'html_dependency']) -> str:
+  # html() + html() should return html()
+  def __add__(self, other: Union[str, 'html']) -> str:
     res = str.__add__(self, other)
-    return html(res) if isinstance(other, html_dependency) else res
+    return html(res) if isinstance(other, html) else res
 
 # --------------------------------------------------------
 # html dependencies
@@ -182,11 +209,11 @@ class html_dependency():
                      package: Optional[str] = None, all_files: bool = False,
                      meta: Optional[List[Dict[str, str]]] = None,
                      head: Optional[str] = None):
-    self.name = name
-    self.version = version
-    self.src = src if isinstance(src, dict) else {"file": src}
-    self.script = self._as_dicts(script, "src")
-    self.stylesheet = self._as_dicts(stylesheet, "href")
+    self.name: str = name
+    self.version: str = version
+    self.src: Dict[str, str] = src if isinstance(src, dict) else {"file": src}
+    self.script: List[Dict[str, str]] = self._as_dicts(script, "src")
+    self.stylesheet: List[Dict[str, str]] = self._as_dicts(stylesheet, "href")
     # Ensures a rel='stylesheet' default
     for i, s in enumerate(self.stylesheet):
       if "rel" not in s: self.stylesheet[i].update({"rel": "stylesheet"})
@@ -216,15 +243,15 @@ class html_dependency():
     for i, s in enumerate(scripts):
       scripts[i].update({"src": encode_path(s["src"])})
 
-    metas = [tags.meta(**m) for m in self.meta]
-    links = [tags.link(**s) for s in sheets]
-    scripts = [tags.script(**s) for s in scripts]
+    metas: List[tag] = [tags.meta(**m) for m in self.meta]
+    links: List[tag] = [tags.link(**s) for s in sheets]
+    scripts: List[tag] = [tags.script(**s) for s in scripts]
     head = html(self.head) if self.head else None
     return tag_list(*metas, *links, *scripts, head).as_html()
 
   def _src_path(self) -> str:
     dir = package_dir(self.package) if self.package else ""
-    return os.path.join(dir, self.src)
+    return os.path.join(dir, self.src.file)
 
   def _as_dicts(self, val: Any, attr: str) -> List[Dict[str, str]]:
     if val is None:
