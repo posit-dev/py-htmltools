@@ -1,8 +1,14 @@
 import json
 import os
+import shutil
+from pathlib import Path
 from urllib.parse import quote
 from typing import Optional, Union, List, Dict, Callable, Any
 from .util import *
+from packaging import version
+package_version = version.parse
+Version = version.Version
+
 
 # --------------------------------------------------------
 # tag_list() is essentially a tag() without attributes
@@ -17,40 +23,69 @@ class tag_list():
     if args: 
       self.children += flatten(args)
 
-  def _retrieve_dependencies(self) -> List['html_dependency']:
-    deps: List[Any] = []
+  def get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
+    children = [x for x in self.children if not isinstance(x, html_dependency)]
+    return children_html(children, indent, eol)
+  
+  def get_dependencies(self) -> List['html_dependency']:
+    deps: List[html_dependency] = []
     for x in self.children:
       if isinstance(x, html_dependency):
         deps.append(x)
       elif isinstance(x, tag_list):
-        deps += x._retrieve_dependencies()
-    return deps
-
-  def as_html(self, indent: int = 0, eol: str = '\n') -> 'html':
-    return children_html(self.children, indent, eol)
+        deps += x.get_dependencies()
+    # TODO: does it ever make sense to _not_ resolve dependencies?
+    unames = unique([d.name for d in deps])
+    resolved: List[html_dependency] = []
+    for nm in unames:
+      latest = max([d.version for d in deps if d.name == nm])
+      deps_ = [d for d in deps if d.name == nm]
+      for d in deps_:
+        if d.version == latest and not d in resolved:
+          resolved.append(d)
+    return resolved
     
-  def render(self) -> Dict[str, Any]:
-    return {
-      "html": self.as_html(), 
-      "dependencies": self._retrieve_dependencies()
-    }
-  
+  def save_html(self, file: str, libdir: str = "lib", background: Optional[str] = None, lang: Optional[str] = None) -> str:
+    # Copy dependencies to libdir (relative to the file)
+    dir = str(Path(file).resolve().parent)
+    libdir = os.path.join(dir, libdir)
+    deps = self.get_dependencies()
+    for d in deps:
+      d = d.copy_to(libdir, False)
+      d.make_relative(dir, False)
+    
+    # get the HTML document as a string
+    head = tag(
+      "head", tags.meta(charset = "utf-8"), 
+      html("\n".join([d.get_html_string() for d in deps]))
+    )
+    body = self if getattr(self, "name", "") == "body" else tags.body(self)
+    if background:
+      body.append_attrs(style = "background-color: " + background)
+    doc = tags.html(head, body)
+    if lang:
+      doc.append_attrs(lang = lang)
+    html_ = "<!DOCTYPE html>\n" + doc.get_html_string()
+
+    with open(file, "w") as f:
+      f.write(html_)
+    
+    return file
+
   # TODO: can we get htmlDependencies working in IPython?
   def show(self, renderer: str = "idisplay") -> Any:
     if renderer == "idisplay":
       from IPython.core.display import display as idisplay
       from IPython.core.display import HTML as ihtml
-      return idisplay(ihtml(self.as_html()))
+      return idisplay(ihtml(self.get_html_string()))
     else:
       raise Exception(f"Unknown renderer {renderer}")
 
   def __str__(self) -> str:
-    return self.as_html()
+    return self.get_html_string()
 
   def __eq__(self, other: Any) -> bool: 
-    if not isinstance(other, tag_list):
-      return False
-    return self.children == other.children
+    return equals_impl(self, other)
 
   def __repr__(self) -> str:
     return f'<tag_list with {len(self.children)} children>'
@@ -96,7 +131,7 @@ class tag(tag_list):
         attrs[key] = (attrs.get(key) + " " + val) if key in attrs else val
     return attrs
 
-  def as_html(self, indent: int = 0, eol: str = '\n') -> 'html':
+  def get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
     html_ = '<' + self.name
 
     # get/write (flattened) dictionary of attributes
@@ -115,50 +150,33 @@ class tag(tag_list):
       val = val if isinstance(val, html) else html_escape(str(val), attr = True)
       html_ += f' {key}="{val}"'
 
+    # Dependencies are ignored in the HTML output
+    children = [x for x in self.children if not isinstance(x, html_dependency)]
+
     # Early exist for void elements http://dev.w3.org/html5/spec/single-page.html#void-elements
-    if len(self.children) == 0 and self.name in ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]:
+    if len(children) == 0 and self.name in ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]:
       return html(html_ + '/>')
 
     # Early exit if no children
     html_ += '>'
     close = '</' + self.name + '>'
-    if len(self.children) == 0:
+    if len(children) == 0:
       return html(html_ + close)
 
     # Inline a single/empty child text node
-    if len(self.children) == 1 and isinstance(self.children[0], str):
-      return html(html_ + normalize_text(self.children[0]) + close)
+    if len(children) == 1 and isinstance(children[0], str):
+      return html(html_ + normalize_text(children[0]) + close)
 
     # Write children
     html_ += eol
-    html_ += children_html(self.children, indent + 1, eol)
+    html_ += children_html(children, indent + 1, eol)
     return html(html_ + eol + ('  ' * indent) + close)
 
   def __eq__(self, other: Any) -> bool: 
-    if not isinstance(other, tag):
-      return False
-    return self.name == other.name and self.attrs == other.attrs and self.children == other.children
+    return equals_impl(self, other)
 
   def __repr__(self) -> str:
     return f'<{self.name} with {len(self._get_attrs())} attributes & {len(self.children)} children>'
-
-
-def children_html(children: List[Any], indent: int = 0, eol: str = '\n') -> 'html':
-  indent_ = '  ' * indent
-  html_ = indent_
-  n = len(children)
-  for i, x in enumerate(children):
-    if isinstance(x, html_dependency):
-      continue
-    if isinstance(x, tag):
-      html_ += x.as_html(indent, eol)
-    elif isinstance(x, tag_list):
-      html_ += x.as_html(indent, eol)
-    else:
-      html_ += normalize_text(x) 
-    html_ += (eol + indent_) if i < n - 1 else ''
-  return html(html_)
-
 
 # --------------------------------------------------------
 # tag factory
@@ -203,14 +221,15 @@ class html(str):
 # html dependencies
 # --------------------------------------------------------
 class html_dependency():
-  def __init__(self, name: str, version: str, src: Union[str, Dict[str, str]],
+  def __init__(self, name: str, version: Union[str, Version], 
+                     src: Union[str, Dict[str, str]],
                      script: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
                      stylesheet: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
                      package: Optional[str] = None, all_files: bool = False,
                      meta: Optional[List[Dict[str, str]]] = None,
                      head: Optional[str] = None):
     self.name: str = name
-    self.version: str = version
+    self.version: Version = version if isinstance(version, Version) else package_version(version)
     self.src: Dict[str, str] = src if isinstance(src, dict) else {"file": src}
     self.script: List[Dict[str, str]] = self._as_dicts(script, "src")
     self.stylesheet: List[Dict[str, str]] = self._as_dicts(stylesheet, "href")
@@ -227,7 +246,7 @@ class html_dependency():
 
   # TODO: do we really need hrefFilter? Seems rmarkdown was the only one that needed it
   # https://github.com/search?l=r&q=%22hrefFilter%22+user%3Acran+language%3AR&ref=searchresults&type=Code&utf8=%E2%9C%93
-  def as_html(self, src_type: str = "file", encode_path: Callable[[str], str] = quote) -> html:
+  def get_html_string(self, src_type: str = "file", encode_path: Callable[[str], str] = quote) -> html:
     src = self.src[src_type]
     if not src:
       raise Exception(f"HTML dependency {self.name}@{self.version} has no '{src_type}' definition")
@@ -235,23 +254,77 @@ class html_dependency():
     # Assume href is already URL encoded
     src = encode_path(src) if src_type == "file" else src
 
-    sheets = self.stylesheet.copy()
-    for i, s in enumerate(sheets):
-      sheets[i].update({"href": encode_path(s["href"])})
+    sheets = []
+    for i, s in enumerate(self.stylesheet):
+      s_ = s.copy()
+      s_["href"] = os.path.join(src, encode_path(s_["href"]))
+      sheets.append(s_)
 
-    scripts = self.script.copy()
-    for i, s in enumerate(scripts):
-      scripts[i].update({"src": encode_path(s["src"])})
+    scripts = []
+    for i, s in enumerate(self.script):
+      s_ = s.copy()
+      s_["src"] = os.path.join(src, encode_path(s_["src"]))
+      scripts.append(s_)
 
     metas: List[tag] = [tags.meta(**m) for m in self.meta]
     links: List[tag] = [tags.link(**s) for s in sheets]
     scripts: List[tag] = [tags.script(**s) for s in scripts]
     head = html(self.head) if self.head else None
-    return tag_list(*metas, *links, *scripts, head).as_html()
+    return tag_list(*metas, *links, *scripts, head).get_html_string()
 
-  def _src_path(self) -> str:
-    dir = package_dir(self.package) if self.package else ""
-    return os.path.join(dir, self.src.file)
+  def copy_to(self, path: str, must_work: bool = True) -> 'html_dependency':
+    src = self.src['file']
+    version = str(self.version)
+    if not src:
+      if must_work:
+        raise Exception(f"Failed to copy HTML dependency {self.name}@{version} to {path} because it's local source directory doesn't exist")
+      else:
+        return self
+    if not path or path == "/":
+      raise Exception(f"path cannot be empty or '/'")
+    
+    if self.package:
+      src = os.path.join(package_dir(self.package), src)
+    
+    # Collect all the source files
+    if self.all_files:
+      src_files = list(Path(src).glob("*"))
+    else:
+      src_files = flatten([[s["src"] for s in self.script], [s["href"] for s in self.stylesheet]])
+
+    # setup the target directory
+    # TODO: add option to exclude version
+    target = os.path.join(path, self.name + "@" + version)
+    if os.path.exists(target): 
+      shutil.rmtree(target)
+    Path(target).mkdir(parents=True, exist_ok=True)
+
+    # copy all the files
+    for f in src_files:
+      f = os.path.join(src, f)
+      if not os.path.isfile(f):
+        raise Exception(f"Failed to copy HTML dependency {self.name}@{version} to {path} because {f} doesn't exist")
+      shutil.copy2(f, target)
+
+    # return a new instance of this class with the new path
+    kwargs = self.__dict__.copy()
+    kwargs['src']['file'] = Path(target).resolve()
+    return html_dependency(**kwargs)
+
+  def make_relative(self, path: str, must_work: bool = True) -> 'html_dependency':
+    path = Path(path).resolve()
+    src = Path(self.src['file'])
+    if not src.is_absolute():
+      raise Exception("Failed to make HTML dependency {self.name}@{self.version} relative because it's local source directory is not absolute")
+
+    # TODO: this was rushed, make sure it's correct
+    kwargs = self.__dict__.copy()
+    for p in src.parents:
+      if p.samefile(path):
+        kwargs['src']['file'] = str(src)[len(str(path))+1:]
+        return html_dependency(**kwargs)
+
+    raise Exception("The path {path} does not appear to be a descendant of {src}")
 
   def _as_dicts(self, val: Any, attr: str) -> List[Dict[str, str]]:
     if val is None:
@@ -266,7 +339,42 @@ class html_dependency():
     return f'<html_dependency "{self.name}@{self.version}">'
 
   def __str__(self):
-    return self.as_html()
+    return self.get_html_string()
+
+  def __eq__(self, other: Any) -> bool: 
+    return equals_impl(self, other)
+
+
+# --------------------------------------------------------
+# NB: html deps should be removed from children at this point
+def children_html(children: List[Any], indent: int = 0, eol: str = '\n') -> 'html':
+  indent_ = '  ' * indent
+  html_ = indent_
+  n = len(children)
+  for i, x in enumerate(children):
+    if isinstance(x, tag):
+      html_ += x.get_html_string(indent, eol)
+    elif isinstance(x, tag_list):
+      html_ += x.get_html_string(indent, eol)
+    else:
+      html_ += normalize_text(x) 
+    html_ += (eol + indent_) if i < n - 1 else ''
+  return html(html_)
 
 def normalize_text(txt: Any):
   return txt if isinstance(txt, html) else html_escape(str(txt), attr = False)
+
+def equals_impl(self, other: Any) -> bool:
+  if not isinstance(other, type(self)):
+    return False
+  for key in self.__dict__.keys():
+    if getattr(self, key, None) != getattr(other, key, None):
+      return False
+  return True
+
+def unique(x: List[Any]) -> List[Any]:
+  res: List[Any] = []
+  for i in x:
+    if i not in res:
+      res.append(i)
+  return res

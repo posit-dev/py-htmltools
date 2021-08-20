@@ -496,49 +496,6 @@ test_that("Testing for attributes on tags", {
   )
 })
 
-test_that("Getting attributes from tags", {
-  # Getting an attribute from a tag with no attributes
-  t1 <- tags.div("foo")
-  expect_identical(
-    tagGetAttribute(t1, "class"),
-    NULL
-  )
-
-  t2 <- tags.div("foo", class = "c1")
-
-  # Getting an attribute from a tag without the correct attribute
-  expect_identical(
-    tagGetAttribute(t2, "id"),
-    NULL
-  )
-
-  # Getting an attribute from a tag with the a single value for the attribute
-  expect_identical(
-    tagGetAttribute(t2, "class"),
-    "c1"
-  )
-
-  # Getting an attribute from a tag with multiple matching attributes
-  t3 <- tags.div("foo", class = "c1", id = "foo", class = "c2")
-  expect_identical(
-    tagGetAttribute(t3, "class"),
-    "c1 c2"
-  )
-
-  # Getting an attribute from a tag where the attributes were factors
-  t4 <- tags.div("foo", class = as.factor("c1"), class = as.factor("c2"))
-  expect_identical(
-    tagGetAttribute(t4, "class"),
-    "c1 c2"
-  )
-
-  # Getting a numeric attribute from a tag
-  t5 <- tags.div("foo", class = 78)
-  expect_identical(
-    tagGetAttribute(t5, "class"),
-    "78"
-  )
-})
 
 test_that("NA attributes are rendered correctly", {
   expect_identical(

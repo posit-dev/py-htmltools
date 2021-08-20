@@ -6,7 +6,7 @@ def expect_html(tag: tag, expected: str):
 
 def test_basic_tag_api():
   children = [h1("hello"), h2("world"), "text", None, ["list", ["here"]]]
-  props = dict(className = "foo", htmlFor = "bar", id = "baz",)
+  props = dict(className = "foo", htmlFor = "bar", id = "baz", bool="")
   x1 = div(*children, **props)
   x2 = div(**props, children = children)
   x3 = div(**props)(*children)
@@ -14,9 +14,9 @@ def test_basic_tag_api():
   x4.append_attrs(**props)
   x4.append_children(*children)
   assert x1 == x2 == x3 == x4
-  assert x1.has_attr("id")
+  assert x1.has_attr("id") and x1.has_attr("bool")
   assert not x1.has_attr("missing") 
-  expect_html(x1, '<div class="foo" for="bar" id="baz">\n  <h1>hello</h1>\n  <h2>world</h2>\n  text\n  list\n  here\n</div>')
+  expect_html(x1, '<div class="foo" for="bar" id="baz" bool="">\n  <h1>hello</h1>\n  <h2>world</h2>\n  text\n  list\n  here\n</div>')
   assert x1.get_attr("className") == "foo"
   x1.append_attrs(className = "bar")
   assert x1.get_attr("className") == "foo bar"
