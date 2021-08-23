@@ -72,9 +72,9 @@ def test_script_input():
   dep2 = fake_dep(script = ["js/foo bar.js"], stylesheet = ["css/bar foo.css"])
   dep3 = fake_dep(script = [{"src": "js/foo bar.js"}], stylesheet = [{"href": "css/bar foo.css"}])
   assert dep1 == dep2 == dep3
-  assert dep1.get_html_string() == '<link href="css/bar%20foo.css" rel="stylesheet"/>\n<script src="js/foo%20bar.js"></script>'
+  assert str(dep1.as_tags()) == '<link href="css/bar%20foo.css" rel="stylesheet"/>\n<script src="js/foo%20bar.js"></script>'
   # Make sure repeated calls to as_html() repeatedly encode
-  assert dep1.get_html_string() == '<link href="css/bar%20foo.css" rel="stylesheet"/>\n<script src="js/foo%20bar.js"></script>'
+  assert str(dep1.as_tags()) == '<link href="css/bar%20foo.css" rel="stylesheet"/>\n<script src="js/foo%20bar.js"></script>'
 
 #def test_nested_deps():
 #    src = "https://cdn.com/libs/p1/0.1"

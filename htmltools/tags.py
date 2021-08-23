@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import tempfile
 from pathlib import Path
 from urllib.parse import quote
 from typing import Optional, Union, List, Dict, Callable, Any
@@ -9,6 +10,7 @@ from packaging import version
 package_version = version.parse
 Version = version.Version
 
+AttrsType = Union[str, bool, None]
 
 # --------------------------------------------------------
 # tag_list() is essentially a tag() without attributes
@@ -34,7 +36,6 @@ class tag_list():
         deps.append(x)
       elif isinstance(x, tag_list):
         deps += x.get_dependencies()
-    # TODO: does it ever make sense to _not_ resolve dependencies?
     unames = unique([d.name for d in deps])
     resolved: List[html_dependency] = []
     for nm in unames:
@@ -44,8 +45,8 @@ class tag_list():
         if d.version == latest and not d in resolved:
           resolved.append(d)
     return resolved
-    
-  def save_html(self, file: str, libdir: str = "lib", background: Optional[str] = None, lang: Optional[str] = None) -> str:
+  
+  def save_html(self, file: str, libdir: str = "lib") -> str:
     # Copy dependencies to libdir (relative to the file)
     dir = str(Path(file).resolve().parent)
     libdir = os.path.join(dir, libdir)
@@ -54,32 +55,44 @@ class tag_list():
       d = d.copy_to(libdir, False)
       d.make_relative(dir, False)
     
-    # get the HTML document as a string
-    head = tag(
-      "head", tags.meta(charset = "utf-8"), 
-      html("\n".join([d.get_html_string() for d in deps]))
-    )
-    body = self if getattr(self, "name", "") == "body" else tags.body(self)
-    if background:
-      body.append_attrs(style = "background-color: " + background)
-    doc = tags.html(head, body)
-    if lang:
-      doc.append_attrs(lang = lang)
-    html_ = "<!DOCTYPE html>\n" + doc.get_html_string()
+    if not isinstance(self, html_document):
+      head = tag_list(
+        tags.meta(charset = "utf-8"), 
+        *[d.as_tags() for d in deps]
+      )
+      self = html_document(self, head)
 
     with open(file, "w") as f:
-      f.write(html_)
+      f.write(self.get_html_string())
     
     return file
 
-  # TODO: can we get htmlDependencies working in IPython?
-  def show(self, renderer: str = "idisplay") -> Any:
-    if renderer == "idisplay":
+  def show(self, renderer: str = "auto") -> Any:
+    if renderer == "auto":
+      try:
+        import IPython
+        ipy = IPython.get_ipython()
+        renderer = "ipython" if ipy else "browser"
+      except ImportError:
+        renderer = "browser"
+
+    # TODO: can we get htmlDependencies working in IPython?
+    if renderer == "ipython":
       from IPython.core.display import display as idisplay
       from IPython.core.display import HTML as ihtml
       return idisplay(ihtml(self.get_html_string()))
-    else:
-      raise Exception(f"Unknown renderer {renderer}")
+    
+    if renderer == "browser":
+      tmpdir  = tempfile.mkdtemp()
+      file = os.path.join(tmpdir, "index.html")
+      self.save_html(file)
+      port = get_open_port()
+      http_server_bg(port, tmpdir)
+      import webbrowser
+      webbrowser.open("http://localhost:" + str(port))
+      return file
+    
+    raise Exception(f"Unknown renderer {renderer}")
 
   def __str__(self) -> str:
     return self.get_html_string()
@@ -94,23 +107,20 @@ class tag_list():
 # Core tag logic
 # --------------------------------------------------------
 class tag(tag_list):
-  def __init__(self, _name: str, *arguments: Any, children: Optional[Any] = None, **kwargs: str) -> None:
+  def __init__(self, _name: str, *arguments: Any, children: Optional[Any] = None, **kwargs: AttrsType) -> None:
     super().__init__(*arguments, children)
     self.name: str = _name
     self.attrs: List[Dict[str, str]] = []
     self.append_attrs(**kwargs)
 
-  def __call__(self, *args: Any, **kwargs: str) -> 'tag':
+  def __call__(self, *args: Any, **kwargs: AttrsType) -> 'tag':
       self.append_attrs(**kwargs)
       self.append_children(*args)
       return self
 
-  def append_attrs(self, **kwargs: str) -> None:
+  def append_attrs(self, **kwargs: AttrsType) -> None:
     if not kwargs:
       return
-    for key, val in kwargs.items():
-      if not isinstance(val, str):
-        raise Exception(f"Attributes must be a type string ('{key}' is of type: {type(val)})")
     self.attrs.append(kwargs)
 
   def get_attr(self, key: str) -> Optional[str]:
@@ -183,7 +193,7 @@ class tag(tag_list):
 # --------------------------------------------------------
 
 def tag_factory_(_name: str) -> Callable[[Any], 'tag']:
-  def __init__(self: tag, *args: Any, children: Optional[Any] = None, **kwargs: str) -> None:
+  def __init__(self: tag, *args: Any, children: Optional[Any] = None, **kwargs: AttrsType) -> None:
     tag.__init__(self, _name, *args, children = children, **kwargs)
   return __init__
 
@@ -204,6 +214,26 @@ class create_tags():
         setattr(self, tag_, tag_factory(tag_))
 
 tags = create_tags()
+
+
+# --------------------------------------------------------
+# html documents
+# --------------------------------------------------------
+class html_document(tag):
+  def __new__(cls, body: tag_list, head: Optional[tag_list]=None, **kwargs: AttrsType) -> tag:
+    body = cls._wrap_tag_value(body, "body")
+    head = cls._wrap_tag_value(head, "head")
+    return tag("html", head, body, **kwargs)
+  
+  def get_html_string(self, indent: int, eol: str) -> 'html':
+    return "<!DOCTYPE html>" + eol + super().get_html_string(indent=indent, eol=eol)
+
+  def _wrap_tag_value(x, name) -> tag:
+    if not x:
+      return None
+    if isinstance(x, tag) and x.name == name:
+      return x
+    return tag(name, x)
 
 # --------------------------------------------------------
 # html strings
@@ -246,7 +276,7 @@ class html_dependency():
 
   # TODO: do we really need hrefFilter? Seems rmarkdown was the only one that needed it
   # https://github.com/search?l=r&q=%22hrefFilter%22+user%3Acran+language%3AR&ref=searchresults&type=Code&utf8=%E2%9C%93
-  def get_html_string(self, src_type: str = "file", encode_path: Callable[[str], str] = quote) -> html:
+  def as_tags(self, src_type: str = "file", encode_path: Callable[[str], str] = quote) -> html:
     src = self.src[src_type]
     if not src:
       raise Exception(f"HTML dependency {self.name}@{self.version} has no '{src_type}' definition")
@@ -270,7 +300,7 @@ class html_dependency():
     links: List[tag] = [tags.link(**s) for s in sheets]
     scripts: List[tag] = [tags.script(**s) for s in scripts]
     head = html(self.head) if self.head else None
-    return tag_list(*metas, *links, *scripts, head).get_html_string()
+    return tag_list(*metas, *links, *scripts, head)
 
   def copy_to(self, path: str, must_work: bool = True) -> 'html_dependency':
     src = self.src['file']
@@ -301,10 +331,12 @@ class html_dependency():
 
     # copy all the files
     for f in src_files:
-      f = os.path.join(src, f)
-      if not os.path.isfile(f):
-        raise Exception(f"Failed to copy HTML dependency {self.name}@{version} to {path} because {f} doesn't exist")
-      shutil.copy2(f, target)
+      src_f = os.path.join(src, f)
+      if not os.path.isfile(src_f):
+        raise Exception(f"Failed to copy HTML dependency {self.name}@{version} to {path} because {src_f} doesn't exist")
+      tgt_f = os.path.join(target, f)
+      os.makedirs(os.path.dirname(tgt_f), exist_ok=True)
+      shutil.copy2(src_f, tgt_f)
 
     # return a new instance of this class with the new path
     kwargs = self.__dict__.copy()
@@ -371,10 +403,3 @@ def equals_impl(self, other: Any) -> bool:
     if getattr(self, key, None) != getattr(other, key, None):
       return False
   return True
-
-def unique(x: List[Any]) -> List[Any]:
-  res: List[Any] = []
-  for i in x:
-    if i not in res:
-      res.append(i)
-  return res
