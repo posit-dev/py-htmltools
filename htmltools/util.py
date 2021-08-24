@@ -41,7 +41,7 @@ def unique(x: List[Any]) -> List[Any]:
       res.append(i)
   return res
 
-def html_escape(text: str, attr: bool = False):
+def html_escape(text: str, attr: bool = False) -> str:
   specials = {
     "&": "&amp;",
     ">": "&gt;",

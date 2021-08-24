@@ -25,9 +25,24 @@ class tag_list():
     if args: 
       self.children += flatten(args)
 
+  def prepend_children(self, *args: Any) -> None:
+    if args:
+      self.children = flatten(args) + self.children
+
   def get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
     children = [x for x in self.children if not isinstance(x, html_dependency)]
-    return children_html(children, indent, eol)
+    n = len(children)
+    indent_ = '  ' * indent
+    html_ = indent_
+    for i, x in enumerate(children):
+      if isinstance(x, tag):
+        html_ += x.get_html_string(indent, eol)
+      elif isinstance(x, tag_list):
+        html_ += x.get_html_string(indent, eol)
+      else:
+        html_ += normalize_text(x, getattr(self, "_is_jsx", False))
+      html_ += (eol + indent_) if i < n - 1 else ''
+    return html(html_)
   
   def get_dependencies(self) -> List['html_dependency']:
     deps: List[html_dependency] = []
@@ -54,13 +69,6 @@ class tag_list():
     for d in deps:
       d = d.copy_to(libdir, False)
       d.make_relative(dir, False)
-    
-    if not isinstance(self, html_document):
-      head = tag_list(
-        tags.meta(charset = "utf-8"), 
-        *[d.as_tags() for d in deps]
-      )
-      self = html_document(self, head)
 
     with open(file, "w") as f:
       f.write(self.get_html_string())
@@ -113,6 +121,18 @@ class tag(tag_list):
     self.attrs: List[Dict[str, str]] = []
     self.append_attrs(**kwargs)
 
+    # If 1st letter of tag is capital, then it, as well as it's children, are treated as JSX
+    if _name[:1] == _name[:1].upper():
+      def flag_as_jsx(x: Any):
+        if isinstance(x, tag_list):
+          setattr(x, "_is_jsx", True)
+          x.children = [flag_as_jsx(y) for y in x.children]
+        return x
+      self = flag_as_jsx(self)
+    
+    # http://dev.w3.org/html5/spec/single-page.html#void-elements
+    self._is_void = getattr(self, "_is_jsx", False) or _name in ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
+
   def __call__(self, *args: Any, **kwargs: AttrsType) -> 'tag':
       self.append_attrs(**kwargs)
       self.append_children(*args)
@@ -121,7 +141,12 @@ class tag(tag_list):
   def append_attrs(self, **kwargs: AttrsType) -> None:
     if not kwargs:
       return
-    self.attrs.append(kwargs)
+    # e.g., _foo_bar_ -> foo-bar
+    def encode_key(x: str) -> str:
+      if x.startswith('_') and x.endswith('_'):
+        x = x[1:-1]
+      return x.replace("_", "-")
+    self.attrs.append({encode_key(k): v for k, v in kwargs.items()})
 
   def get_attr(self, key: str) -> Optional[str]:
     return self._get_attrs().get(key)
@@ -129,45 +154,28 @@ class tag(tag_list):
   def has_attr(self, key: str) -> bool:
     return key in self._get_attrs()
 
-  def has_class(self, className: str) -> bool:
-    cl = self.get_attr("className")
-    return className in cl.split(" ") if cl else False
-
-  def _get_attrs(self) -> Dict[str, str]:
-    attrs: Dict[str, str] = {}
-    for x in self.attrs:
-      for key, val in x.items():
-        if val is None: continue
-        attrs[key] = (attrs.get(key) + " " + val) if key in attrs else val
-    return attrs
+  def has_class(self, _class_: str) -> bool:
+    cl = self.get_attr("class")
+    return _class_ in cl.split(" ") if cl else False
 
   def get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
     html_ = '<' + self.name
 
-    # get/write (flattened) dictionary of attributes
+    # write attributes
     for key, val in self._get_attrs().items():
       if val is None or False: continue
-      # e.g., _for_ -> for
-      if key.startswith('_') and key.endswith('_'):
-        key = key[1:-1]
-      # e.g., data_foo -> data-foo
-      key = key.replace('_', '-')
-      # e.g., handle JSX alternatives for reserved words
-      # TODO: only do this when outside of a JSX tag
-      key = 'class' if key == 'className' else key
-      key = 'for' if key == 'htmlFor' else key
-      # escape HTML attr values (unless they're wrapped in HTML())
-      val = val if isinstance(val, html) else html_escape(str(val), attr = True)
-      html_ += f' {key}="{val}"'
+      quotes = ['{', '}'] if isinstance(val, jsx) else ['"', '"']
+      val = str(val) if isinstance(val, html) else html_escape(val, attr=True)
+      html_ += f' {key}={quotes[0]}{val}{quotes[1]}'
 
     # Dependencies are ignored in the HTML output
     children = [x for x in self.children if not isinstance(x, html_dependency)]
 
-    # Early exist for void elements http://dev.w3.org/html5/spec/single-page.html#void-elements
-    if len(children) == 0 and self.name in ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]:
+    # Don't enclose JSX/void elements if there are no children
+    if len(children) == 0 and self._is_void:
       return html(html_ + '/>')
 
-    # Early exit if no children
+    # Other empty tags are enclosed
     html_ += '>'
     close = '</' + self.name + '>'
     if len(children) == 0:
@@ -175,12 +183,22 @@ class tag(tag_list):
 
     # Inline a single/empty child text node
     if len(children) == 1 and isinstance(children[0], str):
-      return html(html_ + normalize_text(children[0]) + close)
+      is_jsx = getattr(self, "_is_jsx", False)
+      return html(html_ + normalize_text(children[0], is_jsx) + close)
 
     # Write children
     html_ += eol
-    html_ += children_html(children, indent + 1, eol)
+    html_ += tag_list.get_html_string(self, indent + 1, eol)
     return html(html_ + eol + ('  ' * indent) + close)
+
+  def _get_attrs(self) -> Dict[str, str]:
+    attrs: Dict[str, str] = {}
+    for x in self.attrs:
+      for key, val in x.items():
+        if val is None:
+          continue
+        attrs[key] = (attrs.get(key) + " " + val) if key in attrs else val
+    return attrs
 
   def __eq__(self, other: Any) -> bool: 
     return equals_impl(self, other)
@@ -220,20 +238,19 @@ tags = create_tags()
 # html documents
 # --------------------------------------------------------
 class html_document(tag):
-  def __new__(cls, body: tag_list, head: Optional[tag_list]=None, **kwargs: AttrsType) -> tag:
-    body = cls._wrap_tag_value(body, "body")
-    head = cls._wrap_tag_value(head, "head")
-    return tag("html", head, body, **kwargs)
-  
-  def get_html_string(self, indent: int, eol: str) -> 'html':
-    return "<!DOCTYPE html>" + eol + super().get_html_string(indent=indent, eol=eol)
-
-  def _wrap_tag_value(x, name) -> tag:
-    if not x:
-      return None
-    if isinstance(x, tag) and x.name == name:
-      return x
-    return tag(name, x)
+  def __init__(self, body: tag_list, head: Optional[tag_list]=None, **kwargs: AttrsType):
+    super().__init__("html", **kwargs)
+    head = head.children if isinstance(head, tag) and head.name == "head" else head
+    body = body.children if isinstance(body, tag) and body.name == "body" else body
+    deps = tag_list(body, head).get_dependencies()
+    self.append_children(
+      tag("head", tags.meta(charset="utf-8"), head, *[d.as_tags() for d in deps]),
+      tag("body", body)
+    )
+    
+  def get_html_string(self, indent: int=0, eol: str='\n') -> 'html':
+    html_ = super().get_html_string(indent=indent, eol=eol)
+    return "<!DOCTYPE html>" + eol + html_
 
 # --------------------------------------------------------
 # html strings
@@ -246,6 +263,11 @@ class html(str):
   def __add__(self, other: Union[str, 'html']) -> str:
     res = str.__add__(self, other)
     return html(res) if isinstance(other, html) else res
+
+# --------------------------------------------------------
+# jsx tags
+# --------------------------------------------------------
+jsx = type('jsx', (html, ), {"__init__": html.__init__})
 
 # --------------------------------------------------------
 # html dependencies
@@ -271,8 +293,6 @@ class html_dependency():
     self.all_files = all_files
     self.meta = meta if meta else []
     self.head = head
-    # TODO: do we need attachments?
-    #self.attachment = attachment
 
   # TODO: do we really need hrefFilter? Seems rmarkdown was the only one that needed it
   # https://github.com/search?l=r&q=%22hrefFilter%22+user%3Acran+language%3AR&ref=searchresults&type=Code&utf8=%E2%9C%93
@@ -377,24 +397,17 @@ class html_dependency():
     return equals_impl(self, other)
 
 
-# --------------------------------------------------------
-# NB: html deps should be removed from children at this point
-def children_html(children: List[Any], indent: int = 0, eol: str = '\n') -> 'html':
-  indent_ = '  ' * indent
-  html_ = indent_
-  n = len(children)
-  for i, x in enumerate(children):
-    if isinstance(x, tag):
-      html_ += x.get_html_string(indent, eol)
-    elif isinstance(x, tag_list):
-      html_ += x.get_html_string(indent, eol)
-    else:
-      html_ += normalize_text(x) 
-    html_ += (eol + indent_) if i < n - 1 else ''
-  return html(html_)
-
-def normalize_text(txt: Any):
-  return txt if isinstance(txt, html) else html_escape(str(txt), attr = False)
+def normalize_text(txt: Any, is_jsx: bool = False) -> str:
+  txt_ = str(txt)
+  if isinstance(txt, jsx):
+    return '{' + txt_ + '}'
+  if isinstance(txt, html):
+    return txt_
+  txt_ = html_escape(txt_, attr=False)
+  if is_jsx:
+    # https://github.com/facebook/react/issues/1545
+    txt_ = re.sub('([{}]+)', r'{"\1"}', txt_)
+  return txt_
 
 def equals_impl(self, other: Any) -> bool:
   if not isinstance(other, type(self)):

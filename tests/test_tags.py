@@ -1,4 +1,3 @@
-import pytest
 from htmltools import *
 
 def expect_html(tag: tag, expected: str):
@@ -6,7 +5,7 @@ def expect_html(tag: tag, expected: str):
 
 def test_basic_tag_api():
   children = [h1("hello"), h2("world"), "text", None, ["list", ["here"]]]
-  props = dict(className = "foo", htmlFor = "bar", id = "baz", bool="")
+  props = dict(_class_ = "foo", _for_ = "bar", id = "baz", bool="")
   x1 = div(*children, **props)
   x2 = div(**props, children = children)
   x3 = div(**props)(*children)
@@ -17,9 +16,9 @@ def test_basic_tag_api():
   assert x1.has_attr("id") and x1.has_attr("bool")
   assert not x1.has_attr("missing") 
   expect_html(x1, '<div class="foo" for="bar" id="baz" bool="">\n  <h1>hello</h1>\n  <h2>world</h2>\n  text\n  list\n  here\n</div>')
-  assert x1.get_attr("className") == "foo"
-  x1.append_attrs(className = "bar")
-  assert x1.get_attr("className") == "foo bar"
+  assert x1.get_attr("class") == "foo"
+  x1.append_attrs(_class_ = "bar")
+  assert x1.get_attr("class") == "foo bar"
   assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing")
   
 
@@ -38,6 +37,7 @@ def test_tag_writing():
     tags.b("one", "two", span("foo", "bar", span("baz"))),
     '<b>\n  one\n  two\n  <span>\n    foo\n    bar\n    <span>baz</span>\n  </span>\n</b>'
   )
+  expect_html(tags.area(), '<area/>')
 
 
 def test_tag_escaping():
@@ -46,4 +46,23 @@ def test_tag_escaping():
   # Text in HTML() isn't escaped
   expect_html(div(html("<a&b>")), "<div><a&b></div>")
   # Text in a property is escaped
-  expect_html(div("text", className = "<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
+  expect_html(div("text", _class_ = "<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
+  expect_html(div("text", _class_ = html("<a&b>")), '<div class="<a&b>">text</div>')
+
+
+def test_document_writing():
+  expect_html(
+    html_document("foo"),
+    '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n  </head>\n  <body>foo</body>\n</html>'
+  )
+  desc = tags.meta(name="description", content="test")
+  expect_html(
+    html_document(div("foo"), desc, lang = "en"),
+    '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="utf-8"/>\n    <meta name="description" content="test"/>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
+  )
+  body = div("foo", html_dependency("foo", "1.0", "bar", stylesheet="css/my styles.css", script = "js/my-js.js"))
+  # TODO: the indenting not quite right here
+  expect_html(
+    html_document(body, desc),
+    '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n    <meta name="description" content="test"/>\n        <link href="bar/css/my%20styles.css" rel="stylesheet"/>\n    <script src="bar/js/my-js.js"></script>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
+  )
