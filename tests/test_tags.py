@@ -1,4 +1,7 @@
+import os
+from tempfile import TemporaryDirectory
 from htmltools import *
+from htmltools.util import cwd
 
 def expect_html(tag: tag, expected: str):
   assert str(tag) == expected
@@ -19,8 +22,11 @@ def test_basic_tag_api():
   assert x1.get_attr("class") == "foo"
   x1.append_attrs(_class_ = "bar")
   assert x1.get_attr("class") == "foo bar"
-  assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing")
-  
+  assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing") 
+  x5 = tag_list()
+  x5.append_children(a())
+  x5.prepend_children(span())
+  expect_html(x5, '<span></span>\n<a></a>')
 
 def test_tag_writing():
   expect_html(tag_list("hi"), "hi")
@@ -39,30 +45,42 @@ def test_tag_writing():
   )
   expect_html(tags.area(), '<area/>')
 
-
 def test_tag_escaping():
   # Regular text is escaped
   expect_html(div("<a&b>"), "<div>&lt;a&amp;b&gt;</div>")
-  # Text in HTML() isn't escaped
+  # Children wrapped in html() isn't escaped
   expect_html(div(html("<a&b>")), "<div><a&b></div>")
   # Text in a property is escaped
-  expect_html(div("text", _class_ = "<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
-  expect_html(div("text", _class_ = html("<a&b>")), '<div class="<a&b>">text</div>')
+  expect_html(div("text", _class_="<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
+  # Attributes wrapped in html() isn't escaped
+  expect_html(div("text", _class_=html("<a&b>")), '<div class="<a&b>">text</div>')
+
+def test_jsx_tags():
+  expect_html(tag("Foo"), '<Foo/>')
+  expect_html(tag("Foo", "bar"), '<Foo>bar</Foo>')
+  # Curly braces are escaped in children by default
+  expect_html(tag("Foo", "{bar}"), '<Foo>{"{"}bar{"}"}</Foo>')
+  # Use jsx() for JS expressions
+  expect_html(tag("Foo", jsx("bar")), '<Foo>{bar}</Foo>')
+  # HTML is escaped in attributes, but curly braces are fine
+  expect_html(tag("Foo", myProp="{<div/>}"), '<Foo myProp="{&lt;div/&gt;}"/>')
+  # Again, use jsx() for JS expressions
+  expect_html(tag("Foo", myProp=jsx("<div/>")), '<Foo myProp={<div/>}/>')
 
 
-def test_document_writing():
-  expect_html(
-    html_document("foo"),
-    '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n  </head>\n  <body>foo</body>\n</html>'
-  )
-  desc = tags.meta(name="description", content="test")
-  expect_html(
-    html_document(div("foo"), desc, lang = "en"),
-    '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="utf-8"/>\n    <meta name="description" content="test"/>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
-  )
-  body = div("foo", html_dependency("foo", "1.0", "bar", stylesheet="css/my styles.css", script = "js/my-js.js"))
-  # TODO: the indenting not quite right here
-  expect_html(
-    html_document(body, desc),
-    '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n    <meta name="description" content="test"/>\n        <link href="bar/css/my%20styles.css" rel="stylesheet"/>\n    <script src="bar/js/my-js.js"></script>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
-  )
+def saved_html(tag: tag):
+  with TemporaryDirectory() as tmpdir:
+    f = os.path.join(tmpdir, "index.html")
+    tag.save_html(f)
+    return open(f, "r").read()
+
+def test_html_save():
+  assert saved_html(div()) == '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n  </head>\n  <body>\n    <div></div>\n  </body>\n</html>'
+  test_dir = os.path.dirname(__file__)
+  with cwd(test_dir):
+    dep = html_dependency("foo", "1.0", "assets", stylesheet="css/my-styles.css", script="js/my-js.js")
+    # TODO: the indenting isn't quite right here
+    assert saved_html(div("foo", dep)) == '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n            <link href="lib/foo%401.0/css/my-styles.css" rel="stylesheet"/>\n    <script src="lib/foo%401.0/js/my-js.js"></script>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
+    desc = tags.meta(name="description", content="test")
+    doc = html_document(div("foo", dep), desc, lang="en")
+    assert saved_html(doc) == '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n            <link href="lib/foo%401.0/css/my-styles.css" rel="stylesheet"/>\n    <script src="lib/foo%401.0/js/my-js.js"></script>\n    <meta name="description" content="test"/>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'

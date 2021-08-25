@@ -71,7 +71,6 @@ def test_script_input():
   dep2 = fake_dep(script = ["js/foo bar.js"], stylesheet = ["css/bar foo.css"])
   dep3 = fake_dep(script = [{"src": "js/foo bar.js"}], stylesheet = [{"href": "css/bar foo.css"}])
   assert dep1 == dep2 == dep3
-  assert str(dep1.as_tags(
-  )) == '<link href="srcpath/css/bar%20foo.css" rel="stylesheet"/>\n<script src="srcpath/js/foo%20bar.js"></script>'
   # Make sure repeated calls to as_html() repeatedly encode
-  assert str(dep1.as_tags()) == '<link href="srcpath/css/bar%20foo.css" rel="stylesheet"/>\n<script src="srcpath/js/foo%20bar.js"></script>'
+  for i in range(2):
+    assert str(dep1) == '<link href="srcpath/css/bar%20foo.css" rel="stylesheet"/>\n<script src="srcpath/js/foo%20bar.js"></script>'

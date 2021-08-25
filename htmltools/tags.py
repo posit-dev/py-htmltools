@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
+from copy import deepcopy
 from urllib.parse import quote
 from typing import Optional, Union, List, Dict, Callable, Any
 from .util import *
@@ -66,12 +67,23 @@ class tag_list():
     dir = str(Path(file).resolve().parent)
     libdir = os.path.join(dir, libdir)
     deps = self.get_dependencies()
+    dep_tags = tag_list()
     for d in deps:
       d = d.copy_to(libdir, False)
-      d.make_relative(dir, False)
+      d = d.make_relative(dir, False)
+      dep_tags.append_children(d.as_tags())
 
+    head = tag("head", tag("meta", charset="utf-8"), dep_tags)
+    body = self
+
+    # HTML docs should always have 2 direct children (head and body)
+    if isinstance(self, html_document):
+      head.append_children(self.children[0].children)
+      body = self.children[1].children
+
+    html_ = html_document(body, head).get_html_string()
     with open(file, "w") as f:
-      f.write(self.get_html_string())
+      f.write("<!DOCTYPE html>\n" + html_)
     
     return file
 
@@ -107,6 +119,9 @@ class tag_list():
 
   def __eq__(self, other: Any) -> bool: 
     return equals_impl(self, other)
+
+  def __bool__(self) -> bool:
+    return len(self.children) > 0
 
   def __repr__(self) -> str:
     return f'<tag_list with {len(self.children)} children>'
@@ -165,7 +180,7 @@ class tag(tag_list):
     for key, val in self._get_attrs().items():
       if val is None or False: continue
       quotes = ['{', '}'] if isinstance(val, jsx) else ['"', '"']
-      val = str(val) if isinstance(val, html) else html_escape(val, attr=True)
+      val = str(val) if isinstance(val, html) else html_escape(str(val), attr=True)
       html_ += f' {key}={quotes[0]}{val}{quotes[1]}'
 
     # Dependencies are ignored in the HTML output
@@ -200,8 +215,8 @@ class tag(tag_list):
         attrs[key] = (attrs.get(key) + " " + val) if key in attrs else val
     return attrs
 
-  def __eq__(self, other: Any) -> bool: 
-    return equals_impl(self, other)
+  def __bool__(self) -> bool:
+    return True
 
   def __repr__(self) -> str:
     return f'<{self.name} with {len(self._get_attrs())} attributes & {len(self.children)} children>'
@@ -242,15 +257,10 @@ class html_document(tag):
     super().__init__("html", **kwargs)
     head = head.children if isinstance(head, tag) and head.name == "head" else head
     body = body.children if isinstance(body, tag) and body.name == "body" else body
-    deps = tag_list(body, head).get_dependencies()
     self.append_children(
-      tag("head", tags.meta(charset="utf-8"), head, *[d.as_tags() for d in deps]),
+      tag("head", head),
       tag("body", body)
     )
-    
-  def get_html_string(self, indent: int=0, eol: str='\n') -> 'html':
-    html_ = super().get_html_string(indent=indent, eol=eol)
-    return "<!DOCTYPE html>" + eol + html_
 
 # --------------------------------------------------------
 # html strings
@@ -304,17 +314,13 @@ class html_dependency():
     # Assume href is already URL encoded
     src = encode_path(src) if src_type == "file" else src
 
-    sheets = []
-    for i, s in enumerate(self.stylesheet):
-      s_ = s.copy()
-      s_["href"] = os.path.join(src, encode_path(s_["href"]))
-      sheets.append(s_)
+    sheets = deepcopy(self.stylesheet)
+    for s in sheets:
+      s.update({"href": os.path.join(src, encode_path(s["href"]))})
 
-    scripts = []
-    for i, s in enumerate(self.script):
-      s_ = s.copy()
-      s_["src"] = os.path.join(src, encode_path(s_["src"]))
-      scripts.append(s_)
+    scripts = deepcopy(self.script)
+    for s in scripts:
+      s.update({"src": os.path.join(src, encode_path(s["src"]))})
 
     metas: List[tag] = [tags.meta(**m) for m in self.meta]
     links: List[tag] = [tags.link(**s) for s in sheets]
@@ -359,24 +365,25 @@ class html_dependency():
       shutil.copy2(src_f, tgt_f)
 
     # return a new instance of this class with the new path
-    kwargs = self.__dict__.copy()
-    kwargs['src']['file'] = Path(target).resolve()
+    kwargs = deepcopy(self.__dict__)
+    kwargs['src']['file'] = str(Path(target).resolve())
     return html_dependency(**kwargs)
 
   def make_relative(self, path: str, must_work: bool = True) -> 'html_dependency':
-    path = Path(path).resolve()
-    src = Path(self.src['file'])
+    src = self.src['file']
+    if not src:
+      if must_work:
+        raise Exception(f"Failed to make HTML dependency {self.name}@{self.version} files relative to {path} since a local source directory doesn't exist")
+      else:
+        return self
+
+    src = Path(src)
     if not src.is_absolute():
-      raise Exception("Failed to make HTML dependency {self.name}@{self.version} relative because it's local source directory is not absolute")
+      raise Exception("Failed to make HTML dependency {self.name}@{self.version} relative because it's local source directory is not already absolute (call .copy_to() before .make_relative())")
 
-    # TODO: this was rushed, make sure it's correct
-    kwargs = self.__dict__.copy()
-    for p in src.parents:
-      if p.samefile(path):
-        kwargs['src']['file'] = str(src)[len(str(path))+1:]
-        return html_dependency(**kwargs)
-
-    raise Exception("The path {path} does not appear to be a descendant of {src}")
+    kwargs = deepcopy(self.__dict__)
+    kwargs['src']['file'] = str(src.relative_to(Path(path).resolve()))
+    return html_dependency(**kwargs)
 
   def _as_dicts(self, val: Any, attr: str) -> List[Dict[str, str]]:
     if val is None:
@@ -391,7 +398,7 @@ class html_dependency():
     return f'<html_dependency "{self.name}@{self.version}">'
 
   def __str__(self):
-    return self.get_html_string()
+    return str(self.as_tags())
 
   def __eq__(self, other: Any) -> bool: 
     return equals_impl(self, other)
