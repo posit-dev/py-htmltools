@@ -66,6 +66,7 @@ def package_dir(package: str) -> str:
     pkg_file = importlib.import_module('.', package = package).__file__
     return os.path.dirname(pkg_file)
 
+# TODO: should be done with a try/finally?
 def get_open_port():
   s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   s.bind(("",0))
@@ -85,7 +86,7 @@ def http_server(port: int, directory: str = None):
     httpd.serve_forever()
 
 def http_server_bg(port: int, directory: str=None):
-  th = Thread(target=http_server, args=(port, directory), daemon = True)
+  th = Thread(target=http_server, args=(port, directory), daemon=True)
   th.start()
 
 @contextmanager

@@ -22,6 +22,7 @@ class tag_list():
     if args: 
       self.append_children(*args)
   
+  # TODO: rename to append() and maybe adopt other list-like methods?
   def append_children(self, *args: Any) -> None:
     if args: 
       self.children += flatten(args)
@@ -63,29 +64,7 @@ class tag_list():
     return resolved
   
   def save_html(self, file: str, libdir: str = "lib") -> str:
-    # Copy dependencies to libdir (relative to the file)
-    dir = str(Path(file).resolve().parent)
-    libdir = os.path.join(dir, libdir)
-    deps = self.get_dependencies()
-    dep_tags = tag_list()
-    for d in deps:
-      d = d.copy_to(libdir, False)
-      d = d.make_relative(dir, False)
-      dep_tags.append_children(d.as_tags())
-
-    head = tag("head", tag("meta", charset="utf-8"), dep_tags)
-    body = self
-
-    # HTML docs should always have 2 direct children (head and body)
-    if isinstance(self, html_document):
-      head.append_children(self.children[0].children)
-      body = self.children[1].children
-
-    html_ = html_document(body, head).get_html_string()
-    with open(file, "w") as f:
-      f.write("<!DOCTYPE html>\n" + html_)
-    
-    return file
+    return html_document(self).save_html(file, libdir)
 
   def show(self, renderer: str = "auto") -> Any:
     if renderer == "auto":
@@ -107,6 +86,7 @@ class tag_list():
       file = os.path.join(tmpdir, "index.html")
       self.save_html(file)
       port = get_open_port()
+      # TODO: don't open a new thread/port every time
       http_server_bg(port, tmpdir)
       import webbrowser
       webbrowser.open("http://localhost:" + str(port))
@@ -124,7 +104,21 @@ class tag_list():
     return len(self.children) > 0
 
   def __repr__(self) -> str:
-    return f'<tag_list with {len(self.children)} children>'
+    x = '<' + getattr(self, "name", "tag_list")
+    attrs = self.get_attrs()
+    n_attrs = len(attrs)
+    if attrs.get('id'):
+      x += '#' + attrs['id']
+      n_attrs -= 1
+    if attrs.get('class'):
+      x += '.' + attrs['class'].replace(' ', '.')
+      n_attrs -= 1
+    x += ' with '
+    if n_attrs > 0:
+      x += f'{n_attrs} other attributes and '
+    n = len(self.children)
+    x += '1 child>' if n == 1 else f'{n} children>'
+    return x
 
 # --------------------------------------------------------
 # Core tag logic
@@ -161,13 +155,23 @@ class tag(tag_list):
       if x.startswith('_') and x.endswith('_'):
         x = x[1:-1]
       return x.replace("_", "-")
+    # TODO: actually require a str value
     self.attrs.append({encode_key(k): v for k, v in kwargs.items()})
 
   def get_attr(self, key: str) -> Optional[str]:
-    return self._get_attrs().get(key)
+    return self.get_attrs().get(key)
+
+  def get_attrs(self) -> Dict[str, str]:
+    attrs: Dict[str, str] = {}
+    for x in self.attrs:
+      for key, val in x.items():
+        if val is None:
+          continue
+        attrs[key] = (attrs.get(key) + " " + val) if key in attrs else val
+    return attrs
 
   def has_attr(self, key: str) -> bool:
-    return key in self._get_attrs()
+    return key in self.get_attrs()
 
   def has_class(self, _class_: str) -> bool:
     cl = self.get_attr("class")
@@ -177,7 +181,7 @@ class tag(tag_list):
     html_ = '<' + self.name
 
     # write attributes
-    for key, val in self._get_attrs().items():
+    for key, val in self.get_attrs().items():
       if val is None or False: continue
       quotes = ['{', '}'] if isinstance(val, jsx) else ['"', '"']
       val = str(val) if isinstance(val, html) else html_escape(str(val), attr=True)
@@ -202,24 +206,13 @@ class tag(tag_list):
       return html(html_ + normalize_text(children[0], is_jsx) + close)
 
     # Write children
+    # TODO: inline elements should eat ws?
     html_ += eol
     html_ += tag_list.get_html_string(self, indent + 1, eol)
     return html(html_ + eol + ('  ' * indent) + close)
 
-  def _get_attrs(self) -> Dict[str, str]:
-    attrs: Dict[str, str] = {}
-    for x in self.attrs:
-      for key, val in x.items():
-        if val is None:
-          continue
-        attrs[key] = (attrs.get(key) + " " + val) if key in attrs else val
-    return attrs
-
   def __bool__(self) -> bool:
     return True
-
-  def __repr__(self) -> str:
-    return f'<{self.name} with {len(self._get_attrs())} attributes & {len(self.children)} children>'
 
 # --------------------------------------------------------
 # tag factory
@@ -261,6 +254,29 @@ class html_document(tag):
       tag("head", head),
       tag("body", body)
     )
+
+  def save_html(self, file: str, libdir: str = "lib") -> str:
+    # Copy dependencies to libdir (relative to the file)
+    dir = str(Path(file).resolve().parent)
+    libdir = os.path.join(dir, libdir)
+    deps = self.get_dependencies()
+    dep_tags = tag_list()
+    for d in deps:
+      d = d.copy_to(libdir, False)
+      d = d.make_relative(dir, False)
+      dep_tags.append_children(d.as_tags())
+    
+    head = tag(
+      "head", tag("meta", charset="utf-8"), dep_tags,
+      self.children[0].children
+    )
+    body = self.children[1]
+
+    html_ = tag("html", head, body).get_html_string()
+    with open(file, "w") as f:
+      f.write("<!DOCTYPE html>\n" + html_)
+    
+    return file
 
 # --------------------------------------------------------
 # html strings

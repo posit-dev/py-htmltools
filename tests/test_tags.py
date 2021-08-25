@@ -45,6 +45,13 @@ def test_tag_writing():
   )
   expect_html(tags.area(), '<area/>')
 
+def test_tag_repr():
+  assert repr(div()) == '<div with 0 children>'
+  assert repr(div("foo")) == '<div with 1 child>'
+  assert repr(div("foo", "bar", id="id")) == '<div#id with 2 children>'
+  assert repr(div(id="id", _class_="foo bar")) == '<div#id.foo.bar with 0 children>'
+  assert repr(div(id="id", _class_="cls", foo="bar")) == '<div#id.cls with 1 other attributes and 0 children>'
+
 def test_tag_escaping():
   # Regular text is escaped
   expect_html(div("<a&b>"), "<div>&lt;a&amp;b&gt;</div>")
