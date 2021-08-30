@@ -3,9 +3,9 @@ import re
 import importlib
 import tempfile
 from typing import List, Tuple, Union, Any
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from http.server import SimpleHTTPRequestHandler
-import socket
+from socket import socket
 from socketserver import TCPServer
 from threading import Thread
 
@@ -66,28 +66,37 @@ def package_dir(package: str) -> str:
     pkg_file = importlib.import_module('.', package = package).__file__
     return os.path.dirname(pkg_file)
 
-# TODO: should be done with a try/finally?
-def get_open_port():
-  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  s.bind(("",0))
-  s.listen(1)
-  port = s.getsockname()[1]
-  s.close()
-  return port
 
-def http_server(port: int, directory: str = None):
+_http_servers = {}
+def ensure_http_server(path: str):
+  server = _http_servers.get(path)
+  if server:
+    return server._port
+  
+  _http_servers[path] = start_http_server(path)
+  return _http_servers[path]._port
+  
+def start_http_server(path: str):
+  port = get_open_port()
+  th = Thread(target=http_server, args=(port, path), daemon=True)
+  th.start()
+  th._port = port
+  return th
+
+def http_server(port: int, path: str):
   class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=directory, **kwargs)
+        super().__init__(*args, directory=path, **kwargs)
     def log_message(self, format, *args):
       pass
 
   with TCPServer(("", port), Handler) as httpd:
     httpd.serve_forever()
 
-def http_server_bg(port: int, directory: str=None):
-  th = Thread(target=http_server, args=(port, directory), daemon=True)
-  th.start()
+def get_open_port():
+  with closing(socket()) as sock:
+    sock.bind(("", 0))
+    return sock.getsockname()[1]
 
 @contextmanager
 def cwd(path: str):

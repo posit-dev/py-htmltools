@@ -13,19 +13,18 @@ def test_basic_tag_api():
   x2 = div(**props, children = children)
   x3 = div(**props)(*children)
   x4 = div()
-  x4.append_attrs(**props)
-  x4.append_children(*children)
+  x4.append(*children, **props)
   assert x1 == x2 == x3 == x4
   assert x1.has_attr("id") and x1.has_attr("bool")
   assert not x1.has_attr("missing") 
   expect_html(x1, '<div class="foo" for="bar" id="baz" bool="">\n  <h1>hello</h1>\n  <h2>world</h2>\n  text\n  list\n  here\n</div>')
   assert x1.get_attr("class") == "foo"
-  x1.append_attrs(_class_ = "bar")
+  x1.append(_class_ = "bar")
   assert x1.get_attr("class") == "foo bar"
   assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing") 
   x5 = tag_list()
-  x5.append_children(a())
-  x5.prepend_children(span())
+  x5.append(a())
+  x5.prepend(span())
   expect_html(x5, '<span></span>\n<a></a>')
 
 def test_tag_writing():

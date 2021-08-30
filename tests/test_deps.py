@@ -53,14 +53,14 @@ def test_append_deps():
   a1_2 = html_dependency("a", "1.2", {"href":"/"})
   b1_2 = html_dependency("b", "1.0", {"href":"/"})
   x = div(a1_1, b1_2)
-  x.append_children(a1_2)
+  x.append(a1_2)
   expect_html_deps(x, "<div></div>", [a1_2, b1_2])
   x = div(a1_1)
-  x.append_children([a1_2, b1_2])
+  x.append([a1_2, b1_2])
   expect_html_deps(x, "<div></div>", [a1_2, b1_2])
   x = div()
-  x.append_children([a1_1, b1_2])
-  x.append_children(a1_2)
+  x.append([a1_1, b1_2])
+  x.append(a1_2)
   expect_html_deps(x, "<div></div>", [a1_2, b1_2])
 
 
