@@ -12,6 +12,8 @@ from packaging import version
 package_version = version.parse
 Version = version.Version
 
+AttrType = Union[str, None]
+
 class tag_list():
   '''
   Create a list (i.e., fragment) of HTML content
@@ -152,7 +154,7 @@ class tag(tag_list):
     >>> print(tag("MyJSXComponent"))
   '''
 
-  def __init__(self, _name: str, *arguments: Any, children: Optional[Any] = None, **kwargs: str) -> None:
+  def __init__(self, _name: str, *arguments: Any, children: Optional[Any] = None, **kwargs: AttrType) -> None:
     super().__init__(*arguments, children)
     self.name: str = _name
     self._attrs: List[Dict[str, str]] = []
@@ -170,17 +172,17 @@ class tag(tag_list):
     # http://dev.w3.org/html5/spec/single-page.html#void-elements
     self._is_void = getattr(self, "_is_jsx", False) or _name in ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
 
-  def __call__(self, *args: Any, **kwargs: str) -> 'tag':
+  def __call__(self, *args: Any, **kwargs: AttrType) -> 'tag':
     self.append(*args, **kwargs)
     return self
 
-  def append(self, *args: Any, **kwargs: str) -> None:
+  def append(self, *args: Any, **kwargs: AttrType) -> None:
     if args:
       super().append(*args)
     if kwargs:
       self._attrs.append({encode_attr(k): v for k, v in kwargs.items()})
 
-  def prepend(self, *args: Any, **kwargs: str) -> None:
+  def prepend(self, *args: Any, **kwargs: AttrType) -> None:
     if args:
       super().prepend(*args)
     if kwargs:
@@ -250,7 +252,7 @@ class tag(tag_list):
 # --------------------------------------------------------
 
 def tag_factory_(_name: str) -> Callable[[Any], 'tag']:
-  def __init__(self: tag, *args: Any, children: Optional[Any] = None, **kwargs: str) -> None:
+  def __init__(self: tag, *args: Any, children: Optional[Any] = None, **kwargs: AttrType) -> None:
     tag.__init__(self, _name, *args, children = children, **kwargs)
   return __init__
 
@@ -288,7 +290,7 @@ class html_document(tag):
   ---------
     >>> print(html_document(h1("Hello"), tags.meta(name="description", content="test"), lang = "en"))
   '''
-  def __init__(self, body: tag_list, head: Optional[tag_list]=None, **kwargs: str):
+  def __init__(self, body: tag_list, head: Optional[tag_list]=None, **kwargs: AttrType):
     super().__init__("html", **kwargs)
     head = head.children if isinstance(head, tag) and head.name == "head" else head
     body = body.children if isinstance(body, tag) and body.name == "body" else body
