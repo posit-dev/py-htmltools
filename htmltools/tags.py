@@ -6,8 +6,10 @@ from pathlib import Path
 from copy import deepcopy
 from urllib.parse import quote
 import webbrowser
+import types
 from typing import Optional, Union, List, Dict, Callable, Any
 from .util import *
+from .versions import versions
 from packaging import version
 package_version = version.parse
 Version = version.Version
@@ -97,7 +99,8 @@ class tag_list():
     # TODO: can we get htmlDependencies working in IPython?
     if renderer == "ipython":
       from IPython.core.display import display_html
-      return display_html(self.get_html_string(), raw=True)
+      # https://github.com/ipython/ipython/pull/10962
+      return display_html(self.get_html_string(), raw=True, metadata={'text/html': {'isolated': True}})
     
     if renderer == "browser":
       tmpdir = tempfile.gettempdir()
@@ -111,6 +114,9 @@ class tag_list():
       return file
     
     raise Exception(f"Unknown renderer {renderer}")
+
+  def __as_tags__(self, *args, **kwargs) -> 'tag_list':
+    return self
 
   def __str__(self) -> str:
     return self.get_html_string()
@@ -157,20 +163,10 @@ class tag(tag_list):
   def __init__(self, _name: str, *arguments: Any, children: Optional[Any] = None, **kwargs: AttrType) -> None:
     super().__init__(*arguments, children)
     self.name: str = _name
-    self._attrs: List[Dict[str, str]] = []
+    self._attrs: Dict[str, List] = {}
     self.append(**kwargs)
-
-    # If 1st letter of tag is capital, then it, as well as it's children, are treated as JSX
-    if _name[:1] == _name[:1].upper():
-      def flag_as_jsx(x: Any):
-        if isinstance(x, tag_list):
-          setattr(x, "_is_jsx", True)
-          x.children = [flag_as_jsx(y) for y in x.children]
-        return x
-      self = flag_as_jsx(self)
-    
     # http://dev.w3.org/html5/spec/single-page.html#void-elements
-    self._is_void = getattr(self, "_is_jsx", False) or _name in ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
+    self._is_void = _name in ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
 
   def __call__(self, *args: Any, **kwargs: AttrType) -> 'tag':
     self.append(*args, **kwargs)
@@ -179,23 +175,21 @@ class tag(tag_list):
   def append(self, *args: Any, **kwargs: AttrType) -> None:
     if args:
       super().append(*args)
-    if kwargs:
-      self._attrs.append({encode_attr(k): v for k, v in kwargs.items()})
+    for k, v in kwargs.items():
+      if k not in self._attrs:
+        self._attrs[k] = []
+      self._attrs[k].append(v)
 
   def prepend(self, *args: Any, **kwargs: AttrType) -> None:
     if args:
       super().prepend(*args)
-    if kwargs:
-      self._attrs.insert(0, {encode_attr(k): v for k, v in kwargs.items()})
+    for k, v in kwargs.items():
+      if k not in self._attrs:
+        self._attrs[k] = []
+      self._attrs[k].insert(0, v)
 
-  def get_attrs(self) -> Dict[str, str]:
-    attrs: Dict[str, str] = {}
-    for x in self._attrs:
-      for key, val in x.items():
-        if val is None:
-          continue
-        attrs[key] = (attrs.get(key) + " " + val) if key in attrs else val
-    return attrs
+  def get_attrs(self) -> Dict[str, List]:
+    return self._attrs
 
   def get_attr(self, key: str) -> Optional[str]:
     return self.get_attrs().get(key)
@@ -204,18 +198,16 @@ class tag(tag_list):
     return key in self.get_attrs()
 
   def has_class(self, _class_: str) -> bool:
-    cl = self.get_attr("class")
-    return _class_ in cl.split(" ") if cl else False
+    return _class_ in self.get_attr("class")
 
   def get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
     html_ = '<' + self.name
 
-    # write attributes
+    # write attributes (boolean attributes should be empty strings)
     for key, val in self.get_attrs().items():
-      if val is None or False: continue
-      quotes = ['{', '}'] if isinstance(val, jsx) else ['"', '"']
-      val = str(val) if isinstance(val, html) else html_escape(str(val), attr=True)
-      html_ += f' {key}={quotes[0]}{val}{quotes[1]}'
+      val = " ".join([str(v) for v in val if v is not None])
+      val = val if isinstance(val, html) else html_escape(val, attr=True)
+      html_ += f' {key}="{val}"'
 
     # Dependencies are ignored in the HTML output
     children = [x for x in self.children if not isinstance(x, html_dependency)]
@@ -232,8 +224,7 @@ class tag(tag_list):
 
     # Inline a single/empty child text node
     if len(children) == 1 and isinstance(children[0], str):
-      is_jsx = getattr(self, "_is_jsx", False)
-      return html(html_ + normalize_text(children[0], is_jsx) + close)
+      return html(html_ + normalize_text(children[0]) + close)
 
     # Write children
     # TODO: inline elements should eat ws?
@@ -281,6 +272,93 @@ class create_tags():
         setattr(self, tag_, tag_factory(tag_))
 
 tags = create_tags()
+
+# --------------------------------------------------------
+# JSX tags
+# --------------------------------------------------------
+
+def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
+  pieces = _name.split('.')
+  if pieces[-1][:1] != pieces[-1][:1].upper():
+    raise NotImplementedError("JSX tags must be lowercase")
+  # TODO: disallow props that are not in allowedProps
+  methods = {
+    '__init__': tag_factory_(_name), 
+    '__as_tags__': _jsx_as_tags,
+    '_is_jsx': True,
+    'get_html_string': _get_jsx_string
+  }
+  return type(_name, (tag,), methods)
+
+def _get_jsx_string(self):
+  name = getattr(self, "_is_jsx", False) and self.name or "'" + self.name + "'"
+  res_ = 'React.createElement(' + name + ', '
+  attrs = self.get_attrs()
+  if not attrs:
+    res_ += 'null'
+  else:
+    res_ += '{'
+    for key, val in attrs.items():
+      if isinstance(val, jsx):
+        val = val
+      elif isinstance(val, tag_list):
+        val = val.get_html_string()
+      elif isinstance(val, str):
+        val = '"' + val + '"'
+      else:
+        val = json.dumps(val)
+      res_ += key + ': ' + val + ', '
+    res_ += '}'
+
+  children = [x for x in self.children if not isinstance(x, html_dependency)]
+  for child in children:
+    res_ += ', '
+    res_ += _get_jsx_string(child)
+    
+  res_ += ')'      
+  return res_
+  
+def _jsx_as_tags(self, *args, **kwargs) -> tag_list:
+  return tag_list(
+    lib_dependency("react", script="react.production.min.js"),
+    lib_dependency("react-dom", script="react-dom.production.min.js"),
+    self.get_dependencies(),
+    # TODO: avoid the inline script tag (for security)
+    tag("script", type="text/javascript")(
+        html(f"\nvar container = document.createElement('div');\ndocument.currentScript.after(container);\nReactDOM.render({str(self)}, container);")
+    )
+  )
+  
+def tagify(x):
+  def _(ui):
+    f = getattr(ui, "__as_tags__", None)
+    if not f:
+      return ui
+    ui_ = f(ui)
+    if ui_ == ui:
+      return ui
+    return tagify(ui_)
+  return rewrite_tags(x, func=_, preorder=False)
+
+def rewrite_tags(ui, func, preorder):
+  if preorder:
+    ui = func(ui)
+  if isinstance(ui, tag_list):
+    ui.children = [rewrite_tags(x, func, preorder) for x in ui.children]
+  if not preorder:
+    ui = func(ui)
+  return ui
+
+def lib_dependency(pkg, **kwargs):
+  return html_dependency(
+    name=pkg, version=versions[pkg],
+    package="htmltools", src="lib",
+    **kwargs
+  )
+
+  # --------------------------------------------------------
+  # Document class
+  # --------------------------------------------------------
 
 class html_document(tag):
   '''
@@ -343,9 +421,25 @@ class html(str):
     return html(res) if isinstance(other, html) else res
 
 # --------------------------------------------------------
-# jsx tags
+# jsx expressions
 # --------------------------------------------------------
-jsx = type('jsx', (html, ), {"__init__": html.__init__})
+class jsx(str):
+  '''
+  Mark a string as a JSX expression.
+
+  Example:
+  -------
+  >>> Foo = tag_factory("Foo")
+  >>> print(Foo(myProp = "<p>Hello</p>"))
+  >>> print(Foo(myProp = jsx("<p>Hello</p>")))
+  '''
+  def __new__(cls, *args: str) -> 'jsx':
+    return super().__new__(cls, '\n'.join(args))
+
+  # html() + html() should return html()
+  def __add__(self, other: Union[str, 'jsx']) -> str:
+    res = str.__add__(self, other)
+    return jsx(res) if isinstance(other, jsx) else res
 
 # --------------------------------------------------------
 # html dependencies
@@ -502,16 +596,15 @@ def tag_repr_impl(name, attrs, children) -> str:
   return x
 
 def normalize_text(txt: Any, is_jsx: bool = False) -> str:
-  txt_ = str(txt)
-  if isinstance(txt, jsx):
-    return '{' + txt_ + '}'
   if isinstance(txt, html):
-    return txt_
-  txt_ = html_escape(txt_, attr=False)
-  if is_jsx:
-    # https://github.com/facebook/react/issues/1545
-    txt_ = re.sub('([{}]+)', r'{"\1"}', txt_)
-  return txt_
+    return txt
+  if not is_jsx:
+    return html_escape(txt, attr=False)
+  if isinstance(txt, jsx):
+    return '${' + str(txt) + '}'
+  # https://github.com/facebook/react/issues/1545
+  return re.sub('(\\$\\{)', "${'${'}", str(txt))
+  
 
 def equals_impl(self, other: Any) -> bool:
   if not isinstance(other, type(self)):

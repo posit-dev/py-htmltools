@@ -1,4 +1,5 @@
-from .tags import tag_list, tag, tags, tag_factory, html_document, html, jsx, html_dependency
+from .tags import tag_list, tag, tags, tag_factory, jsx_tag, html_document, html, jsx, html_dependency
+from .tags import tagify
 # https://github.com/rstudio/htmltools/blob/bc226a3d/R/tags.R#L697-L763
 p = tags.p
 h1 = tags.h1
