@@ -24,7 +24,7 @@ def test_basic_tag_api():
   assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing") 
   x5 = tag_list()
   x5.append(a())
-  x5.prepend(span())
+  x5.insert(0, span())
   expect_html(x5, '<span></span>\n<a></a>')
 
 def test_tag_writing():
@@ -60,19 +60,6 @@ def test_tag_escaping():
   expect_html(div("text", _class_="<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
   # Attributes wrapped in html() isn't escaped
   expect_html(div("text", _class_=html("<a&b>")), '<div class="<a&b>">text</div>')
-
-def test_jsx_tags():
-  expect_html(tag("Foo"), '<Foo/>')
-  expect_html(tag("Foo", "bar"), '<Foo>bar</Foo>')
-  # Curly braces are escaped in children by default
-  expect_html(tag("Foo", "{bar}"), '<Foo>{"{"}bar{"}"}</Foo>')
-  # Use jsx() for JS expressions
-  expect_html(tag("Foo", jsx("bar")), '<Foo>{bar}</Foo>')
-  # HTML is escaped in attributes, but curly braces are fine
-  expect_html(tag("Foo", myProp="{<div/>}"), '<Foo myProp="{&lt;div/&gt;}"/>')
-  # Again, use jsx() for JS expressions
-  expect_html(tag("Foo", myProp=jsx("<div/>")), '<Foo myProp={<div/>}/>')
-
 
 def saved_html(tag: tag):
   with TemporaryDirectory() as tmpdir:

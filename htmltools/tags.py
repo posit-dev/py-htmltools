@@ -25,7 +25,7 @@ class tag_list():
     show: Render and preview as HTML.
     save_html: Save the HTML to a file.
     append: Add content _after_ any existing children.
-    prepend: Add content before_ any existing children.
+    insert: Add content after a given child index.
     get_html_string: Get a string of representation of the HTML object
       (html_dependency()s are not included in this representation).
     get_dependencies: Obtains any html_dependency()s attached to this tag list 
@@ -48,9 +48,9 @@ class tag_list():
     if args: 
       self.children += flatten(args)
 
-  def prepend(self, *args: Any) -> None:
+  def insert(self, index: int=0, *args: Any) -> None:
     if args:
-      self.children = flatten(args) + self.children
+      self.children.insert(index, *flatten(args))
 
   def get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
     children = [x for x in self.children if not isinstance(x, html_dependency)]
@@ -139,7 +139,7 @@ class tag(tag_list):
     show: Render and preview as HTML.
     save_html: Save the HTML to a file.
     append: Add children (or attributes) _after_ any existing children (or attributes).
-    prepend: Add children (or attributes) _before_ any existing children (or attributes).
+    insert: Add children (or attributes) into a specific child (or attribute) index.
     get_attrs: Get a dictionary of attributes.
     get_attr: Get the value of an attribute.
     has_attr: Check if an attribute is present.
@@ -176,17 +176,11 @@ class tag(tag_list):
     if args:
       super().append(*args)
     for k, v in kwargs.items():
-      if k not in self._attrs:
-        self._attrs[k] = []
-      self._attrs[k].append(v)
-
-  def prepend(self, *args: Any, **kwargs: AttrType) -> None:
-    if args:
-      super().prepend(*args)
-    for k, v in kwargs.items():
-      if k not in self._attrs:
-        self._attrs[k] = []
-      self._attrs[k].insert(0, v)
+      if v is None:
+        continue
+      k_ = encode_attr(k)
+      v_ = self._attrs.get(k_, "")
+      self._attrs[k_] = (v_ + " " + str(v)) if v_ else str(v)
 
   def get_attrs(self) -> Dict[str, List]:
     return self._attrs
@@ -198,14 +192,13 @@ class tag(tag_list):
     return key in self.get_attrs()
 
   def has_class(self, _class_: str) -> bool:
-    return _class_ in self.get_attr("class")
+    return _class_ in self.get_attr("class").split(" ")
 
   def get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
     html_ = '<' + self.name
 
     # write attributes (boolean attributes should be empty strings)
     for key, val in self.get_attrs().items():
-      val = " ".join([str(v) for v in val if v is not None])
       val = val if isinstance(val, html) else html_escape(val, attr=True)
       html_ += f' {key}="{val}"'
 
@@ -290,6 +283,18 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
   }
   return type(_name, (tag,), methods)
 
+def _jsx_as_tags(self, *args, **kwargs) -> tag_list:
+  return tag_list(
+      lib_dependency("react", script="react.production.min.js"),
+      lib_dependency("react-dom", script="react-dom.production.min.js"),
+      self.get_dependencies(),
+      # TODO: avoid the inline script tag (for security)
+      tag("script", type="text/javascript")(
+          html(
+              f"\nvar container = document.createElement('div');\ndocument.currentScript.after(container);\nReactDOM.render({str(self)}, container);")
+      )
+  )
+
 def _get_jsx_string(self):
   name = getattr(self, "_is_jsx", False) and self.name or "'" + self.name + "'"
   res_ = 'React.createElement(' + name + ', '
@@ -318,16 +323,7 @@ def _get_jsx_string(self):
   res_ += ')'      
   return res_
   
-def _jsx_as_tags(self, *args, **kwargs) -> tag_list:
-  return tag_list(
-    lib_dependency("react", script="react.production.min.js"),
-    lib_dependency("react-dom", script="react-dom.production.min.js"),
-    self.get_dependencies(),
-    # TODO: avoid the inline script tag (for security)
-    tag("script", type="text/javascript")(
-        html(f"\nvar container = document.createElement('div');\ndocument.currentScript.after(container);\nReactDOM.render({str(self)}, container);")
-    )
-  )
+
   
 def tagify(x):
   def _(ui):
@@ -414,6 +410,9 @@ class html(str):
   '''
   def __new__(cls, *args: str) -> 'html':
     return super().__new__(cls, '\n'.join(args))
+
+  def __str__(self) -> 'html':
+    return html(self)
 
   # html() + html() should return html()
   def __add__(self, other: Union[str, 'html']) -> str:
