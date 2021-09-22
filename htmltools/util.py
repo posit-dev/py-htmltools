@@ -70,10 +70,10 @@ def ensure_http_server(path: str):
   server = _http_servers.get(path)
   if server:
     return server._port
-  
+
   _http_servers[path] = start_http_server(path)
   return _http_servers[path]._port
-  
+
 def start_http_server(path: str):
   port = get_open_port()
   th = Thread(target=http_server, args=(port, path), daemon=True)

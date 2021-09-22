@@ -28,7 +28,7 @@ class tag_list():
     insert: Add content after a given child index.
     get_html_string: Get a string of representation of the HTML object
       (html_dependency()s are not included in this representation).
-    get_dependencies: Obtains any html_dependency()s attached to this tag list 
+    get_dependencies: Obtains any html_dependency()s attached to this tag list
       or any of its children.
 
   Attributes:
@@ -39,13 +39,13 @@ class tag_list():
   ---------
     >>> print(tag_list(h1('Hello htmltools'), tags.p('for python')))
   '''
-  def __init__(self, *args: Any) -> None:
-    self.children: List[Any] = []
-    if args: 
+  def __init__(self, *args: object) -> None:
+    self.children: List[object] = []
+    if args:
       self.append(*args)
-  
-  def append(self, *args: Any) -> None:
-    if args: 
+
+  def append(self, *args: object) -> None:
+    if args:
       self.children += flatten(args)
 
   def insert(self, index: int=0, *args: Any) -> None:
@@ -66,7 +66,7 @@ class tag_list():
         html_ += normalize_text(x)
       html_ += (eol + indent_) if i < n - 1 else ''
     return html(html_)
-  
+
   def get_dependencies(self, tagify_ = True) -> List['html_dependency']:
     if tagify_:
       self = tagify(self)
@@ -85,7 +85,7 @@ class tag_list():
         if d.version == latest and not d in resolved:
           resolved.append(d)
     return resolved
-  
+
   def save_html(self, file: str, libdir: str = "lib") -> str:
     return html_document(self).save_html(file, libdir)
 
@@ -103,7 +103,7 @@ class tag_list():
       from IPython.core.display import display_html
       # https://github.com/ipython/ipython/pull/10962
       return display_html(self.get_html_string(), raw=True, metadata={'text/html': {'isolated': True}})
-    
+
     if renderer == "browser":
       tmpdir = tempfile.gettempdir()
       key_ = "viewhtml" + str(hash(self.get_html_string()))
@@ -114,13 +114,13 @@ class tag_list():
       port = ensure_http_server(tmpdir)
       webbrowser.open(f"http://localhost:{port}/{key_}/index.html")
       return file
-    
+
     raise Exception(f"Unknown renderer {renderer}")
 
   def __str__(self) -> str:
     return self.get_html_string()
 
-  def __eq__(self, other: Any) -> bool: 
+  def __eq__(self, other: Any) -> bool:
     return equals_impl(self, other)
 
   def __bool__(self) -> bool:
@@ -131,7 +131,7 @@ class tag_list():
 
 class tag(tag_list):
   '''
-  Create an HTML tag. 
+  Create an HTML tag.
 
   Methods:
   --------
@@ -145,14 +145,14 @@ class tag(tag_list):
     has_class: Check if the class attribte contains a particular class.
     get_html_string: Get a string of representation of the HTML object
       (html_dependency()s are not included in this representation).
-    get_dependencies: Obtains any html_dependency()s attached to this tag list 
+    get_dependencies: Obtains any html_dependency()s attached to this tag list
       or any of its children.
 
   Attributes:
   -----------
     name: The name of the tag
     children: A list of children
-  
+
    Examples:
   ---------
     >>> print(div(h1('Hello htmltools'), tags.p('for python'), _class_ = 'mydiv'))
@@ -372,7 +372,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
         if k not in allowedProps:
           raise NotImplementedError(f"{k} is not a valid prop for {_name}")
     self = type(_name, (tag,), {'append': append})(_name, *args, children = children, **kwargs)
-    def set_jsx_attrs(x):  
+    def set_jsx_attrs(x):
       if not isinstance(x, tag_list):
         return x
       setattr(x, "__as_tags__", None)
@@ -420,7 +420,7 @@ class html_document(tag):
       d = d.copy_to(libdir, False)
       d = d.make_relative(dir, False)
       dep_tags.append(d.as_tags())
-    
+
     head = tag(
       "head", tag("meta", charset="utf-8"), dep_tags,
       self.children[0].children
@@ -430,7 +430,7 @@ class html_document(tag):
     html_ = tag("html", head, body).get_html_string()
     with open(file, "w") as f:
       f.write("<!DOCTYPE html>\n" + html_)
-    
+
     return file
 
 # --------------------------------------------------------
@@ -489,7 +489,7 @@ class html_dependency():
   >>> x = div("foo", html_dependency(name = "bar", version = "1.0", src = ".", script = "lib/bar.js"))
   >>> x.get_dependencies()
   '''
-  def __init__(self, name: str, version: Union[str, Version], 
+  def __init__(self, name: str, version: Union[str, Version],
                      src: Union[str, Dict[str, str]],
                      script: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
                      stylesheet: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
@@ -543,10 +543,10 @@ class html_dependency():
         return self
     if not path or path == "/":
       raise Exception(f"path cannot be empty or '/'")
-    
+
     if self.package:
       src = os.path.join(package_dir(self.package), src)
-    
+
     # Collect all the source files
     if self.all_files:
       src_files = list(Path(src).glob("*"))
@@ -556,7 +556,7 @@ class html_dependency():
     # setup the target directory
     # TODO: add option to exclude version
     target = os.path.join(path, self.name + "@" + version)
-    if os.path.exists(target): 
+    if os.path.exists(target):
       shutil.rmtree(target)
     Path(target).mkdir(parents=True, exist_ok=True)
 
@@ -605,7 +605,7 @@ class html_dependency():
   def __str__(self):
     return str(self.as_tags())
 
-  def __eq__(self, other: Any) -> bool: 
+  def __eq__(self, other: Any) -> bool:
     return equals_impl(self, other)
 
 
