@@ -2,15 +2,15 @@ import os
 import re
 import importlib
 import tempfile
-from typing import List, Tuple, Union, Any
+from typing import List, Tuple, Union
 from contextlib import contextmanager, closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
 from socketserver import TCPServer
 from threading import Thread
 
-# Both flatten a arbitrarily nested list *and* remove None 
-def flatten(l: Union[List, Tuple]):
+# Both flatten a arbitrarily nested list *and* remove None
+def flatten(l: Union[List[object], Tuple[object, ...]]) -> List[object]:
   f = flatten_impl(l)
   return [i for i in f if i]
 
@@ -18,12 +18,11 @@ def flatten(l: Union[List, Tuple]):
 # Copyright (c) 2002-2003, Michael C. Fletcher
 # http://basicproperty.sourceforge.net/
 # http://rightfootin.blogspot.com/2006/09/no-builtin-flatyen-in-python.html
-def flatten_impl(l: Union[List[Any], Tuple[Any]], ltypes = (list, tuple)):
-  ltype = type(l)
+def flatten_impl(l: Union[List[object], Tuple[object, ...]]) -> List[object]:
   l = list(l)
-  i = 0
+  i: int = 0
   while i < len(l):
-    while isinstance(l[i], ltypes):
+    while isinstance(l[i], (list, tuple)):
       if not l[i]:
         l.pop(i)
         i -= 1
@@ -31,7 +30,8 @@ def flatten_impl(l: Union[List[Any], Tuple[Any]], ltypes = (list, tuple)):
       else:
         l[i:i + 1] = l[i]
     i += 1
-  return ltype(l)
+
+  return l
 
 # similar to unique() in R (set() doesn't preserve order)
 def unique(x: List[object]) -> List[object]:
