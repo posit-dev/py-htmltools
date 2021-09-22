@@ -34,12 +34,10 @@ def flatten_impl(l: Union[List[Any], Tuple[Any]], ltypes = (list, tuple)):
   return ltype(l)
 
 # similar to unique() in R (set() doesn't preserve order)
-def unique(x: List[Any]) -> List[Any]:
-  res: List[Any] = []
-  for i in x:
-    if i not in res:
-      res.append(i)
-  return res
+def unique(x: List[object]) -> List[object]:
+  # This implementation requires Python 3.7+. Starting with that version, dict
+  # order is guaranteed to be the same as insertion order.
+  return list(dict.fromkeys(x))
 
 def html_escape(text: str, attr: bool = False) -> str:
   specials = {
