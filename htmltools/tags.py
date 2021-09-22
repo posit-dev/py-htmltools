@@ -16,7 +16,7 @@ Version = version.Version
 
 AttrType = Union[str, None]
 
-class tag_list():
+class tag_list:
   '''
   Create a list (i.e., fragment) of HTML content
 
@@ -255,7 +255,7 @@ def tag_factory(_name: str) -> tag:
   return type(_name, (tag,), {'__init__': tag_factory_(_name)})
 
 # Generate a class for each known tag
-class create_tags():
+class create_tags:
   def __init__(self) -> None:
     dir = os.path.dirname(__file__)
     with open(os.path.join(dir, 'known_tags.json')) as f:
@@ -480,7 +480,7 @@ class jsx(str):
 # --------------------------------------------------------
 # html dependencies
 # --------------------------------------------------------
-class html_dependency():
+class html_dependency:
   '''
   Create an HTML dependency.
 
