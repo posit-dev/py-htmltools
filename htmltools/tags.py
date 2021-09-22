@@ -668,7 +668,7 @@ def equals_impl(self, other: Any) -> bool:
   return True
 
 
-def lib_dependency(pkg, **kwargs):
+def lib_dependency(pkg: str, **kwargs: object) -> html_dependency:
   return html_dependency(
       name=pkg, version=versions[pkg],
       package="htmltools", src="lib/"+pkg,
