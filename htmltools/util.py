@@ -83,7 +83,7 @@ def start_http_server(path: str):
 
 def http_server(port: int, path: str):
   class Handler(SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object):
         super().__init__(*args, directory=path, **kwargs)
     def log_message(self, format, *args):
       pass
