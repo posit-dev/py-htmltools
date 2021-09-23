@@ -308,17 +308,18 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
     # Unfortunately we can't use json.dumps() here because I don't know how to
     # avoid quoting jsx(), jsx_tag(), tag(), etc.
     def serialize_attr(x) -> str:
-      if isinstance(x, (jsx, tag_list, bool, float, int)):
-        return str(x)
-      if isinstance(x, str):
-        return '"' + x + '"'
       if isinstance(x, (list, tuple)):
         return '[' + ', '.join([serialize_attr(y) for y in x]) + ']'
       if isinstance(x, dict):
         return '{' + ', '.join([y + ': ' + serialize_attr(x[y]) for y in x]) + '}'
-      raise TypeError(f"Object of type {type(x)} cannot be serialized as JSX attribute")
+      if isinstance(x, str):
+        return '"' + x + '"'
+      x_ = str(x)
+      if isinstance(x, bool):
+        x_ = x_.lower()
+      return x_
 
-    attrs = self.get_attrs()
+    attrs = deepcopy(self.get_attrs())
     if not attrs:
       res_ += 'null'
     else:
