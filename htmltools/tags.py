@@ -14,7 +14,20 @@ from packaging import version
 package_version = version.parse
 Version = version.Version
 
-AttrType = Optional[str]
+__all__ = [
+  "tag_list",
+  "tag",
+  "tags",
+  "tag_factory",
+  "jsx_tag",
+  "html_document",
+  "html",
+  "jsx",
+  "html_dependency",
+  "tagify"
+]
+
+AttrType = Union[str, None]
 
 # Types of objects that can be a child of a tag.
 TagChild = Union['tag', 'tag_list', 'html_dependency', str, int, float, bool]
@@ -29,10 +42,7 @@ class tag_list:
     save_html: Save the HTML to a file.
     append: Add content _after_ any existing children.
     insert: Add content after a given child index.
-    get_html_string: Get a string of representation of the HTML object
-      (html_dependency()s are not included in this representation).
-    get_dependencies: Obtains any html_dependency()s attached to this tag list
-      or any of its children.
+    render: Render the tag tree as an HTML string and also retrieve any dependencies.
 
   Attributes:
   -----------
@@ -55,31 +65,32 @@ class tag_list:
     if args:
       self.children.insert(index, *flatten(args))
 
-  def get_html_string(self, tagify_: bool = True, indent: int = 0, eol: str = '\n') -> 'html':
-    if tagify_:
-      self = tagify(self)
-    children: List[TagChild] = [x for x in self.children if not isinstance(x, html_dependency)]
+  def render(self, tagify_: bool = True):
+    return html_document(self).render(tagify_=tagify_)
+
+  def save_html(self, file: str, libdir: str = "lib") -> str:
+    return html_document(self).save_html(file, libdir)
+
+  def _get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
+    children = [x for x in self.children if not isinstance(x, html_dependency)]
     n = len(children)
     indent_ = '  ' * indent
     html_ = indent_
     for i, x in enumerate(children):
       if isinstance(x, tag_list):
-        html_ += x.get_html_string(False, indent, eol)
+        html_ += x._get_html_string(indent, eol)
       else:
         html_ += normalize_text(x)
       html_ += (eol + indent_) if i < n - 1 else ''
     return html(html_)
 
-  def get_dependencies(self, tagify_: bool = True) -> List['html_dependency']:
-    if tagify_:
-      self = tagify(self)
-
+  def _get_dependencies(self) -> List['html_dependency']:
     deps: List[html_dependency] = []
     for x in self.children:
       if isinstance(x, html_dependency):
         deps.append(x)
       elif isinstance(x, tag_list):
-        deps += x.get_dependencies(False)
+        deps += x._get_dependencies()
     unames = unique([d.name for d in deps])
     resolved: List[html_dependency] = []
     for nm in unames:
@@ -89,9 +100,6 @@ class tag_list:
         if d.version == latest and not d in resolved:
           resolved.append(d)
     return resolved
-
-  def save_html(self, file: str, libdir: str = "lib") -> str:
-    return html_document(self).save_html(file, libdir)
 
   def show(self, renderer: str = "auto") -> Any:
     if renderer == "auto":
@@ -106,11 +114,11 @@ class tag_list:
     if renderer == "ipython":
       from IPython.core.display import display_html
       # https://github.com/ipython/ipython/pull/10962
-      return display_html(self.get_html_string(), raw=True, metadata={'text/html': {'isolated': True}})
+      return display_html(str(self), raw=True, metadata={'text/html': {'isolated': True}})
 
     if renderer == "browser":
       tmpdir = tempfile.gettempdir()
-      key_ = "viewhtml" + str(hash(self.get_html_string()))
+      key_ = "viewhtml" + str(hash(str(self)))
       dir = os.path.join(tmpdir, key_)
       Path(dir).mkdir(parents=True, exist_ok=True)
       file = os.path.join(dir, "index.html")
@@ -122,7 +130,7 @@ class tag_list:
     raise Exception(f"Unknown renderer {renderer}")
 
   def __str__(self) -> str:
-    return self.get_html_string()
+    return self._get_html_string()
 
   def __eq__(self, other: Any) -> bool:
     return equals_impl(self, other)
@@ -147,10 +155,7 @@ class tag(tag_list):
     get_attr: Get the value of an attribute.
     has_attr: Check if an attribute is present.
     has_class: Check if the class attribte contains a particular class.
-    get_html_string: Get a string of representation of the HTML object
-      (html_dependency()s are not included in this representation).
-    get_dependencies: Obtains any html_dependency()s attached to this tag list
-      or any of its children.
+    render: Render the tag as HTML.
 
   Attributes:
   -----------
@@ -200,10 +205,7 @@ class tag(tag_list):
       return False
     return _class_ in class_attr.split(" ")
 
-  def get_html_string(self, tagify_: bool=True, indent: int = 0, eol: str = '\n') -> 'html':
-    if tagify_:
-      self = tagify(self)
-
+  def _get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
     html_ = '<' + self.name
 
     # write attributes (boolean attributes should be empty strings)
@@ -231,7 +233,7 @@ class tag(tag_list):
     # Write children
     # TODO: inline elements should eat ws?
     html_ += eol
-    html_ += tag_list.get_html_string(self, False, indent + 1, eol)
+    html_ += tag_list._get_html_string(self, indent + 1, eol)
     return html(html_ + eol + ('  ' * indent) + close)
 
   def __bool__(self) -> bool:
@@ -289,7 +291,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
     js = "\n".join([
       "(function() {",
       "  var container = new DocumentFragment();",
-      f"  ReactDOM.render({self.get_html_string(False)}, container);",
+      f"  ReactDOM.render({self._get_html_string()}, container);",
       "  document.currentScript.after(container);",
       "})();"
     ])
@@ -297,14 +299,11 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
     return tag_list(
         lib_dependency("react", script="react.production.min.js"),
         lib_dependency("react-dom", script="react-dom.production.min.js"),
-        self.get_dependencies(False),
+        self._get_dependencies(),
         tag("script", type="text/javascript")(html("\n"+js+"\n"))
     )
 
-  def get_html_string(self, tagify_: bool = True) -> str:
-    if tagify_:
-      return tagify(self).get_html_string(False)
-
+  def _get_html_string(self) -> str:
     if isinstance(self, tag_list) and not isinstance(self, tag):
       self = jsx_tag("React.Fragment")(*self.children)
 
@@ -344,7 +343,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
         continue
       res_ += ', '
       if isinstance(x, tag_list):
-        res_ += x.get_html_string(False)
+        res_ += x._get_html_string()
       elif isinstance(x, jsx):
         res_ += x
       else:
@@ -383,7 +382,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
       if not isinstance(x, tag_list):
         return x
       setattr(x, "__as_tags__", None)
-      x.get_html_string = types.MethodType(get_html_string, x)
+      x._get_html_string = types.MethodType(_get_html_string, x)
       x.append = types.MethodType(append, x)
       return x
     rewrite_tags(self, set_jsx_attrs, preorder=False)
@@ -417,27 +416,34 @@ class html_document(tag):
       tag("body", body)
     )
 
+  def render(self, tagify_: bool = True, process_dep: Callable[['html_dependency'], 'html_dependency'] = None) -> List:
+    if tagify_:
+      self = tagify(self)
+    deps = self._get_dependencies()
+    if callable(process_dep):
+      deps = [process_dep(x) for x in deps]
+    head = tag(
+      "head", tag("meta", charset="utf-8"),
+      *[d.as_tags() for d in deps],
+      self.children[0].children
+    )
+    body = self.children[1]
+    return {
+      "dependencies": deps,
+      "html": "<!DOCTYPE html>\n" + str(tag("html", head, body))
+    }
+
   def save_html(self, file: str, libdir: str = "lib") -> str:
     # Copy dependencies to libdir (relative to the file)
     dir = str(Path(file).resolve().parent)
     libdir = os.path.join(dir, libdir)
-    deps = self.get_dependencies()
-    dep_tags = tag_list()
-    for d in deps:
+    def copy_dep(d: html_dependency):
       d = d.copy_to(libdir, False)
       d = d.make_relative(dir, False)
-      dep_tags.append(d.as_tags())
-
-    head = tag(
-      "head", tag("meta", charset="utf-8"), dep_tags,
-      self.children[0].children
-    )
-    body = self.children[1]
-
-    html_ = tag("html", head, body).get_html_string()
+      return d
+    res = self.render(process_dep=copy_dep)
     with open(file, "w") as f:
-      f.write("<!DOCTYPE html>\n" + html_)
-
+      f.write(res['html'])
     return file
 
 # --------------------------------------------------------
@@ -494,7 +500,7 @@ class html_dependency:
   Example:
   -------
   >>> x = div("foo", html_dependency(name = "bar", version = "1.0", src = ".", script = "lib/bar.js"))
-  >>> x.get_dependencies()
+  >>> x.render()
   '''
   def __init__(self, name: str, version: Union[str, Version],
                      src: Union[str, Dict[str, str]],
@@ -518,8 +524,12 @@ class html_dependency:
 
   # I don't think we need hrefFilter (seems rmarkdown was the only one that needed it)?
   # https://github.com/search?l=r&q=%22hrefFilter%22+user%3Acran+language%3AR&ref=searchresults&type=Code&utf8=%E2%9C%93
-  def as_tags(self, src_type: str = "file", encode_path: Callable[[str], str] = quote) -> html:
-    src = self.src[src_type]
+  def as_tags(self, src_type: Optional[str]=None, encode_path: Callable[[str], str] = quote) -> html:
+    # Prefer the first listed src type if not specified
+    if not src_type:
+      src_type = list(self.src.keys())[0]
+
+    src = self.src.get(src_type, None)
     if not src:
       raise Exception(f"HTML dependency {self.name}@{self.version} has no '{src_type}' definition")
 

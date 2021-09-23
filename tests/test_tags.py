@@ -73,7 +73,7 @@ def test_html_save():
   with cwd(test_dir):
     dep = html_dependency("foo", "1.0", "assets", stylesheet="css/my-styles.css", script="js/my-js.js")
     # TODO: the indenting isn't quite right here
-    assert saved_html(div("foo", dep)) == '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n            <link href="lib/foo%401.0/css/my-styles.css" rel="stylesheet"/>\n    <script src="lib/foo%401.0/js/my-js.js"></script>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
+    assert saved_html(div("foo", dep)) == '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n        <link href="lib/foo%401.0/css/my-styles.css" rel="stylesheet"/>\n    <script src="lib/foo%401.0/js/my-js.js"></script>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
     desc = tags.meta(name="description", content="test")
     doc = html_document(div("foo", dep), desc, lang="en")
-    assert saved_html(doc) == '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n            <link href="lib/foo%401.0/css/my-styles.css" rel="stylesheet"/>\n    <script src="lib/foo%401.0/js/my-js.js"></script>\n    <meta name="description" content="test"/>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
+    assert saved_html(doc) == '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n        <link href="lib/foo%401.0/css/my-styles.css" rel="stylesheet"/>\n    <script src="lib/foo%401.0/js/my-js.js"></script>\n    <meta name="description" content="test"/>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
