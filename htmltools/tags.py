@@ -412,27 +412,40 @@ class html_document(tag):
   ---------
     >>> print(html_document(h1("Hello"), tags.meta(name="description", content="test"), lang = "en"))
   '''
-  def __init__(self, body: tag_list, head: Optional[tag_list]=None, **kwargs: AttrType):
+  def __init__(self, body: tag_list, head: Optional[tag_list] = None, **kwargs: AttrType) -> None:
     super().__init__("html", **kwargs)
-    head = head.children if isinstance(head, tag) and head.name == "head" else head
-    body = body.children if isinstance(body, tag) and body.name == "body" else body
-    self.append(
-      tag("head", head),
-      tag("body", body)
-    )
 
-  def render(self, tagify_: bool = True, process_dep: Callable[['html_dependency'], 'html_dependency'] = None) -> List:
+    if not (isinstance(head, tag) and head.name == "head"):
+      head = tag("head", head)
+    if not (isinstance(body, tag) and body.name == "body"):
+      body = tag("body", body)
+
+    self.append(head, body)
+
+  def render(self,
+    tagify_: bool = True,
+    process_dep: Optional[Callable[['html_dependency'], 'html_dependency']] = None
+  ) -> RenderedHTMLDocument:
     if tagify_:
-      self = tagify(self)
-    deps = self._get_dependencies()
+      self2 = tagify(self)
+    else:
+      self2 = self
+
+    deps: List[html_dependency] = self2._get_dependencies()
     if callable(process_dep):
       deps = [process_dep(x) for x in deps]
+
+    child0_children: List[TagChild] = []
+    if isinstance(self2.children[0], tag_list):
+      child0_children = self2.children[0].children
+
     head = tag(
-      "head", tag("meta", charset="utf-8"),
+      "head",
+      tag("meta", charset="utf-8"),
       *[d.as_tags() for d in deps],
-      self.children[0].children
+      *child0_children
     )
-    body = self.children[1]
+    body = self2.children[1]
     return {
       "dependencies": deps,
       "html": "<!DOCTYPE html>\n" + str(tag("html", head, body))
