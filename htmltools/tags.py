@@ -395,9 +395,14 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
   return type(_name, (tag,), {'__new__': __new__, '__init__': lambda self: None})
 
 
-  # --------------------------------------------------------
-  # Document class
-  # --------------------------------------------------------
+
+# --------------------------------------------------------
+# Document class
+# --------------------------------------------------------
+
+class RenderedHTMLDocument(TypedDict):
+    dependencies: List['html_dependency']
+    html: str
 
 class html_document(tag):
   '''
@@ -630,26 +635,39 @@ class html_dependency:
 # Utility functions
 # ---------------------------------------------------------------------------
 
-def tagify(x):
-  def _(ui):
+def tagify(x: tag_list) -> tag_list:
+  def tagify_impl(ui: tag_list) -> tag_list:
     f = getattr(ui, "__as_tags__", None)
     if callable(f):
       return tagify(f(ui))
     return ui
-  return rewrite_tags(x, func=_, preorder=False)
+
+  return rewrite_tags(x, func=tagify_impl, preorder=False)
 
 
-def rewrite_tags(ui, func, preorder):
+def rewrite_tags(
+  ui: tag_list,
+  func: Callable[[tag_list], tag_list],
+  preorder: bool
+) -> tag_list:
   if preorder:
     ui = func(ui)
-  if isinstance(ui, tag_list):
-    ui.children = [rewrite_tags(x, func, preorder) for x in ui.children]
-  # TODO: don't recurse into subclasses of list?
-  elif isinstance(ui, (list, tuple)):
-    ui = [rewrite_tags(x, func, preorder) for x in ui]
+
+  if ui.children:
+    new_children: List[TagChild] = []
+    for child in ui.children:
+      if isinstance(child, tag_list):
+        new_children.append(rewrite_tags(child, func, preorder))
+      else:
+        new_children.append(child)
+
+    ui.children = new_children
+
   if not preorder:
     ui = func(ui)
+
   return ui
+
 
 # e.g., _foo_bar_ -> foo-bar
 def encode_attr(x: str) -> str:
