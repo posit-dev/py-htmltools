@@ -1,3 +1,4 @@
+from shiny import *
 from htmltools import *
 MyComponent = jsx_tag("MyComponent")
 print(MyComponent())
@@ -9,6 +10,16 @@ ui = tag_list(
   MyComponent(style = {"color": "red"})
 )
 
+ui.render()
 ui.show()
 
-ui.get_dependencies()
+
+tabs = navs_tab_card(
+    nav("a", "tab a"),
+    nav("b", "tab b"),
+    nav_spacer(),
+    nav_menu("menu", nav("c", "tab c"), align="right")
+)
+
+print(tabs)
+tabs.show()

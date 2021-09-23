@@ -1,12 +1,12 @@
 from htmltools import *
 
 def expect_resolved_deps(input, output):
-  actual = tag_list(*input).get_dependencies()
+  actual = tag_list(*input).render()['dependencies']
   assert actual == output
 
 def expect_html_deps(x, html_, deps):
   assert str(x) == html_
-  assert x.get_dependencies() == deps
+  assert x.render()['dependencies'] == deps
 
 def test_dep_resolution():
   a1_1 = html_dependency("a", "1.1", {"href":"/"})
