@@ -9,6 +9,17 @@ from socket import socket
 from socketserver import TCPServer
 from threading import Thread
 
+def css(collapse_: str = "", **kwargs):
+  res = ""
+  for k, v in kwargs.items():
+    if v is None: continue
+    v = " ".join(v) if isinstance(v, list) else str(v)
+    k = re.sub("[._]", "-", re.sub("([A-Z])", "-\\1", k).lower())
+    if re.search("!$", k):
+      v += " !important"
+    res += k + ":" + v + ";" + collapse_
+  return None if res == "" else res
+
 # Both flatten a arbitrarily nested list *and* remove None 
 def flatten(l: Union[List, Tuple]):
   f = flatten_impl(l)

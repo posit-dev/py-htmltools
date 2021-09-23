@@ -14,6 +14,19 @@ from packaging import version
 package_version = version.parse
 Version = version.Version
 
+__all__ = [
+  "tag_list", 
+  "tag", 
+  "tags", 
+  "tag_factory", 
+  "jsx_tag", 
+  "html_document", 
+  "html", 
+  "jsx", 
+  "html_dependency", 
+  "tagify"
+]
+
 AttrType = Union[str, None]
 
 class tag_list():
