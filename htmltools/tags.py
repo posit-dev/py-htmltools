@@ -688,7 +688,8 @@ def encode_attr(x: str) -> str:
     x = x[1:-1]
   return x.replace("_", "-")
 
-def tag_repr_impl(name, attrs, children) -> str:
+
+def tag_repr_impl(name: str, attrs: Dict[str, str], children: List[TagChild]) -> str:
   x = '<' + name
   n_attrs = len(attrs)
   if attrs.get('id'):
@@ -704,8 +705,10 @@ def tag_repr_impl(name, attrs, children) -> str:
   x += '1 child>' if n == 1 else f'{n} children>'
   return x
 
+
 def normalize_text(txt: str) -> str:
   return txt if isinstance(txt, html) else html_escape(txt, attr=False)
+
 
 def equals_impl(x: Any, y: Any) -> bool:
   if not isinstance(y, type(x)):
