@@ -14,7 +14,7 @@ from packaging import version
 package_version = version.parse
 Version = version.Version
 
-AttrType = Union[str, None]
+AttrType = Optional[str]
 
 class tag_list:
   '''
@@ -48,14 +48,14 @@ class tag_list:
     if args:
       self.children += flatten(args)
 
-  def insert(self, index: int=0, *args: Any) -> None:
+  def insert(self, index: int = 0, *args: object) -> None:
     if args:
       self.children.insert(index, *flatten(args))
 
-  def get_html_string(self, tagify_: bool=True, indent: int = 0, eol: str = '\n') -> 'html':
+  def get_html_string(self, tagify_: bool = True, indent: int = 0, eol: str = '\n') -> 'html':
     if tagify_:
       self = tagify(self)
-    children = [x for x in self.children if not isinstance(x, html_dependency)]
+    children: List[object] = [x for x in self.children if not isinstance(x, html_dependency)]
     n = len(children)
     indent_ = '  ' * indent
     html_ = indent_
@@ -67,9 +67,10 @@ class tag_list:
       html_ += (eol + indent_) if i < n - 1 else ''
     return html(html_)
 
-  def get_dependencies(self, tagify_ = True) -> List['html_dependency']:
+  def get_dependencies(self, tagify_: bool = True) -> List['html_dependency']:
     if tagify_:
       self = tagify(self)
+
     deps: List[html_dependency] = []
     for x in self.children:
       if isinstance(x, html_dependency):
@@ -162,7 +163,7 @@ class tag(tag_list):
   def __init__(self, _name: str, *arguments: Any, children: Optional[Any] = None, **kwargs: AttrType) -> None:
     super().__init__(*arguments, children)
     self.name: str = _name
-    self._attrs: Dict[str, List] = {}
+    self._attrs: Dict[str, str] = {}
     self.append(**kwargs)
     # http://dev.w3.org/html5/spec/single-page.html#void-elements
     self._is_void = _name in ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
@@ -181,7 +182,7 @@ class tag(tag_list):
       v_ = self._attrs.get(k_, "")
       self._attrs[k_] = (v_ + " " + str(v)) if v_ else str(v)
 
-  def get_attrs(self) -> Dict[str, List]:
+  def get_attrs(self) -> Dict[str, str]:
     return self._attrs
 
   def get_attr(self, key: str) -> Optional[str]:
@@ -191,7 +192,10 @@ class tag(tag_list):
     return key in self.get_attrs()
 
   def has_class(self, _class_: str) -> bool:
-    return _class_ in self.get_attr("class").split(" ")
+    class_attr = self.get_attr("class")
+    if class_attr is None:
+      return False
+    return _class_ in class_attr.split(" ")
 
   def get_html_string(self, tagify_: bool=True, indent: int = 0, eol: str = '\n') -> 'html':
     if tagify_:
