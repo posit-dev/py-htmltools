@@ -694,11 +694,11 @@ def tag_repr_impl(name, attrs, children) -> str:
 def normalize_text(txt: str) -> str:
   return txt if isinstance(txt, html) else html_escape(txt, attr=False)
 
-def equals_impl(self, other: Any) -> bool:
-  if not isinstance(other, type(self)):
+def equals_impl(x: Any, y: Any) -> bool:
+  if not isinstance(y, type(x)):
     return False
-  for key in self.__dict__.keys():
-    if getattr(self, key, None) != getattr(other, key, None):
+  for key in x.__dict__.keys():
+    if getattr(x, key, None) != getattr(y, key, None):
       return False
   return True
 
