@@ -2,15 +2,17 @@ import os
 import re
 import importlib
 import tempfile
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, TypeVar
 from contextlib import contextmanager, closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
 from socketserver import TCPServer
 from threading import Thread
 
+T = TypeVar('T')
+
 # Both flatten a arbitrarily nested list *and* remove None
-def flatten(l: Union[List[object], Tuple[object, ...]]) -> List[object]:
+def flatten(l: Union[List[T], Tuple[T, ...]]) -> List[T]:
   f = flatten_impl(l)
   return [i for i in f if i]
 
@@ -18,7 +20,7 @@ def flatten(l: Union[List[object], Tuple[object, ...]]) -> List[object]:
 # Copyright (c) 2002-2003, Michael C. Fletcher
 # http://basicproperty.sourceforge.net/
 # http://rightfootin.blogspot.com/2006/09/no-builtin-flatyen-in-python.html
-def flatten_impl(l: Union[List[object], Tuple[object, ...]]) -> List[object]:
+def flatten_impl(l: Union[List[T], Tuple[T, ...]]) -> List[T]:
   l = list(l)
   i: int = 0
   while i < len(l):
