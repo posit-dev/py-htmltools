@@ -16,6 +16,9 @@ Version = version.Version
 
 AttrType = Optional[str]
 
+# Types of objects that can be a child of a tag.
+TagChild = Union['tag', 'tag_list', 'html_dependency', str, int, float, bool]
+
 class tag_list:
   '''
   Create a list (i.e., fragment) of HTML content
@@ -39,23 +42,23 @@ class tag_list:
   ---------
     >>> print(tag_list(h1('Hello htmltools'), tags.p('for python')))
   '''
-  def __init__(self, *args: object) -> None:
-    self.children: List[object] = []
+  def __init__(self, *args: TagChild) -> None:
+    self.children: List[TagChild] = []
     if args:
       self.append(*args)
 
-  def append(self, *args: object) -> None:
+  def append(self, *args: TagChild) -> None:
     if args:
       self.children += flatten(args)
 
-  def insert(self, index: int = 0, *args: object) -> None:
+  def insert(self, index: int = 0, *args: TagChild) -> None:
     if args:
       self.children.insert(index, *flatten(args))
 
   def get_html_string(self, tagify_: bool = True, indent: int = 0, eol: str = '\n') -> 'html':
     if tagify_:
       self = tagify(self)
-    children: List[object] = [x for x in self.children if not isinstance(x, html_dependency)]
+    children: List[TagChild] = [x for x in self.children if not isinstance(x, html_dependency)]
     n = len(children)
     indent_ = '  ' * indent
     html_ = indent_
