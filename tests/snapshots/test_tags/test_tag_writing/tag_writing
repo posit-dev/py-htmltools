@@ -1,0 +1,9 @@
+<b>
+  one
+  two
+  <span>
+    foo
+    bar
+    <span>baz</span>
+  </span>
+</b>
