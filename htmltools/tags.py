@@ -7,7 +7,7 @@ from copy import deepcopy
 from urllib.parse import quote
 import webbrowser
 import types
-from typing import Optional, Union, List, Dict, Callable, Any
+from typing import Optional, Union, List, Dict, Callable, Any, TypedDict
 from .util import *
 from .versions import versions
 from packaging import version
