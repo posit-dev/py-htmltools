@@ -64,8 +64,8 @@ class tag_list:
     if args:
       self.children.insert(index, *flatten(args))
 
-  def render(self, tagify_: bool = True) -> 'html':
-    return html_document(self).render(tagify_=tagify_)
+  def render(self, tagify: bool = True) -> 'html':
+    return html_document(self).render(tagify=tagify)
 
   def save_html(self, file: str, libdir: str = "lib") -> str:
     return html_document(self).save_html(file, libdir)
@@ -430,11 +430,11 @@ class html_document(tag):
     self.append(head, body)
 
   def render(self,
-    tagify_: bool = True,
+    tagify: bool = True,
     process_dep: Optional[Callable[['html_dependency'], 'html_dependency']] = None
   ) -> RenderedHTMLDocument:
-    if tagify_:
-      self2 = tagify(self)
+    if tagify:
+      self2 = _tagify(self)
     else:
       self2 = self
 
@@ -664,6 +664,9 @@ def tagify(x: tag_list) -> tag_list:
 
   return rewrite_tags(x, func=tagify_impl, preorder=False)
 
+# For internal use in this module; this is so that a function can take `tagify`
+# as an argument but still be able to call the `_tagify` function.
+_tagify = tagify
 
 def rewrite_tags(
   ui: tag_list,
