@@ -33,7 +33,9 @@ def flatten(x: Union[List[T], Tuple[T, ...]]) -> List[T]:
   def recurse(y: List[T]) -> None:
     for item in y:
       if isinstance(item, (list, tuple)):
-        recurse(item)
+        # Don't yet know how to specify recursive generic types, so we'll tell
+        # the type checker to ignore this line.
+        recurse(item) # type: ignore
       elif item is not None:
         result.append(item)
 
