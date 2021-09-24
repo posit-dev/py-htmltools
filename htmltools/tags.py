@@ -325,6 +325,8 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
         return '[' + ', '.join([serialize_attr(y) for y in x]) + ']'
       if isinstance(x, dict):
         return '{' + ', '.join([y + ': ' + serialize_attr(x[y]) for y in x]) + '}'
+      if isinstance(x, jsx):
+        return str(x)
       if isinstance(x, str):
         return '"' + x + '"'
       x_ = str(x)
@@ -339,9 +341,13 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
       res_ += '{'
       for key, vals in attrs.items():
         res_ += key + ': '
-        for i, v in enumerate(vals):
-          vals[i] = serialize_attr(v)
-        res_ += vals[0] if len(vals) == 1 else '[' + ', '.join(vals) + ']'
+        # If this tag is jsx, then it should be a list (otherwise, it's a string)
+        if isinstance(vals, list):
+          for i, v in enumerate(vals):
+            vals[i] = serialize_attr(v)
+          res_ += vals[0] if len(vals) == 1 else '[' + ', '.join(vals) + ']'
+        else:
+          res_ += vals
         res_ += ', '
       res_ += '}'
 

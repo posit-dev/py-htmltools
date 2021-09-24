@@ -6,7 +6,7 @@ from htmltools.util import cwd
 def expect_html(tag: tag, expected: str):
   assert str(tag) == expected
 
-def test_basic_tag_api():
+def test_basic_tag_api(snapshot):
   children = [h1("hello"), h2("world"), "text", None, ["list", ["here"]]]
   props = dict(_class_ = "foo", _for_ = "bar", id = "baz", bool="")
   x1 = div(*children, **props)
@@ -17,7 +17,7 @@ def test_basic_tag_api():
   assert x1 == x2 == x3 == x4
   assert x1.has_attr("id") and x1.has_attr("bool")
   assert not x1.has_attr("missing") 
-  expect_html(x1, '<div class="foo" for="bar" id="baz" bool="">\n  <h1>hello</h1>\n  <h2>world</h2>\n  text\n  list\n  here\n</div>')
+  snapshot.assert_match(str(x1), "basic_tag_api")
   assert x1.get_attr("class") == "foo"
   x1.append(_class_ = "bar")
   assert x1.get_attr("class") == "foo bar"
@@ -27,7 +27,7 @@ def test_basic_tag_api():
   x5.insert(0, span())
   expect_html(x5, '<span></span>\n<a></a>')
 
-def test_tag_writing():
+def test_tag_writing(snapshot):
   expect_html(tag_list("hi"), "hi")
   expect_html(
     tag_list("one", "two", tag_list("three")),
@@ -38,9 +38,9 @@ def test_tag_writing():
   expect_html(tag_list(["one"]), "one")
   expect_html(tag_list([tag_list("one")]), "one")
   expect_html(tag_list(tags.br(), "one"), "<br/>\none")
-  expect_html(
-    tags.b("one", "two", span("foo", "bar", span("baz"))),
-    '<b>\n  one\n  two\n  <span>\n    foo\n    bar\n    <span>baz</span>\n  </span>\n</b>'
+  snapshot.assert_match(
+      str(tags.b("one", "two", span("foo", "bar", span("baz")))), 
+      "tag_writing"
   )
   expect_html(tags.area(), '<area/>')
 
@@ -67,13 +67,13 @@ def saved_html(tag: tag):
     tag.save_html(f)
     return open(f, "r").read()
 
-def test_html_save():
-  assert saved_html(div()) == '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n  </head>\n  <body>\n    <div></div>\n  </body>\n</html>'
+def test_html_save(snapshot):
+  snapshot.assert_match(saved_html(div()), "html_save_div")
   test_dir = os.path.dirname(__file__)
   with cwd(test_dir):
     dep = html_dependency("foo", "1.0", "assets", stylesheet="css/my-styles.css", script="js/my-js.js")
     # TODO: the indenting isn't quite right here
-    assert saved_html(div("foo", dep)) == '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n        <link href="lib/foo%401.0/css/my-styles.css" rel="stylesheet"/>\n    <script src="lib/foo%401.0/js/my-js.js"></script>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
+    snapshot.assert_match(saved_html(div("foo", dep)), "html_save_dep")
     desc = tags.meta(name="description", content="test")
     doc = html_document(div("foo", dep), desc, lang="en")
-    assert saved_html(doc) == '<!DOCTYPE html>\n<html>\n  <head>\n    <meta charset="utf-8"/>\n        <link href="lib/foo%401.0/css/my-styles.css" rel="stylesheet"/>\n    <script src="lib/foo%401.0/js/my-js.js"></script>\n    <meta name="description" content="test"/>\n  </head>\n  <body>\n    <div>foo</div>\n  </body>\n</html>'
+    snapshot.assert_match(saved_html(doc), "html_save_doc")
