@@ -30,7 +30,7 @@ __all__ = [
 AttrType = Union[str, None]
 
 # Types of objects that can be a child of a tag.
-TagChild = Union['tag', 'tag_list', 'html_dependency', str, int, float, bool]
+TagChild = Union['tag_list', 'html_dependency', str, int, float, bool]
 
 class tag_list:
   '''
@@ -661,12 +661,26 @@ class html_dependency:
 # Utility functions
 # ---------------------------------------------------------------------------
 
-def tagify(x: tag_list) -> tag_list:
-  def tagify_impl(ui: tag_list) -> tag_list:
-    f = getattr(ui, "__as_tags__", None)
-    if callable(f):
-      return tagify(f(ui))
-    return ui
+from typing_extensions import Protocol, runtime_checkable
+
+# A duck type: objects with __as_tags__ methods are considered AsTagable.
+@runtime_checkable
+class AsTagable(Protocol):
+    def __as_tags__(self) -> tag_list:
+       ...
+
+Tagifiable = Union[tag_list, list[tag_list], AsTagable]
+
+def tagify(x: Tagifiable) -> tag_list:
+  def tagify_impl(ui: Tagifiable) -> tag_list:
+    if isinstance(ui, AsTagable):
+      # TODO: This should be ui.__as_tags__(), but it currently doesn't work due
+      # to the way that jsx_tag.__as_tags__ is implemented.
+      return(tagify(ui.__as_tags__(ui)))
+    elif isinstance(ui, list):
+      return tag_list(*ui)
+    else:
+      return ui
 
   return rewrite_tags(x, func=tagify_impl, preorder=False)
 
@@ -675,22 +689,25 @@ def tagify(x: tag_list) -> tag_list:
 _tagify = tagify
 
 def rewrite_tags(
-  ui: tag_list,
-  func: Callable[[tag_list], tag_list],
+  ui: Tagifiable,
+  func: Callable[[Tagifiable], tag_list],
   preorder: bool
 ) -> tag_list:
   if preorder:
     ui = func(ui)
 
-  if ui.children:
+  if isinstance(ui, tag_list):
     new_children: List[TagChild] = []
     for child in ui.children:
-      if isinstance(child, tag_list):
+      if isinstance(child, (tag_list, AsTagable)):
         new_children.append(rewrite_tags(child, func, preorder))
       else:
         new_children.append(child)
 
     ui.children = new_children
+
+  elif isinstance(ui, list):
+    ui = [rewrite_tags(item, func, preorder) for item in ui]
 
   if not preorder:
     ui = func(ui)
