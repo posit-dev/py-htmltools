@@ -22,29 +22,24 @@ def css(collapse_: str = "", **kwargs):
     res += k + ":" + v + ";" + collapse_
   return None if res == "" else res
 
+
 # Both flatten a arbitrarily nested list *and* remove None
-def flatten(l: Union[List[T], Tuple[T, ...]]) -> List[T]:
-  f = flatten_impl(l)
-  return [i for i in f if i]
+def flatten(x: Union[List[T], Tuple[T, ...]]) -> List[T]:
+  if isinstance(x, tuple):
+    x = list(x)
 
-# Derived from BasicProperty and BasicTypes source code
-# Copyright (c) 2002-2003, Michael C. Fletcher
-# http://basicproperty.sourceforge.net/
-# http://rightfootin.blogspot.com/2006/09/no-builtin-flatyen-in-python.html
-def flatten_impl(l: Union[List[T], Tuple[T, ...]]) -> List[T]:
-  l = list(l)
-  i: int = 0
-  while i < len(l):
-    while isinstance(l[i], (list, tuple)):
-      if not l[i]:
-        l.pop(i)
-        i -= 1
-        break
-      else:
-        l[i:i + 1] = l[i]
-    i += 1
+  result: list[T] = []
 
-  return l
+  def recurse(y: List[T]) -> None:
+    for item in y:
+      if isinstance(item, (list, tuple)):
+        recurse(item)
+      elif item is not None:
+        result.append(item)
+
+  recurse(x)
+  return result
+
 
 # similar to unique() in R (set() doesn't preserve order)
 def unique(x: List[object]) -> List[object]:
