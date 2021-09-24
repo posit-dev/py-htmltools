@@ -11,7 +11,7 @@ from threading import Thread
 
 T = TypeVar('T')
 
-def css(collapse_: str = "", **kwargs):
+def css(collapse_: str = "", **kwargs: str):
   res = ""
   for k, v in kwargs.items():
     if v is None: continue
