@@ -58,14 +58,13 @@ class tag_list:
       self.append(*args)
 
   def append(self, *args: TagChild) -> None:
-    if args:
-      self.children += flatten(args)
+    self.children += flatten(args)
 
   def insert(self, index: int = 0, *args: TagChild) -> None:
     if args:
       self.children.insert(index, *flatten(args))
 
-  def render(self, tagify_: bool = True):
+  def render(self, tagify_: bool = True) -> 'html':
     return html_document(self).render(tagify_=tagify_)
 
   def save_html(self, file: str, libdir: str = "lib") -> str:
@@ -80,7 +79,7 @@ class tag_list:
       if isinstance(x, tag_list):
         html_ += x._get_html_string(indent, eol)
       else:
-        html_ += normalize_text(x)
+        html_ += normalize_text(str(x))
       html_ += (eol + indent_) if i < n - 1 else ''
     return html(html_)
 
@@ -168,8 +167,16 @@ class tag(tag_list):
     >>> print(tag("MyJSXComponent"))
   '''
 
-  def __init__(self, _name: str, *arguments: Any, children: Optional[Any] = None, **kwargs: AttrType) -> None:
-    super().__init__(*arguments, children)
+  def __init__(self,
+    _name: str,
+    *args: TagChild,
+    children: Optional[List[TagChild]] = None,
+    **kwargs: AttrType
+  ) -> None:
+    if children is None:
+      children = []
+    super().__init__(*args, *children)
+
     self.name: str = _name
     self._attrs: Dict[str, str] = {}
     self.append(**kwargs)
