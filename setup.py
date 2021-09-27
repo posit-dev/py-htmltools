@@ -30,5 +30,8 @@ setup(
   ],
 
   packages = ['htmltools'],
+  package_data = {
+    'htmltools': ['py.typed'],
+  },
   include_package_data = True,
 )
