@@ -18,7 +18,6 @@ __all__ = [
   "tag_list",
   "tag",
   "tags",
-  "tag_factory",
   "jsx_tag",
   "html_document",
   "html",
@@ -255,39 +254,33 @@ class tag(tag_list):
     return tag_repr_impl(self.name, self.get_attrs(), self.children)
 
 # --------------------------------------------------------
-# tag factory
+# HTML tag functions
 # --------------------------------------------------------
 
-def tag_factory_(_name: str) -> Callable[[Any], 'tag']:
-  def __init__(self: tag, *args: Any, children: Optional[Any] = None, **kwargs: AttrType) -> None:
-    tag.__init__(self, _name, *args, children = children, **kwargs)
-  return __init__
+def make_tag_fn(_name: str) -> Callable[..., tag]:
+  def tag_fn(
+    *args: TagChild,
+    children: Optional[List[TagChild]] = None,
+    **kwargs: AttrType
+  ) -> tag:
+    return tag(_name, *args, children = children, **kwargs)
 
-# TODO: attribute verification?
-def tag_factory(_name: str) -> tag:
-  '''
-  Programmatically create a tag class.
+  tag_fn.__name__ = _name
+  return tag_fn
 
-  Examples:
-  ---------
-    >>> MyTag = tag_factory("MyTag")
-    >>> MyTag(h1("Hello"))
-  '''
-  return type(_name, (tag,), {'__init__': tag_factory_(_name)})
-
-# Generate a class for each known tag
-class create_tags:
+class HTMLTags:
   def __init__(self) -> None:
     dir = os.path.dirname(__file__)
     with open(os.path.join(dir, 'known_tags.json')) as f:
       known_tags = json.load(f)
-      # We don't have any immediate need for tags.head() since you can achieve the same effect
-      # with an 'anonymous' dependency (i.e., htmlDependency(head = ....))
+      # We don't have any immediate need for tags.head() since you can achieve
+      # the same effect with an 'anonymous' dependency (i.e.,
+      # htmlDependency(head = ....))
       known_tags.remove("head")
-      for tag_ in known_tags:
-        setattr(self, tag_, tag_factory(tag_))
+      for tag_name in known_tags:
+        setattr(self, tag_name, make_tag_fn(tag_name))
 
-tags = create_tags()
+tags = HTMLTags()
 
 # --------------------------------------------------------
 # JSX tags
