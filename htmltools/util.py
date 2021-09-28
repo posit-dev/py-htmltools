@@ -25,12 +25,9 @@ def css(collapse_: str = "", **kwargs: str):
 
 # Both flatten a arbitrarily nested list *and* remove None
 def flatten(x: Union[List[T], Tuple[T, ...]]) -> List[T]:
-  if isinstance(x, tuple):
-    x = list(x)
-
   result: list[T] = []
 
-  def recurse(y: List[T]) -> None:
+  def recurse(y: Union[List[T], Tuple[T, ...]]) -> None:
     for item in y:
       if isinstance(item, (list, tuple)):
         # Don't yet know how to specify recursive generic types, so we'll tell
