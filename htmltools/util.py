@@ -41,7 +41,7 @@ def flatten(x: Union[List[T], Tuple[T, ...]]) -> List[T]:
 
 
 # similar to unique() in R (set() doesn't preserve order)
-def unique(x: List[object]) -> List[object]:
+def unique(x: List[T]) -> List[T]:
   # This implementation requires Python 3.7+. Starting with that version, dict
   # order is guaranteed to be the same as insertion order.
   return list(dict.fromkeys(x))
