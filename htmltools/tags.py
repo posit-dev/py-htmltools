@@ -32,6 +32,11 @@ AttrType = Union[str, None]
 # Types of objects that can be a child of a tag.
 TagChild = Union['tag_list', 'html_dependency', str, int, float, bool]
 
+class RenderedHTMLDocument(TypedDict):
+    dependencies: List['html_dependency']
+    html: str
+
+
 class tag_list:
   '''
   Create a list (i.e., fragment) of HTML content
@@ -64,7 +69,7 @@ class tag_list:
     if args:
       self.children.insert(index, *flatten(args))
 
-  def render(self, tagify: bool = True) -> 'html':
+  def render(self, tagify: bool = True) -> RenderedHTMLDocument:
     return html_document(self).render(tagify=tagify)
 
   def save_html(self, file: str, libdir: str = "lib") -> str:
@@ -412,11 +417,6 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
 # --------------------------------------------------------
 # Document class
 # --------------------------------------------------------
-
-class RenderedHTMLDocument(TypedDict):
-    dependencies: List['html_dependency']
-    html: str
-
 class html_document(tag):
   '''
   Create an HTML document.
