@@ -2,7 +2,7 @@ import os
 import re
 import importlib
 import tempfile
-from typing import List, Tuple, Union, TypeVar
+from typing import List, Tuple, Union, TypeVar, Hashable
 from contextlib import contextmanager, closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
@@ -10,6 +10,8 @@ from socketserver import TCPServer
 from threading import Thread
 
 T = TypeVar('T')
+
+HashableT = TypeVar('HashableT', bound=Hashable)
 
 def css(collapse_: str = "", **kwargs: str):
   res = ""
@@ -41,7 +43,7 @@ def _flatten_recurse(x: Union[List[T], Tuple[T, ...]], result: List[T]) -> None:
       result.append(item)
 
 # similar to unique() in R (set() doesn't preserve order)
-def unique(x: List[T]) -> List[T]:
+def unique(x: List[HashableT]) -> List[HashableT]:
   # This implementation requires Python 3.7+. Starting with that version, dict
   # order is guaranteed to be the same as insertion order.
   return list(dict.fromkeys(x))
