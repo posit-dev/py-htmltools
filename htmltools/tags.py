@@ -662,7 +662,7 @@ class AsTagable(Protocol):
     def __as_tags__(self) -> tag_list:
        ...
 
-Tagifiable = Union[tag_list, list[tag_list], AsTagable]
+Tagifiable = Union[tag_list, List[tag_list], AsTagable]
 
 def tagify(x: Tagifiable) -> tag_list:
   def tagify_impl(ui: Tagifiable) -> tag_list:
