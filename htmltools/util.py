@@ -2,7 +2,7 @@ import os
 import re
 import importlib
 import tempfile
-from typing import List, Tuple, Union, TypeVar, Hashable
+from typing import List, Tuple, Union, TypeVar, Hashable, Optional
 from contextlib import contextmanager, closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
@@ -25,15 +25,15 @@ def css(collapse_: str = "", **kwargs: str):
   return None if res == "" else res
 
 
-# Both flatten a arbitrarily nested list *and* remove None
-def flatten(x: Union[List[T], Tuple[T, ...]]) -> List[T]:
+# Both flatten a arbitrarily nested list *and* remove None.
+def flatten(x: Union[List[Union[T, None]], Tuple[Union[T, None], ...]]) -> List[T]:
   result: List[T] = []
-  _flatten_recurse(x, result)
+  _flatten_recurse(x, result) # type: ignore
   return result
 
-# Having this separate function and passing along `memo` is faster than defining
-# a closure inside of `flatten()` (and not passing `memo`).
-def _flatten_recurse(x: Union[List[T], Tuple[T, ...]], result: List[T]) -> None:
+# Having this separate function and passing along `result` is faster than defining
+# a closure inside of `flatten()` (and not passing `result`).
+def _flatten_recurse(x: Union[List[Union[T, None]], Tuple[Union[T, None], ...]], result: List[T]) -> None:
   for item in x:
     if isinstance(item, (list, tuple)):
       # Don't yet know how to specify recursive generic types, so we'll tell
