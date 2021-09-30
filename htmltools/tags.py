@@ -1,4 +1,3 @@
-import json
 import os
 import shutil
 import tempfile
@@ -17,7 +16,6 @@ Version = version.Version
 __all__ = [
   "tag_list",
   "tag",
-  "tags",
   "jsx_tag",
   "html_document",
   "html",
@@ -253,9 +251,6 @@ class tag(tag_list):
   def __repr__(self) -> str:
     return tag_repr_impl(self.name, self.get_attrs(), self.children)
 
-# --------------------------------------------------------
-# HTML tag functions
-# --------------------------------------------------------
 
 def make_tag_fn(_name: str) -> Callable[..., tag]:
   def tag_fn(
@@ -267,20 +262,6 @@ def make_tag_fn(_name: str) -> Callable[..., tag]:
 
   tag_fn.__name__ = _name
   return tag_fn
-
-class HTMLTags:
-  def __init__(self) -> None:
-    dir = os.path.dirname(__file__)
-    with open(os.path.join(dir, 'known_tags.json')) as f:
-      known_tags = json.load(f)
-      # We don't have any immediate need for tags.head() since you can achieve
-      # the same effect with an 'anonymous' dependency (i.e.,
-      # htmlDependency(head = ....))
-      known_tags.remove("head")
-      for tag_name in known_tags:
-        setattr(self, tag_name, make_tag_fn(tag_name))
-
-tags = HTMLTags()
 
 # --------------------------------------------------------
 # JSX tags
@@ -502,7 +483,7 @@ class jsx(str):
 
   Example:
   -------
-  >>> Foo = tag_factory("Foo")
+  >>> Foo = jsx_tag("Foo")
   >>> print(Foo(myProp = "<p>Hello</p>"))
   >>> print(Foo(myProp = jsx("<p>Hello</p>")))
   '''
