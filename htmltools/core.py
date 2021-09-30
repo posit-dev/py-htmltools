@@ -54,12 +54,12 @@ class tag_list:
   ---------
     >>> print(tag_list(h1('Hello htmltools'), tags.p('for python')))
   '''
-  def __init__(self, *args: TagChild) -> None:
+  def __init__(self, *args: Union[TagChild, None]) -> None:
     self.children: List[TagChild] = []
     if args:
       self.append(*args)
 
-  def append(self, *args: TagChild) -> None:
+  def append(self, *args: Union[TagChild, None]) -> None:
     self.children += flatten(args)
 
   def insert(self, index: int = 0, *args: TagChild) -> None:
@@ -529,7 +529,7 @@ class html_dependency:
 
   # I don't think we need hrefFilter (seems rmarkdown was the only one that needed it)?
   # https://github.com/search?l=r&q=%22hrefFilter%22+user%3Acran+language%3AR&ref=searchresults&type=Code&utf8=%E2%9C%93
-  def as_tags(self, src_type: Optional[str]=None, encode_path: Callable[[str], str] = quote) -> html:
+  def as_tags(self, src_type: Optional[str]=None, encode_path: Callable[[str], str] = quote) -> tag_list:
     # Prefer the first listed src type if not specified
     if not src_type:
       src_type = list(self.src.keys())[0]
@@ -545,13 +545,13 @@ class html_dependency:
     for s in sheets:
       s.update({"href": os.path.join(src, encode_path(s["href"]))})
 
-    scripts = deepcopy(self.script)
-    for s in scripts:
+    script: List[Dict[str, str]] = deepcopy(self.script)
+    for s in script:
       s.update({"src": os.path.join(src, encode_path(s["src"]))})
 
-    metas: List[tag] = [tags.meta(**m) for m in self.meta]
-    links: List[tag] = [tags.link(**s) for s in sheets]
-    scripts: List[tag] = [tags.script(**s) for s in scripts]
+    metas: List[tag] = [tag("meta", **m) for m in self.meta]
+    links: List[tag] = [tag("link", **s) for s in sheets]
+    scripts: List[tag] = [tag("script", **s) for s in script]
     head = html(self.head) if self.head else None
     return tag_list(*metas, *links, *scripts, head)
 
