@@ -7,9 +7,12 @@ from urllib.parse import quote
 import webbrowser
 import types
 from typing import Optional, Union, List, Dict, Callable, Any, TypedDict
+
+from packaging import version
+
 from .util import *
 from .versions import versions
-from packaging import version
+
 package_version = version.parse
 Version = version.Version
 

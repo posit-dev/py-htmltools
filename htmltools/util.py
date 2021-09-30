@@ -2,7 +2,7 @@ import os
 import re
 import importlib
 import tempfile
-from typing import List, Tuple, Union, TypeVar, Hashable, Optional
+from typing import List, Tuple, Union, TypeVar, Hashable
 from contextlib import contextmanager, closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
