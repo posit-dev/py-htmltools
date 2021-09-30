@@ -1,5 +1,7 @@
 {
     "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "editor.tabSize": 4,
     "python.analysis.typeCheckingMode": "strict",
     "files.exclude": {
         "**/__pycache__": true
