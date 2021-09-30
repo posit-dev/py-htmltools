@@ -10,7 +10,7 @@ from typing import Optional, Union, List, Dict, Callable, Any, TypedDict
 
 from packaging import version
 
-from .util import *
+from .util import flatten, unique, html_escape, ensure_http_server, package_dir
 from .versions import versions
 
 package_version = version.parse
