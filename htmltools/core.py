@@ -8,6 +8,7 @@ import webbrowser
 import types
 from typing import Optional, Union, List, Dict, Callable, Any, TypedDict
 
+from typing_extensions import Protocol, runtime_checkable
 from packaging import version
 
 from .util import flatten, unique, html_escape, ensure_http_server, package_dir
@@ -103,7 +104,7 @@ class tag_list:
             latest = max([d.version for d in deps if d.name == nm])
             deps_ = [d for d in deps if d.name == nm]
             for d in deps_:
-                if d.version == latest and not d in resolved:
+                if d.version == latest and d not in resolved:
                     resolved.append(d)
         return resolved
 
@@ -626,7 +627,7 @@ class html_dependency:
             else:
                 return self
         if not path or path == "/":
-            raise Exception(f"path cannot be empty or '/'")
+            raise Exception("path cannot be empty or '/'")
 
         if self.package:
             src = os.path.join(package_dir(self.package), src)
@@ -706,8 +707,6 @@ class html_dependency:
 # ---------------------------------------------------------------------------
 # Utility functions
 # ---------------------------------------------------------------------------
-
-from typing_extensions import Protocol, runtime_checkable
 
 # A duck type: objects with __as_tags__ methods are considered AsTagable.
 @runtime_checkable

@@ -11,4 +11,5 @@
     "editor.rulers": [
         88
     ],
+    "python.linting.flake8Enabled": true,
 }
