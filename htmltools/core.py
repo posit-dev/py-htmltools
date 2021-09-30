@@ -33,8 +33,8 @@ AttrType = Union[str, None]
 TagChild = Union['tag_list', 'html_dependency', str, int, float, bool]
 
 class RenderedHTMLDocument(TypedDict):
-        dependencies: List['html_dependency']
-        html: str
+    dependencies: List['html_dependency']
+    html: str
 
 
 class tag_list:
@@ -510,13 +510,18 @@ class html_dependency:
     >>> x = div("foo", html_dependency(name = "bar", version = "1.0", src = ".", script = "lib/bar.js"))
     >>> x.render()
     '''
-    def __init__(self, name: str, version: Union[str, Version],
-                                         src: Union[str, Dict[str, str]],
-                                         script: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
-                                         stylesheet: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
-                                         package: Optional[str] = None, all_files: bool = False,
-                                         meta: Optional[List[Dict[str, str]]] = None,
-                                         head: Optional[str] = None):
+    def __init__(
+        self,
+        name: str,
+        version: Union[str, Version],
+        src: Union[str, Dict[str, str]],
+        script: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
+        stylesheet: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
+        package: Optional[str] = None,
+        all_files: bool = False,
+        meta: Optional[List[Dict[str, str]]] = None,
+        head: Optional[str] = None
+    ) -> None:
         self.name: str = name
         self.version: Version = version if isinstance(version, Version) else package_version(version)
         self.src: Dict[str, str] = src if isinstance(src, dict) else {"file": src}
@@ -643,8 +648,8 @@ from typing_extensions import Protocol, runtime_checkable
 # A duck type: objects with __as_tags__ methods are considered AsTagable.
 @runtime_checkable
 class AsTagable(Protocol):
-        def __as_tags__(self) -> tag_list:
-             ...
+    def __as_tags__(self) -> tag_list:
+            ...
 
 Tagifiable = Union[tag_list, List[tag_list], AsTagable]
 
@@ -703,8 +708,8 @@ def tag_repr_impl(name: str, attrs: Dict[str, str], children: List[TagChild]) ->
     x = '<' + name
     n_attrs = len(attrs)
     if attrs.get('id'):
-         x += '#' + attrs['id']
-         n_attrs -= 1
+        x += '#' + attrs['id']
+        n_attrs -= 1
     if attrs.get('class'):
         x += '.' + attrs['class'].replace(' ', '.')
         n_attrs -= 1
@@ -731,7 +736,7 @@ def equals_impl(x: Any, y: Any) -> bool:
 
 def lib_dependency(pkg: str, **kwargs: object) -> html_dependency:
     return html_dependency(
-            name=pkg, version=versions[pkg],
-            package="htmltools", src="lib/"+pkg,
-            **kwargs
+        name=pkg, version=versions[pkg],
+        package="htmltools", src="lib/"+pkg,
+        **kwargs
     )
