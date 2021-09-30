@@ -16,4 +16,5 @@ If you want to do development on htmltools, also run:
 
 ```sh
 pip install -r requirements-dev.txt
+pre-commit install
 ```
