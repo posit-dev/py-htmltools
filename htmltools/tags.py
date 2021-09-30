@@ -1,693 +1,624 @@
-import json
-import os
-import shutil
-import tempfile
-from pathlib import Path
-from copy import deepcopy
-from urllib.parse import quote
-import webbrowser
-import types
-from typing import Optional, Union, List, Dict, Callable, Any
-from .util import *
-from .versions import versions
-from packaging import version
-package_version = version.parse
-Version = version.Version
-
-__all__ = [
-  "tag_list", 
-  "tag", 
-  "tags", 
-  "tag_factory", 
-  "jsx_tag", 
-  "html_document", 
-  "html", 
-  "jsx", 
-  "html_dependency", 
-  "tagify"
-]
-
-AttrType = Union[str, None]
-
-class tag_list():
-  '''
-  Create a list (i.e., fragment) of HTML content
-
-  Methods:
-  --------
-    show: Render and preview as HTML.
-    save_html: Save the HTML to a file.
-    append: Add content _after_ any existing children.
-    insert: Add content after a given child index.
-    render: Render the tag tree as an HTML string and also retrieve any dependencies.
-
-  Attributes:
-  -----------
-    children: A list of child tags.
-
-  Examples:
-  ---------
-    >>> print(tag_list(h1('Hello htmltools'), tags.p('for python')))
-  '''
-  def __init__(self, *args: Any) -> None:
-    self.children: List[Any] = []
-    if args: 
-      self.append(*args)
-  
-  def append(self, *args: Any) -> None:
-    if args: 
-      self.children += flatten(args)
-
-  def insert(self, index: int=0, *args: Any) -> None:
-    if args:
-      self.children.insert(index, *flatten(args))
-
-  def render(self, tagify_: bool = True):
-    return html_document(self).render(tagify_=tagify_)
-
-  def save_html(self, file: str, libdir: str = "lib") -> str:
-    return html_document(self).save_html(file, libdir)
-
-  def _get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
-    children = [x for x in self.children if not isinstance(x, html_dependency)]
-    n = len(children)
-    indent_ = '  ' * indent
-    html_ = indent_
-    for i, x in enumerate(children):
-      if isinstance(x, tag_list):
-        html_ += x._get_html_string(indent, eol)
-      else:
-        html_ += normalize_text(x)
-      html_ += (eol + indent_) if i < n - 1 else ''
-    return html(html_)
-  
-  def _get_dependencies(self) -> List['html_dependency']:
-    deps: List[html_dependency] = []
-    for x in self.children:
-      if isinstance(x, html_dependency):
-        deps.append(x)
-      elif isinstance(x, tag_list):
-        deps += x._get_dependencies()
-    unames = unique([d.name for d in deps])
-    resolved: List[html_dependency] = []
-    for nm in unames:
-      latest = max([d.version for d in deps if d.name == nm])
-      deps_ = [d for d in deps if d.name == nm]
-      for d in deps_:
-        if d.version == latest and not d in resolved:
-          resolved.append(d)
-    return resolved
-
-  def show(self, renderer: str = "auto") -> Any:
-    if renderer == "auto":
-      try:
-        import IPython
-        ipy = IPython.get_ipython()
-        renderer = "ipython" if ipy else "browser"
-      except ImportError:
-        renderer = "browser"
-
-    # TODO: can we get htmlDependencies working in IPython?
-    if renderer == "ipython":
-      from IPython.core.display import display_html
-      # https://github.com/ipython/ipython/pull/10962
-      return display_html(str(self), raw=True, metadata={'text/html': {'isolated': True}})
-    
-    if renderer == "browser":
-      tmpdir = tempfile.gettempdir()
-      key_ = "viewhtml" + str(hash(str(self)))
-      dir = os.path.join(tmpdir, key_)
-      Path(dir).mkdir(parents=True, exist_ok=True)
-      file = os.path.join(dir, "index.html")
-      self.save_html(file)
-      port = ensure_http_server(tmpdir)
-      webbrowser.open(f"http://localhost:{port}/{key_}/index.html")
-      return file
-    
-    raise Exception(f"Unknown renderer {renderer}")
-
-  def __str__(self) -> str:
-    return self._get_html_string()
-
-  def __eq__(self, other: Any) -> bool: 
-    return equals_impl(self, other)
-
-  def __bool__(self) -> bool:
-    return len(self.children) > 0
-
-  def __repr__(self) -> str:
-    return tag_repr_impl("tag_list", {}, self.children)
-
-class tag(tag_list):
-  '''
-  Create an HTML tag. 
-
-  Methods:
-  --------
-    show: Render and preview as HTML.
-    save_html: Save the HTML to a file.
-    append: Add children (or attributes) _after_ any existing children (or attributes).
-    insert: Add children (or attributes) into a specific child (or attribute) index.
-    get_attrs: Get a dictionary of attributes.
-    get_attr: Get the value of an attribute.
-    has_attr: Check if an attribute is present.
-    has_class: Check if the class attribte contains a particular class.
-    render: Render the tag as HTML.
-
-  Attributes:
-  -----------
-    name: The name of the tag
-    children: A list of children
-  
-   Examples:
-  ---------
-    >>> print(div(h1('Hello htmltools'), tags.p('for python'), _class_ = 'mydiv'))
-    >>> print(tag("MyJSXComponent"))
-  '''
-
-  def __init__(self, _name: str, *arguments: Any, children: Optional[Any] = None, **kwargs: AttrType) -> None:
-    super().__init__(*arguments, children)
-    self.name: str = _name
-    self._attrs: Dict[str, List] = {}
-    self.append(**kwargs)
-    # http://dev.w3.org/html5/spec/single-page.html#void-elements
-    self._is_void = _name in ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
-
-  def __call__(self, *args: Any, **kwargs: AttrType) -> 'tag':
-    self.append(*args, **kwargs)
-    return self
-
-  def append(self, *args: Any, **kwargs: AttrType) -> None:
-    if args:
-      super().append(*args)
-    for k, v in kwargs.items():
-      if v is None:
-        continue
-      k_ = encode_attr(k)
-      v_ = self._attrs.get(k_, "")
-      self._attrs[k_] = (v_ + " " + str(v)) if v_ else str(v)
-
-  def get_attrs(self) -> Dict[str, List]:
-    return self._attrs
-
-  def get_attr(self, key: str) -> Optional[str]:
-    return self.get_attrs().get(key)
-
-  def has_attr(self, key: str) -> bool:
-    return key in self.get_attrs()
-
-  def has_class(self, _class_: str) -> bool:
-    return _class_ in self.get_attr("class").split(" ")
-
-  def _get_html_string(self, indent: int = 0, eol: str = '\n') -> 'html':
-    html_ = '<' + self.name
-
-    # write attributes (boolean attributes should be empty strings)
-    for key, val in self.get_attrs().items():
-      val = val if isinstance(val, html) else html_escape(val, attr=True)
-      html_ += f' {key}="{val}"'
-
-    # Dependencies are ignored in the HTML output
-    children = [x for x in self.children if not isinstance(x, html_dependency)]
-
-    # Don't enclose JSX/void elements if there are no children
-    if len(children) == 0 and self._is_void:
-      return html(html_ + '/>')
-
-    # Other empty tags are enclosed
-    html_ += '>'
-    close = '</' + self.name + '>'
-    if len(children) == 0:
-      return html(html_ + close)
-
-    # Inline a single/empty child text node
-    if len(children) == 1 and isinstance(children[0], str):
-      return html(html_ + normalize_text(children[0]) + close)
-
-    # Write children
-    # TODO: inline elements should eat ws?
-    html_ += eol
-    html_ += tag_list._get_html_string(self, indent + 1, eol)
-    return html(html_ + eol + ('  ' * indent) + close)
-
-  def __bool__(self) -> bool:
-    return True
-
-  def __repr__(self) -> str:
-    return tag_repr_impl(self.name, self.get_attrs(), self.children)
-
-# --------------------------------------------------------
-# tag factory
-# --------------------------------------------------------
-
-def tag_factory_(_name: str) -> Callable[[Any], 'tag']:
-  def __init__(self: tag, *args: Any, children: Optional[Any] = None, **kwargs: AttrType) -> None:
-    tag.__init__(self, _name, *args, children = children, **kwargs)
-  return __init__
-
-# TODO: attribute verification?
-def tag_factory(_name: str) -> tag:
-  '''
-  Programmatically create a tag class.
-
-  Examples:
-  ---------
-    >>> MyTag = tag_factory("MyTag")
-    >>> MyTag(h1("Hello"))
-  '''
-  return type(_name, (tag,), {'__init__': tag_factory_(_name)})
-
-# Generate a class for each known tag
-class create_tags():
-  def __init__(self) -> None:
-    dir = os.path.dirname(__file__)
-    with open(os.path.join(dir, 'known_tags.json')) as f:
-      known_tags = json.load(f)
-      # We don't have any immediate need for tags.head() since you can achieve the same effect
-      # with an 'anonymous' dependency (i.e., htmlDependency(head = ....))
-      known_tags.remove("head")
-      for tag_ in known_tags:
-        setattr(self, tag_, tag_factory(tag_))
-
-tags = create_tags()
-
-# --------------------------------------------------------
-# JSX tags
-# --------------------------------------------------------
-
-def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
-  pieces = _name.split('.')
-  if pieces[-1][:1] != pieces[-1][:1].upper():
-    raise NotImplementedError("JSX tags must be lowercase")
-
-  # TODO: disallow props that are not in allowedProps
-  def as_tags(self, *args, **kwargs) -> tag_list:
-    js = "\n".join([
-      "(function() {",
-      "  var container = new DocumentFragment();",
-      f"  ReactDOM.render({self._get_html_string()}, container);",
-      "  document.currentScript.after(container);",
-      "})();"
-    ])
-    # TODO: avoid the inline script tag (for security)
-    return tag_list(
-        lib_dependency("react", script="react.production.min.js"),
-        lib_dependency("react-dom", script="react-dom.production.min.js"),
-        self._get_dependencies(),
-        tag("script", type="text/javascript")(html("\n"+js+"\n"))
-    )
-
-  def _get_html_string(self) -> str:
-    if isinstance(self, tag_list) and not isinstance(self, tag):
-      self = jsx_tag("React.Fragment")(*self.children)
-
-    name = getattr(self, "_is_jsx", False) and self.name or "'" + \
-        self.name + "'"
-    res_ = 'React.createElement(' + name + ', '
-
-    # Unfortunately we can't use json.dumps() here because I don't know how to
-    # avoid quoting jsx(), jsx_tag(), tag(), etc.
-    def serialize_attr(x) -> str:
-      if isinstance(x, (list, tuple)):
-        return '[' + ', '.join([serialize_attr(y) for y in x]) + ']'
-      if isinstance(x, dict):
-        return '{' + ', '.join([y + ': ' + serialize_attr(x[y]) for y in x]) + '}'
-      if isinstance(x, jsx):
-        return str(x)
-      if isinstance(x, str):
-        return '"' + x + '"'
-      x_ = str(x)
-      if isinstance(x, bool):
-        x_ = x_.lower()
-      return x_
-
-    attrs = deepcopy(self.get_attrs())
-    if not attrs:
-      res_ += 'null'
-    else:
-      res_ += '{'
-      for key, vals in attrs.items():
-        res_ += key + ': '
-        # If this tag is jsx, then it should be a list (otherwise, it's a string)
-        if isinstance(vals, list):
-          for i, v in enumerate(vals):
-            vals[i] = serialize_attr(v)
-          res_ += vals[0] if len(vals) == 1 else '[' + ', '.join(vals) + ']'
-        else:
-          res_ += vals
-        res_ += ', '
-      res_ += '}'
-
-    for x in self.children:
-      if isinstance(x, html_dependency):
-        continue
-      res_ += ', '
-      if isinstance(x, tag_list):
-        res_ += x._get_html_string()
-      elif isinstance(x, jsx):
-        res_ += x
-      else:
-        res_ += '"' + str(x) + '"'
-
-    return res_ + ')'
-
-  # JSX attrs can be full-on JSON objects whereas html/svg attrs
-  # always get encoded as string
-  def append(self, *args, **kwargs) -> None:
-    if args:
-        self.children += flatten(args)
-    for k, v in kwargs.items():
-      if v is None:
-        continue
-      k_ = encode_attr(k)
-      if not self._attrs.get(k_):
-        self._attrs[k_] = []
-      self._attrs[k_].append(v)
-
-  # JSX tags are similar to HTML tags, but have the following key differences:
-  # 1. _All_ JSX tags have _is_jsx set to True
-  #    * This differentiates from normal tags in the tag writing logic.
-  # 2. Only the _root_ JSX tag has an __as_tags__ method
-  #    * This ensures that only the root JSX tag is wrapped in a <script> tag
-  # 3. Any tags within a JSX tag (inside children or attributes):
-  #     * Have a different get_html_string() method (returning the relevant JavaScript)
-  #     * Have a different append method (attributes can be JSON instead of just a string)
-  def __new__(cls, *args: Any, children: Optional[Any] = None, **kwargs: AttrType) -> None:
-    if allowedProps:
-      for k in kwargs.keys():
-        if k not in allowedProps:
-          raise NotImplementedError(f"{k} is not a valid prop for {_name}")
-    self = type(_name, (tag,), {'append': append})(_name, *args, children = children, **kwargs)
-    def set_jsx_attrs(x):  
-      if not isinstance(x, tag_list):
-        return x
-      setattr(x, "__as_tags__", None)
-      x._get_html_string = types.MethodType(_get_html_string, x)
-      x.append = types.MethodType(append, x)
-      return x
-    rewrite_tags(self, set_jsx_attrs, preorder=False)
-    for k, v in self._attrs.items():
-      self._attrs[k] = [rewrite_tags(x, set_jsx_attrs, preorder=False) for x in v]
-    setattr(self, "__as_tags__", as_tags)
-    setattr(self, "_is_jsx", True)
-    return self
-
-  return type(_name, (tag,), {'__new__': __new__, '__init__': lambda self: None})
-
-
-  # --------------------------------------------------------
-  # Document class
-  # --------------------------------------------------------
-
-class html_document(tag):
-  '''
-  Create an HTML document.
-
-  Examples:
-  ---------
-    >>> print(html_document(h1("Hello"), tags.meta(name="description", content="test"), lang = "en"))
-  '''
-  def __init__(self, body: tag_list, head: Optional[tag_list]=None, **kwargs: AttrType):
-    super().__init__("html", **kwargs)
-    head = head.children if isinstance(head, tag) and head.name == "head" else head
-    body = body.children if isinstance(body, tag) and body.name == "body" else body
-    self.append(
-      tag("head", head),
-      tag("body", body)
-    )
-
-  def render(self, tagify_: bool = True, process_dep: Callable[['html_dependency'], 'html_dependency'] = None) -> List:
-    if tagify_:
-      self = tagify(self)
-    deps = self._get_dependencies()
-    if callable(process_dep):
-      deps = [process_dep(x) for x in deps]
-    head = tag(
-      "head", tag("meta", charset="utf-8"),
-      *[d.as_tags() for d in deps],
-      self.children[0].children
-    )
-    body = self.children[1]
-    return {
-      "dependencies": deps,
-      "html": "<!DOCTYPE html>\n" + str(tag("html", head, body))
-    }
-
-  def save_html(self, file: str, libdir: str = "lib") -> str:
-    # Copy dependencies to libdir (relative to the file)
-    dir = str(Path(file).resolve().parent)
-    libdir = os.path.join(dir, libdir)
-    def copy_dep(d: html_dependency):
-      d = d.copy_to(libdir, False)
-      d = d.make_relative(dir, False)
-      return d
-    res = self.render(process_dep=copy_dep)
-    with open(file, "w") as f:
-      f.write(res['html'])
-    return file
-
-# --------------------------------------------------------
-# html strings
-# --------------------------------------------------------
-class html(str):
-  '''
-  Mark a string as raw HTML.
-
-  Example:
-  -------
-  >>> print(div("<p>Hello</p>"))
-  >>> print(div(html("<p>Hello</p>")))
-  '''
-  def __new__(cls, *args: str) -> 'html':
-    return super().__new__(cls, '\n'.join(args))
-
-  def __str__(self) -> 'html':
-    return html(self)
-
-  # html() + html() should return html()
-  def __add__(self, other: Union[str, 'html']) -> str:
-    res = str.__add__(self, other)
-    return html(res) if isinstance(other, html) else res
-
-# --------------------------------------------------------
-# jsx expressions
-# --------------------------------------------------------
-class jsx(str):
-  '''
-  Mark a string as a JSX expression.
-
-  Example:
-  -------
-  >>> Foo = tag_factory("Foo")
-  >>> print(Foo(myProp = "<p>Hello</p>"))
-  >>> print(Foo(myProp = jsx("<p>Hello</p>")))
-  '''
-  def __new__(cls, *args: str) -> 'jsx':
-    return super().__new__(cls, '\n'.join(args))
-
-  # html() + html() should return html()
-  def __add__(self, other: Union[str, 'jsx']) -> str:
-    res = str.__add__(self, other)
-    return jsx(res) if isinstance(other, jsx) else res
-
-# --------------------------------------------------------
-# html dependencies
-# --------------------------------------------------------
-class html_dependency():
-  '''
-  Create an HTML dependency.
-
-  Example:
-  -------
-  >>> x = div("foo", html_dependency(name = "bar", version = "1.0", src = ".", script = "lib/bar.js"))
-  >>> x.render()
-  '''
-  def __init__(self, name: str, version: Union[str, Version], 
-                     src: Union[str, Dict[str, str]],
-                     script: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
-                     stylesheet: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
-                     package: Optional[str] = None, all_files: bool = False,
-                     meta: Optional[List[Dict[str, str]]] = None,
-                     head: Optional[str] = None):
-    self.name: str = name
-    self.version: Version = version if isinstance(version, Version) else package_version(version)
-    self.src: Dict[str, str] = src if isinstance(src, dict) else {"file": src}
-    self.script: List[Dict[str, str]] = self._as_dicts(script, "src")
-    self.stylesheet: List[Dict[str, str]] = self._as_dicts(stylesheet, "href")
-    # Ensures a rel='stylesheet' default
-    for i, s in enumerate(self.stylesheet):
-      if "rel" not in s: self.stylesheet[i].update({"rel": "stylesheet"})
-    self.package = package
-    self.all_files = all_files
-    self.meta = meta if meta else []
-    self.head = head
-
-  # I don't think we need hrefFilter (seems rmarkdown was the only one that needed it)?
-  # https://github.com/search?l=r&q=%22hrefFilter%22+user%3Acran+language%3AR&ref=searchresults&type=Code&utf8=%E2%9C%93
-  def as_tags(self, src_type: Optional[str]=None, encode_path: Callable[[str], str] = quote) -> html:
-    # Prefer the first listed src type if not specified
-    if not src_type:
-      src_type = list(self.src.keys())[0]
-    
-    src = self.src.get(src_type, None)
-    if not src:
-      raise Exception(f"HTML dependency {self.name}@{self.version} has no '{src_type}' definition")
-
-    # Assume href is already URL encoded
-    src = encode_path(src) if src_type == "file" else src
-
-    sheets = deepcopy(self.stylesheet)
-    for s in sheets:
-      s.update({"href": os.path.join(src, encode_path(s["href"]))})
-
-    scripts = deepcopy(self.script)
-    for s in scripts:
-      s.update({"src": os.path.join(src, encode_path(s["src"]))})
-
-    metas: List[tag] = [tags.meta(**m) for m in self.meta]
-    links: List[tag] = [tags.link(**s) for s in sheets]
-    scripts: List[tag] = [tags.script(**s) for s in scripts]
-    head = html(self.head) if self.head else None
-    return tag_list(*metas, *links, *scripts, head)
-
-  def copy_to(self, path: str, must_work: bool = True) -> 'html_dependency':
-    src = self.src['file']
-    version = str(self.version)
-    if not src:
-      if must_work:
-        raise Exception(f"Failed to copy HTML dependency {self.name}@{version} to {path} because it's local source directory doesn't exist")
-      else:
-        return self
-    if not path or path == "/":
-      raise Exception(f"path cannot be empty or '/'")
-    
-    if self.package:
-      src = os.path.join(package_dir(self.package), src)
-    
-    # Collect all the source files
-    if self.all_files:
-      src_files = list(Path(src).glob("*"))
-    else:
-      src_files = flatten([[s["src"] for s in self.script], [s["href"] for s in self.stylesheet]])
-
-    # setup the target directory
-    # TODO: add option to exclude version
-    target = os.path.join(path, self.name + "@" + version)
-    if os.path.exists(target): 
-      shutil.rmtree(target)
-    Path(target).mkdir(parents=True, exist_ok=True)
-
-    # copy all the files
-    for f in src_files:
-      src_f = os.path.join(src, f)
-      if not os.path.isfile(src_f):
-        raise Exception(f"Failed to copy HTML dependency {self.name}@{version} to {path} because {src_f} doesn't exist")
-      tgt_f = os.path.join(target, f)
-      os.makedirs(os.path.dirname(tgt_f), exist_ok=True)
-      shutil.copy2(src_f, tgt_f)
-
-    # return a new instance of this class with the new path
-    kwargs = deepcopy(self.__dict__)
-    kwargs['src']['file'] = str(Path(target).resolve())
-    return html_dependency(**kwargs)
-
-  def make_relative(self, path: str, must_work: bool = True) -> 'html_dependency':
-    src = self.src['file']
-    if not src:
-      if must_work:
-        raise Exception(f"Failed to make HTML dependency {self.name}@{self.version} files relative to {path} since a local source directory doesn't exist")
-      else:
-        return self
-
-    src = Path(src)
-    if not src.is_absolute():
-      raise Exception("Failed to make HTML dependency {self.name}@{self.version} relative because it's local source directory is not already absolute (call .copy_to() before .make_relative())")
-
-    kwargs = deepcopy(self.__dict__)
-    kwargs['src']['file'] = str(src.relative_to(Path(path).resolve()))
-    return html_dependency(**kwargs)
-
-  def _as_dicts(self, val: Any, attr: str) -> List[Dict[str, str]]:
-    if val is None:
-      return []
-    if isinstance(val, str):
-      return [{attr: val}]
-    if isinstance(val, list):
-      return [{attr: i} if isinstance(i, str) else i for i in val]
-    raise Exception(f"Invalid type for {repr(val)} in HTML dependency {self.name}@{self.version}")
-
-  def __repr__(self):
-    return f'<html_dependency "{self.name}@{self.version}">'
-
-  def __str__(self):
-    return str(self.as_tags())
-
-  def __eq__(self, other: Any) -> bool: 
-    return equals_impl(self, other)
-
-
-# ---------------------------------------------------------------------------
-# Utility functions
-# ---------------------------------------------------------------------------
-
-def tagify(x):
-  def _(ui):
-    f = getattr(ui, "__as_tags__", None)
-    if callable(f):
-      return tagify(f(ui))
-    return ui
-  return rewrite_tags(x, func=_, preorder=False)
-
-
-def rewrite_tags(ui, func, preorder):
-  if preorder:
-    ui = func(ui)
-  if isinstance(ui, tag_list):
-    ui.children = [rewrite_tags(x, func, preorder) for x in ui.children]
-  # TODO: don't recurse into subclasses of list?
-  elif isinstance(ui, (list, tuple)):
-    ui = [rewrite_tags(x, func, preorder) for x in ui]
-  if not preorder:
-    ui = func(ui)
-  return ui
-
-# e.g., _foo_bar_ -> foo-bar
-def encode_attr(x: str) -> str:
-  if x.startswith('_') and x.endswith('_'):
-    x = x[1:-1]
-  return x.replace("_", "-")
-
-def tag_repr_impl(name, attrs, children) -> str:
-  x = '<' + name
-  n_attrs = len(attrs)
-  if attrs.get('id'):
-     x += '#' + attrs['id']
-     n_attrs -= 1
-  if attrs.get('class'):
-    x += '.' + attrs['class'].replace(' ', '.')
-    n_attrs -= 1
-  x += ' with '
-  if n_attrs > 0:
-    x += f'{n_attrs} other attributes and '
-  n = len(children)
-  x += '1 child>' if n == 1 else f'{n} children>'
-  return x
-
-def normalize_text(txt: str) -> str:
-  return txt if isinstance(txt, html) else html_escape(txt, attr=False)
-
-def equals_impl(self, other: Any) -> bool:
-  if not isinstance(other, type(self)):
-    return False
-  for key in self.__dict__.keys():
-    if getattr(self, key, None) != getattr(other, key, None):
-      return False
-  return True
-
-
-def lib_dependency(pkg, **kwargs):
-  return html_dependency(
-      name=pkg, version=versions[pkg],
-      package="htmltools", src="lib/"+pkg,
-      **kwargs
-  )
+# Do not edit by hand, this file is automatically generated by ./scripts/generate_tags.py
+from typing import Optional, List
+from .core import tag, TagChild, AttrType
+
+def a(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('a', *args, children=children, **kwargs)
+
+def abbr(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('abbr', *args, children=children, **kwargs)
+
+def acronym(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('acronym', *args, children=children, **kwargs)
+
+def address(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('address', *args, children=children, **kwargs)
+
+def animate(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('animate', *args, children=children, **kwargs)
+
+def animateMotion(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('animateMotion', *args, children=children, **kwargs)
+
+def animateTransform(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('animateTransform', *args, children=children, **kwargs)
+
+def applet(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('applet', *args, children=children, **kwargs)
+
+def area(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('area', *args, children=children, **kwargs)
+
+def article(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('article', *args, children=children, **kwargs)
+
+def aside(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('aside', *args, children=children, **kwargs)
+
+def audio(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('audio', *args, children=children, **kwargs)
+
+def b(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('b', *args, children=children, **kwargs)
+
+def base(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('base', *args, children=children, **kwargs)
+
+def basefont(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('basefont', *args, children=children, **kwargs)
+
+def bdi(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('bdi', *args, children=children, **kwargs)
+
+def bdo(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('bdo', *args, children=children, **kwargs)
+
+def bgsound(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('bgsound', *args, children=children, **kwargs)
+
+def big(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('big', *args, children=children, **kwargs)
+
+def blink(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('blink', *args, children=children, **kwargs)
+
+def blockquote(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('blockquote', *args, children=children, **kwargs)
+
+def body(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('body', *args, children=children, **kwargs)
+
+def br(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('br', *args, children=children, **kwargs)
+
+def button(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('button', *args, children=children, **kwargs)
+
+def canvas(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('canvas', *args, children=children, **kwargs)
+
+def caption(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('caption', *args, children=children, **kwargs)
+
+def center(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('center', *args, children=children, **kwargs)
+
+def circle(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('circle', *args, children=children, **kwargs)
+
+def cite(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('cite', *args, children=children, **kwargs)
+
+def clipPath(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('clipPath', *args, children=children, **kwargs)
+
+def code(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('code', *args, children=children, **kwargs)
+
+def col(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('col', *args, children=children, **kwargs)
+
+def colgroup(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('colgroup', *args, children=children, **kwargs)
+
+def command(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('command', *args, children=children, **kwargs)
+
+def content(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('content', *args, children=children, **kwargs)
+
+def data(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('data', *args, children=children, **kwargs)
+
+def datalist(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('datalist', *args, children=children, **kwargs)
+
+def dd(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('dd', *args, children=children, **kwargs)
+
+def defs(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('defs', *args, children=children, **kwargs)
+
+def desc(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('desc', *args, children=children, **kwargs)
+
+def details(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('details', *args, children=children, **kwargs)
+
+def dfn(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('dfn', *args, children=children, **kwargs)
+
+def dialog(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('dialog', *args, children=children, **kwargs)
+
+def dir(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('dir', *args, children=children, **kwargs)
+
+def discard(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('discard', *args, children=children, **kwargs)
+
+def div(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('div', *args, children=children, **kwargs)
+
+def dl(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('dl', *args, children=children, **kwargs)
+
+def dt(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('dt', *args, children=children, **kwargs)
+
+def ellipse(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('ellipse', *args, children=children, **kwargs)
+
+def em(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('em', *args, children=children, **kwargs)
+
+def embed(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('embed', *args, children=children, **kwargs)
+
+def eventsource(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('eventsource', *args, children=children, **kwargs)
+
+def feBlend(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feBlend', *args, children=children, **kwargs)
+
+def feColorMatrix(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feColorMatrix', *args, children=children, **kwargs)
+
+def feComponentTransfer(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feComponentTransfer', *args, children=children, **kwargs)
+
+def feComposite(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feComposite', *args, children=children, **kwargs)
+
+def feConvolveMatrix(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feConvolveMatrix', *args, children=children, **kwargs)
+
+def feDiffuseLighting(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feDiffuseLighting', *args, children=children, **kwargs)
+
+def feDisplacementMap(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feDisplacementMap', *args, children=children, **kwargs)
+
+def feDistantLight(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feDistantLight', *args, children=children, **kwargs)
+
+def feDropShadow(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feDropShadow', *args, children=children, **kwargs)
+
+def feFlood(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feFlood', *args, children=children, **kwargs)
+
+def feFuncA(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feFuncA', *args, children=children, **kwargs)
+
+def feFuncB(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feFuncB', *args, children=children, **kwargs)
+
+def feFuncG(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feFuncG', *args, children=children, **kwargs)
+
+def feFuncR(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feFuncR', *args, children=children, **kwargs)
+
+def feGaussianBlur(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feGaussianBlur', *args, children=children, **kwargs)
+
+def feImage(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feImage', *args, children=children, **kwargs)
+
+def feMerge(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feMerge', *args, children=children, **kwargs)
+
+def feMergeNode(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feMergeNode', *args, children=children, **kwargs)
+
+def feMorphology(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feMorphology', *args, children=children, **kwargs)
+
+def feOffset(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feOffset', *args, children=children, **kwargs)
+
+def fePointLight(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('fePointLight', *args, children=children, **kwargs)
+
+def feSpecularLighting(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feSpecularLighting', *args, children=children, **kwargs)
+
+def feSpotLight(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feSpotLight', *args, children=children, **kwargs)
+
+def feTile(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feTile', *args, children=children, **kwargs)
+
+def feTurbulence(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('feTurbulence', *args, children=children, **kwargs)
+
+def fieldset(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('fieldset', *args, children=children, **kwargs)
+
+def figcaption(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('figcaption', *args, children=children, **kwargs)
+
+def figure(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('figure', *args, children=children, **kwargs)
+
+def filter(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('filter', *args, children=children, **kwargs)
+
+def font(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('font', *args, children=children, **kwargs)
+
+def footer(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('footer', *args, children=children, **kwargs)
+
+def foreignObject(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('foreignObject', *args, children=children, **kwargs)
+
+def form(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('form', *args, children=children, **kwargs)
+
+def frame(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('frame', *args, children=children, **kwargs)
+
+def frameset(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('frameset', *args, children=children, **kwargs)
+
+def g(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('g', *args, children=children, **kwargs)
+
+def h1(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('h1', *args, children=children, **kwargs)
+
+def h2(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('h2', *args, children=children, **kwargs)
+
+def h3(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('h3', *args, children=children, **kwargs)
+
+def h4(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('h4', *args, children=children, **kwargs)
+
+def h5(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('h5', *args, children=children, **kwargs)
+
+def h6(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('h6', *args, children=children, **kwargs)
+
+def hatch(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('hatch', *args, children=children, **kwargs)
+
+def hatchpath(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('hatchpath', *args, children=children, **kwargs)
+
+def header(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('header', *args, children=children, **kwargs)
+
+def hgroup(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('hgroup', *args, children=children, **kwargs)
+
+def hr(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('hr', *args, children=children, **kwargs)
+
+def html(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('html', *args, children=children, **kwargs)
+
+def i(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('i', *args, children=children, **kwargs)
+
+def iframe(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('iframe', *args, children=children, **kwargs)
+
+def image(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('image', *args, children=children, **kwargs)
+
+def img(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('img', *args, children=children, **kwargs)
+
+def input(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('input', *args, children=children, **kwargs)
+
+def ins(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('ins', *args, children=children, **kwargs)
+
+def kbd(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('kbd', *args, children=children, **kwargs)
+
+def keygen(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('keygen', *args, children=children, **kwargs)
+
+def label(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('label', *args, children=children, **kwargs)
+
+def legend(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('legend', *args, children=children, **kwargs)
+
+def li(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('li', *args, children=children, **kwargs)
+
+def line(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('line', *args, children=children, **kwargs)
+
+def linearGradient(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('linearGradient', *args, children=children, **kwargs)
+
+def link(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('link', *args, children=children, **kwargs)
+
+def main(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('main', *args, children=children, **kwargs)
+
+def map(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('map', *args, children=children, **kwargs)
+
+def mark(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('mark', *args, children=children, **kwargs)
+
+def marker(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('marker', *args, children=children, **kwargs)
+
+def marquee(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('marquee', *args, children=children, **kwargs)
+
+def mask(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('mask', *args, children=children, **kwargs)
+
+def menu(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('menu', *args, children=children, **kwargs)
+
+def menuitem(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('menuitem', *args, children=children, **kwargs)
+
+def mesh(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('mesh', *args, children=children, **kwargs)
+
+def meshgradient(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('meshgradient', *args, children=children, **kwargs)
+
+def meshpatch(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('meshpatch', *args, children=children, **kwargs)
+
+def meshrow(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('meshrow', *args, children=children, **kwargs)
+
+def meta(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('meta', *args, children=children, **kwargs)
+
+def metadata(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('metadata', *args, children=children, **kwargs)
+
+def meter(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('meter', *args, children=children, **kwargs)
+
+def mpath(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('mpath', *args, children=children, **kwargs)
+
+def nav(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('nav', *args, children=children, **kwargs)
+
+def nobr(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('nobr', *args, children=children, **kwargs)
+
+def noembed(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('noembed', *args, children=children, **kwargs)
+
+def noframes(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('noframes', *args, children=children, **kwargs)
+
+def noscript(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('noscript', *args, children=children, **kwargs)
+
+def object(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('object', *args, children=children, **kwargs)
+
+def ol(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('ol', *args, children=children, **kwargs)
+
+def optgroup(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('optgroup', *args, children=children, **kwargs)
+
+def option(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('option', *args, children=children, **kwargs)
+
+def output(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('output', *args, children=children, **kwargs)
+
+def p(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('p', *args, children=children, **kwargs)
+
+def param(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('param', *args, children=children, **kwargs)
+
+def path(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('path', *args, children=children, **kwargs)
+
+def pattern(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('pattern', *args, children=children, **kwargs)
+
+def picture(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('picture', *args, children=children, **kwargs)
+
+def plaintext(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('plaintext', *args, children=children, **kwargs)
+
+def polygon(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('polygon', *args, children=children, **kwargs)
+
+def polyline(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('polyline', *args, children=children, **kwargs)
+
+def portal(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('portal', *args, children=children, **kwargs)
+
+def pre(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('pre', *args, children=children, **kwargs)
+
+def progress(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('progress', *args, children=children, **kwargs)
+
+def q(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('q', *args, children=children, **kwargs)
+
+def radialGradient(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('radialGradient', *args, children=children, **kwargs)
+
+def rb(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('rb', *args, children=children, **kwargs)
+
+def rect(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('rect', *args, children=children, **kwargs)
+
+def rp(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('rp', *args, children=children, **kwargs)
+
+def rt(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('rt', *args, children=children, **kwargs)
+
+def rtc(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('rtc', *args, children=children, **kwargs)
+
+def ruby(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('ruby', *args, children=children, **kwargs)
+
+def s(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('s', *args, children=children, **kwargs)
+
+def samp(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('samp', *args, children=children, **kwargs)
+
+def script(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('script', *args, children=children, **kwargs)
+
+def section(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('section', *args, children=children, **kwargs)
+
+def select(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('select', *args, children=children, **kwargs)
+
+def set(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('set', *args, children=children, **kwargs)
+
+def shadow(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('shadow', *args, children=children, **kwargs)
+
+def slot(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('slot', *args, children=children, **kwargs)
+
+def small(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('small', *args, children=children, **kwargs)
+
+def solidcolor(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('solidcolor', *args, children=children, **kwargs)
+
+def source(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('source', *args, children=children, **kwargs)
+
+def spacer(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('spacer', *args, children=children, **kwargs)
+
+def span(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('span', *args, children=children, **kwargs)
+
+def stop(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('stop', *args, children=children, **kwargs)
+
+def strike(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('strike', *args, children=children, **kwargs)
+
+def strong(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('strong', *args, children=children, **kwargs)
+
+def style(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('style', *args, children=children, **kwargs)
+
+def sub(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('sub', *args, children=children, **kwargs)
+
+def summary(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('summary', *args, children=children, **kwargs)
+
+def sup(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('sup', *args, children=children, **kwargs)
+
+def svg(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('svg', *args, children=children, **kwargs)
+
+def switch(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('switch', *args, children=children, **kwargs)
+
+def symbol(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('symbol', *args, children=children, **kwargs)
+
+def table(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('table', *args, children=children, **kwargs)
+
+def tbody(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('tbody', *args, children=children, **kwargs)
+
+def td(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('td', *args, children=children, **kwargs)
+
+def template(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('template', *args, children=children, **kwargs)
+
+def text(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('text', *args, children=children, **kwargs)
+
+def textarea(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('textarea', *args, children=children, **kwargs)
+
+def textPath(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('textPath', *args, children=children, **kwargs)
+
+def tfoot(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('tfoot', *args, children=children, **kwargs)
+
+def th(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('th', *args, children=children, **kwargs)
+
+def thead(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('thead', *args, children=children, **kwargs)
+
+def time(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('time', *args, children=children, **kwargs)
+
+def title(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('title', *args, children=children, **kwargs)
+
+def tr(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('tr', *args, children=children, **kwargs)
+
+def track(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('track', *args, children=children, **kwargs)
+
+def tspan(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('tspan', *args, children=children, **kwargs)
+
+def tt(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('tt', *args, children=children, **kwargs)
+
+def u(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('u', *args, children=children, **kwargs)
+
+def ul(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('ul', *args, children=children, **kwargs)
+
+def unknown(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('unknown', *args, children=children, **kwargs)
+
+def use(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('use', *args, children=children, **kwargs)
+
+def var(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('var', *args, children=children, **kwargs)
+
+def video(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('video', *args, children=children, **kwargs)
+
+def view(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('view', *args, children=children, **kwargs)
+
+def wbr(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('wbr', *args, children=children, **kwargs)
+
+def xmp(*args: TagChild, children: Optional[List[TagChild]]=None, **kwargs: AttrType) -> 'tag':
+    return tag('xmp', *args, children=children, **kwargs)
