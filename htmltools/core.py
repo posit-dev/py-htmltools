@@ -207,7 +207,7 @@ class tag(tag_list):
 
      Examples:
     ---------
-        >>> print(div(h1('Hello htmltools'), tags.p('for python'), _class_ = 'mydiv'))
+        >>> print(div(h1('Hello htmltools'), tags.p('for python'), class_ = 'mydiv'))
         >>> print(tag("MyJSXComponent"))
     """
 
@@ -268,11 +268,11 @@ class tag(tag_list):
     def has_attr(self, key: str) -> bool:
         return key in self.get_attrs()
 
-    def has_class(self, _class_: str) -> bool:
+    def has_class(self, class_: str) -> bool:
         class_attr = self.get_attr("class")
         if class_attr is None:
             return False
-        return _class_ in class_attr.split(" ")
+        return class_ in class_attr.split(" ")
 
     def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         html_ = "<" + self.name
@@ -760,10 +760,10 @@ def rewrite_tags(
     return ui
 
 
-# e.g., _foo_bar_ -> foo-bar
+# e.g., foo_bar_ -> foo-bar
 def encode_attr(x: str) -> str:
-    if x.startswith("_") and x.endswith("_"):
-        x = x[1:-1]
+    if x.endswith("_"):
+        x = x[:-1]
     return x.replace("_", "-")
 
 

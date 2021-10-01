@@ -10,7 +10,7 @@ def expect_html(tag: tag, expected: str):
 
 def test_basic_tag_api(snapshot):
     children = [h1("hello"), h2("world"), "text", None, ["list", ["here"]]]
-    props = dict(_class_="foo", _for_="bar", id="baz", bool="")
+    props = dict(class_="foo", for_="bar", id="baz", bool="")
     x1 = div(*children, **props)
     x2 = div(**props, children=children)
     x3 = div(**props)(*children)
@@ -21,7 +21,7 @@ def test_basic_tag_api(snapshot):
     assert not x1.has_attr("missing")
     snapshot.assert_match(str(x1), "basic_tag_api")
     assert x1.get_attr("class") == "foo"
-    x1.append(_class_="bar")
+    x1.append(class_="bar")
     assert x1.get_attr("class") == "foo bar"
     assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing")
     x5 = tag_list()
@@ -48,9 +48,9 @@ def test_tag_repr():
     assert repr(div()) == "<div with 0 children>"
     assert repr(div("foo")) == "<div with 1 child>"
     assert repr(div("foo", "bar", id="id")) == "<div#id with 2 children>"
-    assert repr(div(id="id", _class_="foo bar")) == "<div#id.foo.bar with 0 children>"
+    assert repr(div(id="id", class_="foo bar")) == "<div#id.foo.bar with 0 children>"
     assert (
-        repr(div(id="id", _class_="cls", foo="bar"))
+        repr(div(id="id", class_="cls", foo="bar"))
         == "<div#id.cls with 1 other attributes and 0 children>"
     )
 
@@ -61,9 +61,9 @@ def test_tag_escaping():
     # Children wrapped in html() isn't escaped
     expect_html(div(html("<a&b>")), "<div><a&b></div>")
     # Text in a property is escaped
-    expect_html(div("text", _class_="<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
+    expect_html(div("text", class_="<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
     # Attributes wrapped in html() isn't escaped
-    expect_html(div("text", _class_=html("<a&b>")), '<div class="<a&b>">text</div>')
+    expect_html(div("text", class_=html("<a&b>")), '<div class="<a&b>">text</div>')
 
 
 def saved_html(tag: tag):
