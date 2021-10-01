@@ -6,7 +6,7 @@ from copy import deepcopy
 from urllib.parse import quote
 import webbrowser
 import types
-from typing import Optional, Union, List, Dict, Callable, Any, TypedDict
+from typing import Optional, Union, List, Dict, Callable, Any, TypedDict, TypeVar
 
 from typing_extensions import Protocol, runtime_checkable
 from packaging import version
@@ -28,6 +28,9 @@ __all__ = [
 ]
 
 AttrType = Union[str, None]
+
+TagListT = TypeVar("TagListT", bound="tag_list")
+
 
 # Types of objects that can be a child of a tag.
 TagChild = Union["tag_list", "html_dependency", str, int, float, bool]
@@ -86,15 +89,12 @@ class tag_list:
         if args:
             self.children.insert(index, *flatten(args))
 
-    def tagify(self) -> "tag_list":
-        new_children: List[RenderedTagChild] = []
-        for x in self.children:
-            if isinstance(x, Tagifiable):
-                new_children.append(x.tagify())
-            else:
-                new_children.append(x)
-
-        return tag_list(*new_children)
+    def tagify(self: TagListT) -> TagListT:
+        copy = deepcopy(self)
+        for i, item in enumerate(copy.children):
+            if isinstance(item, Tagifiable):
+                copy.children[i] = item.tagify()
+        return copy
 
     def render(
         self,
@@ -273,16 +273,6 @@ class tag(tag_list):
         if class_attr is None:
             return False
         return _class_ in class_attr.split(" ")
-
-    def tagify(self) -> "tag":
-        new_children: List[RenderedTagChild] = []
-        for x in self.children:
-            if isinstance(x, Tagifiable):
-                new_children.append(x.tagify())
-            else:
-                new_children.append(x)
-
-        return tag(self.name, *new_children, **self._attrs)
 
     def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         html_ = "<" + self.name
