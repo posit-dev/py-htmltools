@@ -18,7 +18,7 @@ If you want to do development on htmltools, also run:
 pip install -r requirements-dev.txt
 ```
 
-Additionally, you can install pre-commit hooks which will reformat and lint the code:
+Additionally, you can install pre-commit hooks which will automatically reformat and lint the code when you make a commit:
 
 ```sh
 pre-commit install
