@@ -25,13 +25,25 @@ __all__ = [
     "html",
     "jsx",
     "html_dependency",
-    "tagify",
 ]
 
 AttrType = Union[str, None]
 
 # Types of objects that can be a child of a tag.
 TagChild = Union["tag_list", "html_dependency", str, int, float, bool]
+
+# With these objects, no conversion needs to be done.
+RenderedTagChild = Union["tag_list", "html_dependency", str, int, float, bool]
+
+# A duck type: objects with tagify() methods are considered Tagifiable.
+@runtime_checkable
+class Tagifiable(Protocol):
+    def tagify(self) -> RenderedTagChild:
+        ...
+
+
+# Types of objects that can be a child of a tag.
+TagChild = Union[Tagifiable, RenderedTagChild]
 
 
 class RenderedHTMLDocument(TypedDict):
@@ -49,6 +61,8 @@ class tag_list:
         save_html: Save the HTML to a file.
         append: Add content _after_ any existing children.
         insert: Add content after a given child index.
+        tagify: Recursively convert all children to tag or tag-like objects, of type
+          RenderedTagChild.
         render: Render the tag tree as an HTML string and also retrieve any dependencies.
 
     Attributes:
@@ -72,11 +86,21 @@ class tag_list:
         if args:
             self.children.insert(index, *flatten(args))
 
+    def tagify(self) -> "tag_list":
+        new_children: List[RenderedTagChild] = []
+        for x in self.children:
+            if isinstance(x, Tagifiable):
+                new_children.append(x.tagify())
+            else:
+                new_children.append(x)
+
+        return tag_list(*new_children)
+
     def render(
         self,
         process_dep: Optional[Callable[["html_dependency"], "html_dependency"]] = None,
     ) -> RenderedHTMLDocument:
-        self2 = _tagify(self)
+        self2 = self.tagify()
         deps = self2._get_dependencies()
         if callable(process_dep):
             deps = [process_dep(x) for x in deps]
@@ -249,6 +273,16 @@ class tag(tag_list):
         if class_attr is None:
             return False
         return _class_ in class_attr.split(" ")
+
+    def tagify(self) -> "tag":
+        new_children: List[RenderedTagChild] = []
+        for x in self.children:
+            if isinstance(x, Tagifiable):
+                new_children.append(x.tagify())
+            else:
+                new_children.append(x)
+
+        return tag(self.name, *new_children, **self._attrs)
 
     def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         html_ = "<" + self.name
@@ -460,7 +494,7 @@ class html_document(tag):
         self,
         process_dep: Optional[Callable[["html_dependency"], "html_dependency"]] = None,
     ) -> RenderedHTMLDocument:
-        self2 = _tagify(self)
+        self2 = self.tagify()
         deps: List[html_dependency] = self2._get_dependencies()
         if callable(process_dep):
             deps = [process_dep(x) for x in deps]
@@ -710,34 +744,6 @@ class html_dependency:
 # Utility functions
 # ---------------------------------------------------------------------------
 
-# A duck type: objects with __as_tags__ methods are considered AsTagable.
-@runtime_checkable
-class AsTagable(Protocol):
-    def __as_tags__(self) -> tag_list:
-        ...
-
-
-Tagifiable = Union[tag_list, List[tag_list], AsTagable]
-
-
-def tagify(x: Tagifiable) -> tag_list:
-    def tagify_impl(ui: Tagifiable) -> tag_list:
-        if isinstance(ui, AsTagable):
-            # TODO: This should be ui.__as_tags__(), but it currently doesn't work due
-            # to the way that jsx_tag.__as_tags__ is implemented.
-            return tagify(ui.__as_tags__(ui))
-        elif isinstance(ui, list):
-            return tag_list(*ui)
-        else:
-            return ui
-
-    return rewrite_tags(x, func=tagify_impl, preorder=False)
-
-
-# For internal use in this module; this is so that a function can take `tagify`
-# as an argument but still be able to call the `_tagify` function.
-_tagify = tagify
-
 
 def rewrite_tags(
     ui: Tagifiable, func: Callable[[Tagifiable], tag_list], preorder: bool
@@ -748,7 +754,7 @@ def rewrite_tags(
     if isinstance(ui, tag_list):
         new_children: List[TagChild] = []
         for child in ui.children:
-            if isinstance(child, (tag_list, AsTagable)):
+            if isinstance(child, (tag_list, Tagifiable)):
                 new_children.append(rewrite_tags(child, func, preorder))
             else:
                 new_children.append(child)
