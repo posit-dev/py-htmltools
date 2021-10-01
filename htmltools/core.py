@@ -72,8 +72,15 @@ class tag_list:
         if args:
             self.children.insert(index, *flatten(args))
 
-    def render(self, tagify: bool = True) -> RenderedHTMLDocument:
-        return html_document(self).render(tagify=tagify)
+    def render(
+        self,
+        process_dep: Optional[Callable[["html_dependency"], "html_dependency"]] = None,
+    ) -> RenderedHTMLDocument:
+        self2 = _tagify(self)
+        deps = self2._get_dependencies()
+        if callable(process_dep):
+            deps = [process_dep(x) for x in deps]
+        return {"dependencies": deps, "html": str(self)}
 
     def save_html(self, file: str, libdir: str = "lib") -> str:
         return html_document(self).save_html(file, libdir)
@@ -451,14 +458,9 @@ class html_document(tag):
 
     def render(
         self,
-        tagify: bool = True,
         process_dep: Optional[Callable[["html_dependency"], "html_dependency"]] = None,
     ) -> RenderedHTMLDocument:
-        if tagify:
-            self2 = _tagify(self)
-        else:
-            self2 = self
-
+        self2 = _tagify(self)
         deps: List[html_dependency] = self2._get_dependencies()
         if callable(process_dep):
             deps = [process_dep(x) for x in deps]

@@ -3,10 +3,10 @@ from htmltools import *
 
 def test_jsx_tags(snapshot):
     Foo = jsx_tag("Foo")
-    snapshot.assert_match(Foo().render()["html"], "jsx_single.txt")
+    snapshot.assert_match(html_document(Foo()).render()["html"], "jsx_single.txt")
     Bar = jsx_tag("Bar")
     # Only the "top-level" tag gets wrapped in <script> tags
-    snapshot.assert_match(Foo(Bar()).render()["html"], "jsx_nested.txt")
+    snapshot.assert_match(html_document(Foo(Bar())).render()["html"], "jsx_nested.txt")
     x = Foo(
         span(),
         "childtext",
