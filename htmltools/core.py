@@ -326,16 +326,6 @@ class tag(tag_list):
         return tag_repr_impl(self.name, self.get_attrs(), self.children)
 
 
-def make_tag_fn(_name: str) -> Callable[..., tag]:
-    def tag_fn(
-        *args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType
-    ) -> tag:
-        return tag(_name, *args, children=children, **kwargs)
-
-    tag_fn.__name__ = _name
-    return tag_fn
-
-
 # --------------------------------------------------------
 # JSX tags
 # --------------------------------------------------------
