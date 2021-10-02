@@ -1,5 +1,7 @@
 import os
+import copy
 from tempfile import TemporaryDirectory
+
 from htmltools import *
 from htmltools.util import cwd
 
@@ -28,6 +30,48 @@ def test_basic_tag_api(snapshot):
     x5.append(a())
     x5.insert(0, span())
     expect_html(x5, "<span></span>\n<a></a>")
+
+
+def test_tag_shallow_copy():
+    x = div(tags.i("hello", prop="value"), "world", class_="myclass")
+    y = copy.copy(x)
+    y.children[0].children[0] = "HELLO"
+    y.children[0]._attrs["prop"] = "VALUE"
+    y.children[1] = "WORLD"
+    y._attrs["class"] = "MYCLASS"
+
+    # With a shallow copy(), the ._attrs and .children are shallow copies, but if a
+    # child is modified in place, then the the original child is modified as well.
+    assert x is not y
+    assert x._attrs == {"class": "myclass"}
+    assert x.children is not y.children
+    # If a mutable child is modified in place, both x and y see the changes.
+    assert x.children[0] is y.children[0]
+    assert x.children[0].children[0] == "HELLO"
+    # Immutable children can't be changed in place.
+    assert x.children[1] is not y.children[1]
+    assert x.children[1] == "world"
+
+
+def test_tagify_deep_copy():
+    # Each call to .tagify() should do a shallow copy, but since it recurses, the result
+    # is a deep copy.
+    x = div(tags.i("hello", prop="value"), "world", class_="myclass")
+
+    y = x.tagify()
+    y.children[0].children[0] = "HELLO"
+    y.children[0]._attrs["prop"] = "VALUE"
+    y.children[1] = "WORLD"
+    y._attrs["class"] = "MYCLASS"
+
+    assert x._attrs == {"class": "myclass"}
+    assert y._attrs == {"class": "MYCLASS"}
+    assert x.children[0]._attrs == {"prop": "value"}
+    assert y.children[0]._attrs == {"prop": "VALUE"}
+    assert x.children[0].children[0] == "hello"
+    assert y.children[0].children[0] == "HELLO"
+    assert x.children[1] == "world"
+    assert y.children[1] == "WORLD"
 
 
 def test_tag_writing(snapshot):

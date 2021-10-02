@@ -2,7 +2,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from copy import deepcopy
+from copy import copy, deepcopy
 from urllib.parse import quote
 import webbrowser
 import types
@@ -82,6 +82,15 @@ class tag_list:
         if args:
             self.append(*args)
 
+    def __copy__(self: TagListT) -> TagListT:
+        cls = self.__class__
+        cp = cls.__new__(cls)
+        # Any instance fields (like .children, and _attrs for the tag subclass) are
+        # shallow-copied.
+        new_dict = {key: copy(value) for key, value in self.__dict__.items()}
+        cp.__dict__.update(new_dict)
+        return cp
+
     def append(self, *args: Union[TagChild, None]) -> None:
         self.children += flatten(args)
 
@@ -90,11 +99,16 @@ class tag_list:
             self.children.insert(index, *flatten(args))
 
     def tagify(self: TagListT) -> TagListT:
-        copy = deepcopy(self)
-        for i, item in enumerate(copy.children):
-            if isinstance(item, Tagifiable):
-                copy.children[i] = item.tagify()
-        return copy
+        # Make a shallow copy, then recurse into children. We don't want to make a deep
+        # copy, because then each time it recursed, it would create an unnecessary deep
+        # copy. Additionally, children that aren't tag objects (but which have a
+        # tagify() method which would return a tag object) might be unnecessarily
+        # copied.
+        cp = copy(self)
+        for i, child in enumerate(cp.children):
+            if isinstance(child, Tagifiable):
+                cp.children[i] = child.tagify()
+        return cp
 
     def render(
         self,
