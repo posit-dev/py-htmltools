@@ -652,7 +652,7 @@ class html_dependency:
         if not src:
             if must_work:
                 raise Exception(
-                    f"Failed to copy HTML dependency {self.name}@{version} to {path} because it's local source directory doesn't exist"
+                    f"Failed to copy HTML dependency {self.name}@{version} to {path} because its local source directory doesn't exist"
                 )
             else:
                 return self
@@ -706,7 +706,7 @@ class html_dependency:
         src = Path(src)
         if not src.is_absolute():
             raise Exception(
-                "Failed to make HTML dependency {self.name}@{self.version} relative because it's local source directory is not already absolute (call .copy_to() before .make_relative())"
+                "Failed to make HTML dependency {self.name}@{self.version} relative because its local source directory is not already absolute (call .copy_to() before .make_relative())"
             )
 
         kwargs = deepcopy(self.__dict__)
