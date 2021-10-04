@@ -9,13 +9,11 @@ import types
 from typing import Optional, Union, List, Dict, Callable, Any, TypedDict, TypeVar
 
 from typing_extensions import Protocol, runtime_checkable
-from packaging import version
+from packaging.version import parse as version_parse
+from packaging.version import Version
 
 from .util import flatten, unique, html_escape, ensure_http_server, package_dir
 from .versions import versions
-
-package_version = version.parse
-Version = version.Version
 
 __all__ = [
     "tag_list",
@@ -593,7 +591,7 @@ class html_dependency:
     ) -> None:
         self.name: str = name
         self.version: Version = (
-            version if isinstance(version, Version) else package_version(version)
+            version if isinstance(version, Version) else version_parse(version)
         )
         self.src: Dict[str, str] = src if isinstance(src, dict) else {"file": src}
         self.script: List[Dict[str, str]] = self._as_dicts(script, "src")
