@@ -2,7 +2,7 @@ import os
 import re
 import importlib
 import tempfile
-from typing import List, Tuple, Union, TypeVar, Hashable
+from typing import Any, List, NamedTuple, Tuple, Union, TypeVar, Hashable, Dict
 from contextlib import contextmanager, closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
@@ -77,39 +77,43 @@ def package_dir(package: str) -> str:
         return os.path.dirname(pkg_file)
 
 
-_http_servers = {}
+class _HttpServerInfo(NamedTuple):
+    port: int
+    thread: Thread
 
 
-def ensure_http_server(path: str):
+_http_servers: Dict[str, _HttpServerInfo] = {}
+
+
+def ensure_http_server(path: str) -> int:
     server = _http_servers.get(path)
     if server:
-        return server._port
+        return server.port
 
     _http_servers[path] = start_http_server(path)
-    return _http_servers[path]._port
+    return _http_servers[path].port
 
 
-def start_http_server(path: str):
-    port = get_open_port()
-    th = Thread(target=http_server, args=(port, path), daemon=True)
+def start_http_server(path: str) -> _HttpServerInfo:
+    port: int = get_open_port()
+    th: Thread = Thread(target=http_server, args=(port, path), daemon=True)
     th.start()
-    th._port = port
-    return th
+    return _HttpServerInfo(port=port, thread=th)
 
 
 def http_server(port: int, path: str):
     class Handler(SimpleHTTPRequestHandler):
-        def __init__(self, *args: object, **kwargs: object):
+        def __init__(self, *args: Any, **kwargs: Any):
             super().__init__(*args, directory=path, **kwargs)
 
-        def log_message(self, format, *args):
+        def log_message(self, format, *args):  # type: ignore
             pass
 
     with TCPServer(("", port), Handler) as httpd:
         httpd.serve_forever()
 
 
-def get_open_port():
+def get_open_port() -> int:
     with closing(socket()) as sock:
         sock.bind(("", 0))
         return sock.getsockname()[1]
