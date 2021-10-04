@@ -15,7 +15,7 @@ from packaging.version import Version
 from .util import flatten, unique, html_escape, ensure_http_server, package_dir
 from .versions import versions
 
-__all__ = [
+__all__ = (
     "tag_list",
     "tag",
     "jsx_tag",
@@ -23,7 +23,7 @@ __all__ = [
     "html",
     "jsx",
     "html_dependency",
-]
+)
 
 AttrType = Union[str, None]
 
