@@ -307,7 +307,7 @@ class tag(tag_list):
         # Write children
         # TODO: inline elements should eat ws?
         html_ += eol
-        html_ += tag_list._get_html_string(self, indent + 1, eol)
+        html_ += super()._get_html_string(indent + 1, eol)
         return html(html_ + eol + ("  " * indent) + close)
 
     def __bool__(self) -> bool:
