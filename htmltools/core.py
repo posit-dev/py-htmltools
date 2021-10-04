@@ -33,20 +33,13 @@ TagListT = TypeVar("TagListT", bound="tag_list")
 
 
 # Types of objects that can be a child of a tag.
-TagChild = Union["tag_list", "html_dependency", str, int, float, bool]
-
-# With these objects, no conversion needs to be done.
-RenderedTagChild = Union["tag_list", "html_dependency", str, int, float, bool]
+TagChild = Union["Tagifiable", "tag_list", "html_dependency", str, int, float, bool]
 
 # A duck type: objects with tagify() methods are considered Tagifiable.
 @runtime_checkable
 class Tagifiable(Protocol):
-    def tagify(self) -> RenderedTagChild:
+    def tagify(self) -> TagChild:
         ...
-
-
-# Types of objects that can be a child of a tag.
-TagChild = Union[Tagifiable, RenderedTagChild]
 
 
 class RenderedHTMLDocument(TypedDict):
