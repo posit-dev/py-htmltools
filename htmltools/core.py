@@ -6,7 +6,7 @@ from copy import copy, deepcopy
 from urllib.parse import quote
 import webbrowser
 import types
-from typing import Optional, Union, List, Dict, Callable, Any, TypedDict, TypeVar
+from typing import Optional, Union, List, Dict, Callable, Any, TypedDict, TypeVar, cast
 
 from typing_extensions import Protocol, runtime_checkable
 from packaging.version import parse as version_parse
@@ -31,7 +31,7 @@ TagListT = TypeVar("TagListT", bound="tag_list")
 
 
 # Types of objects that can be a child of a tag.
-TagChild = Union["Tagifiable", "tag_list", "html_dependency", str, int, float, bool]
+TagChild = Union["Tagifiable", "tag_list", "html_dependency", str]
 
 # A duck type: objects with tagify() methods are considered Tagifiable.
 @runtime_checkable
@@ -68,7 +68,7 @@ class tag_list:
         >>> print(tag_list(h1('Hello htmltools'), tags.p('for python')))
     """
 
-    def __init__(self, *args: Union[TagChild, None]) -> None:
+    def __init__(self, *args: Union[TagChild, int, float, None]) -> None:
         self.children: List[TagChild] = []
         if args:
             self.append(*args)
@@ -82,8 +82,14 @@ class tag_list:
         cp.__dict__.update(new_dict)
         return cp
 
-    def append(self, *args: Union[TagChild, None]) -> None:
-        self.children += flatten(args)
+    def append(self, *args: Union[TagChild, int, float, None]) -> None:
+        new_children = flatten(args)
+        for i, x in enumerate(new_children):
+            if isinstance(x, (int, float)):
+                new_children[i] = str(x)
+
+        new_children = cast(List[TagChild], new_children)
+        self.children.extend(new_children)
 
     def insert(self, index: int = 0, *args: TagChild) -> None:
         if args:
@@ -219,8 +225,8 @@ class tag(tag_list):
     def __init__(
         self,
         _name: str,
-        *args: TagChild,
-        children: Optional[List[TagChild]] = None,
+        *args: Union[TagChild, int, float, None],
+        children: Optional[List[Union[TagChild, int, float, None]]] = None,
         **kwargs: AttrType,
     ) -> None:
         if children is None:
@@ -254,7 +260,9 @@ class tag(tag_list):
         self.append(*args, **kwargs)
         return self
 
-    def append(self, *args: Any, **kwargs: AttrType) -> None:
+    def append(
+        self, *args: Union[TagChild, int, float, None], **kwargs: AttrType
+    ) -> None:
         if args:
             super().append(*args)
         for k, v in kwargs.items():
