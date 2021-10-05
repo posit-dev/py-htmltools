@@ -23,6 +23,7 @@ __all__ = (
     "html",
     "jsx",
     "html_dependency",
+    "TagChild",
 )
 
 TagAttr = Union[str, None]
