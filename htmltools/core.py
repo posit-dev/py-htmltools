@@ -139,7 +139,7 @@ class tag_list:
             if isinstance(x, html_dependency):
                 deps.append(x)
             elif isinstance(x, tag_list):
-                deps += x._get_dependencies()
+                deps.extend(x._get_dependencies())
         unames = unique([d.name for d in deps])
         resolved: List[html_dependency] = []
         for nm in unames:
