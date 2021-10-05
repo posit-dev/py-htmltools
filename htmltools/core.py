@@ -40,7 +40,7 @@ class Tagifiable(Protocol):
         ...
 
 
-class RenderedHTMLDocument(TypedDict):
+class RenderedHTML(TypedDict):
     dependencies: List["html_dependency"]
     html: str
 
@@ -107,30 +107,27 @@ class tag_list:
                 cp.children[i] = child.tagify()
         return cp
 
-    def render(
-        self,
-        process_dep: Optional[Callable[["html_dependency"], "html_dependency"]] = None,
-    ) -> RenderedHTMLDocument:
-        self2 = self.tagify()
-        deps = self2._get_dependencies()
-        if callable(process_dep):
-            deps = [process_dep(x) for x in deps]
-        return {"dependencies": deps, "html": str(self)}
+    def render(self) -> RenderedHTML:
+        tagified = self.tagify()
+        deps = tagified._get_dependencies()
+        return {"dependencies": deps, "html": self._get_html_string()}
 
     def save_html(self, file: str, libdir: str = "lib") -> str:
         return html_document(self).save_html(file, libdir)
 
     def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
-        children = [x for x in self.children if not isinstance(x, html_dependency)]
-        n = len(children)
-        indent_ = "  " * indent
-        html_ = indent_
-        for i, x in enumerate(children):
+        n = len(self.children)
+        indent_str = "  " * indent
+        html_ = indent_str
+        for i, x in enumerate(self.children):
             if isinstance(x, tag_list):
                 html_ += x._get_html_string(indent, eol)
+            elif isinstance(x, html_dependency):
+                continue
             else:
                 html_ += normalize_text(str(x))
-            html_ += (eol + indent_) if i < n - 1 else ""
+            if i < n - 1:
+                html_ += eol + indent_str
         return html(html_)
 
     def _get_dependencies(self) -> List["html_dependency"]:
@@ -140,6 +137,7 @@ class tag_list:
                 deps.append(x)
             elif isinstance(x, tag_list):
                 deps.extend(x._get_dependencies())
+
         unames = unique([d.name for d in deps])
         resolved: List[html_dependency] = []
         for nm in unames:
@@ -292,7 +290,8 @@ class tag(tag_list):
 
         # write attributes (boolean attributes should be empty strings)
         for key, val in self.get_attrs().items():
-            val = val if isinstance(val, html) else html_escape(val, attr=True)
+            if not isinstance(val, html):
+                val = html_escape(val, attr=True)
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output
@@ -483,18 +482,13 @@ class html_document(tag):
 
         self.append(head, body)
 
-    def render(
-        self,
-        process_dep: Optional[Callable[["html_dependency"], "html_dependency"]] = None,
-    ) -> RenderedHTMLDocument:
-        self2 = self.tagify()
-        deps: List[html_dependency] = self2._get_dependencies()
-        if callable(process_dep):
-            deps = [process_dep(x) for x in deps]
+    def render(self) -> RenderedHTML:
+        tagified = self.tagify()
+        deps: List[html_dependency] = tagified._get_dependencies()
 
         child0_children: List[TagChild] = []
-        if isinstance(self2.children[0], tag_list):
-            child0_children = self2.children[0].children
+        if isinstance(tagified.children[0], tag_list):
+            child0_children = tagified.children[0].children
 
         head = tag(
             "head",
@@ -502,7 +496,7 @@ class html_document(tag):
             *[d.as_tags() for d in deps],
             *child0_children,
         )
-        body = self2.children[1]
+        body = tagified.children[1]
         return {
             "dependencies": deps,
             "html": "<!DOCTYPE html>\n" + str(tag("html", head, body)),
@@ -513,12 +507,13 @@ class html_document(tag):
         dir = str(Path(file).resolve().parent)
         libdir = os.path.join(dir, libdir)
 
-        def copy_dep(d: html_dependency):
+        def copy_dep(d: html_dependency) -> html_dependency:
             d = d.copy_to(libdir, False)
             d = d.make_relative(dir, False)
             return d
 
-        res = self.render(process_dep=copy_dep)
+        res = self.render()
+        res["dependencies"] = [copy_dep(d) for d in res["dependencies"]]
         with open(file, "w") as f:
             f.write(res["html"])
         return file
@@ -788,7 +783,10 @@ def tag_repr_impl(name: str, attrs: Dict[str, str], children: List[TagChild]) ->
 
 
 def normalize_text(txt: str) -> str:
-    return txt if isinstance(txt, html) else html_escape(txt, attr=False)
+    if isinstance(txt, html):
+        return txt
+    else:
+        return html_escape(txt, attr=False)
 
 
 def equals_impl(x: Any, y: Any) -> bool:
