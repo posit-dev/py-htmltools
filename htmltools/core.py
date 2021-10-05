@@ -23,17 +23,16 @@ __all__ = (
     "html",
     "jsx",
     "html_dependency",
-    "TagChild",
+    "TagAttr",
+    "TagChildArg",
 )
 
 TagAttr = Union[str, None]
 
 TagListT = TypeVar("TagListT", bound="tag_list")
 
-
 # Types of objects that can be a child of a tag.
 TagChild = Union["Tagifiable", "tag_list", "html_dependency", str]
-
 # A duck type: objects with tagify() methods are considered Tagifiable.
 @runtime_checkable
 class Tagifiable(Protocol):
