@@ -33,12 +33,14 @@ def test_basic_tag_api(snapshot):
 
 
 def test_tag_shallow_copy():
-    x = div(tags.i("hello", prop="value"), "world", class_="myclass")
+    dep = html_dependency("a", "1.1", {"href": "/"}, script="a1.js")
+    x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
     y = copy.copy(x)
     y.children[0].children[0] = "HELLO"
     y.children[0]._attrs["prop"] = "VALUE"
     y.children[1] = "WORLD"
     y._attrs["class"] = "MYCLASS"
+    y.children[2].name = "A"
 
     # With a shallow copy(), the ._attrs and .children are shallow copies, but if a
     # child is modified in place, then the the original child is modified as well.
@@ -51,18 +53,25 @@ def test_tag_shallow_copy():
     # Immutable children can't be changed in place.
     assert x.children[1] is not y.children[1]
     assert x.children[1] == "world"
+    assert x.children[1] is not y.children[1]
+    # An html_dependency is mutable, so it is modified in place.
+    assert x.children[2].name == "A"
+    assert y.children[2].name == "A"
+    assert x.children[2] is y.children[2]
 
 
 def test_tagify_deep_copy():
     # Each call to .tagify() should do a shallow copy, but since it recurses, the result
     # is a deep copy.
-    x = div(tags.i("hello", prop="value"), "world", class_="myclass")
+    dep = html_dependency("a", "1.1", {"href": "/"}, script="a1.js")
+    x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
 
     y = x.tagify()
     y.children[0].children[0] = "HELLO"
     y.children[0]._attrs["prop"] = "VALUE"
     y.children[1] = "WORLD"
     y._attrs["class"] = "MYCLASS"
+    y.children[2].name = "A"
 
     assert x._attrs == {"class": "myclass"}
     assert y._attrs == {"class": "MYCLASS"}
@@ -72,6 +81,9 @@ def test_tagify_deep_copy():
     assert y.children[0].children[0] == "HELLO"
     assert x.children[1] == "world"
     assert y.children[1] == "WORLD"
+    assert x.children[2].name == "a"
+    assert y.children[2].name == "A"
+    assert x.children[2] is not y.children[2]
 
 
 def test_tag_writing(snapshot):

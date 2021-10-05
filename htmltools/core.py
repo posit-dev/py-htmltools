@@ -109,6 +109,8 @@ class tag_list:
         for i, child in enumerate(cp.children):
             if isinstance(child, Tagifiable):
                 cp.children[i] = child.tagify()
+            elif isinstance(child, html_dependency):
+                cp.children[i] = copy(child)
         return cp
 
     def walk(
