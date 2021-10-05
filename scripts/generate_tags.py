@@ -26,7 +26,7 @@ for nm in tags:
     if nm == "color-profile":
         continue
     code = (
-        f"def {nm}(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:\n"
+        f"def {nm}(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:\n"
         + f"    return tag('{nm}', *args, children=children, **kwargs)\n"
     )
     tags_code.append(code)
@@ -37,8 +37,27 @@ header = """\
 
 from typing import Optional, List
 
-from .core import tag, TagChild, AttrType
+from htmltools import tag, TagChild, TagAttr
 
+__all__ = [
+    'p',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'a',
+    'br',
+    'div',
+    'span',
+    'pre',
+    'code',
+    'img',
+    'strong',
+    'em',
+    'hr',
+]
 """
 
 src_file = os.path.join(os.path.dirname(__file__), "../htmltools/tags.py")

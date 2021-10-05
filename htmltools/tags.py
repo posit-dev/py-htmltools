@@ -3,625 +3,644 @@
 
 from typing import Optional, List
 
-from .core import tag, TagChild, AttrType
+from htmltools import tag, TagChild, TagAttr
 
-def a(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+__all__ = [
+    'p',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'a',
+    'br',
+    'div',
+    'span',
+    'pre',
+    'code',
+    'img',
+    'strong',
+    'em',
+    'hr',
+]
+def a(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('a', *args, children=children, **kwargs)
 
-def abbr(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def abbr(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('abbr', *args, children=children, **kwargs)
 
-def acronym(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def acronym(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('acronym', *args, children=children, **kwargs)
 
-def address(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def address(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('address', *args, children=children, **kwargs)
 
-def animate(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def animate(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('animate', *args, children=children, **kwargs)
 
-def animateMotion(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def animateMotion(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('animateMotion', *args, children=children, **kwargs)
 
-def animateTransform(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def animateTransform(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('animateTransform', *args, children=children, **kwargs)
 
-def applet(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def applet(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('applet', *args, children=children, **kwargs)
 
-def area(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def area(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('area', *args, children=children, **kwargs)
 
-def article(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def article(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('article', *args, children=children, **kwargs)
 
-def aside(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def aside(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('aside', *args, children=children, **kwargs)
 
-def audio(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def audio(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('audio', *args, children=children, **kwargs)
 
-def b(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def b(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('b', *args, children=children, **kwargs)
 
-def base(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def base(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('base', *args, children=children, **kwargs)
 
-def basefont(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def basefont(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('basefont', *args, children=children, **kwargs)
 
-def bdi(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def bdi(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('bdi', *args, children=children, **kwargs)
 
-def bdo(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def bdo(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('bdo', *args, children=children, **kwargs)
 
-def bgsound(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def bgsound(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('bgsound', *args, children=children, **kwargs)
 
-def big(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def big(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('big', *args, children=children, **kwargs)
 
-def blink(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def blink(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('blink', *args, children=children, **kwargs)
 
-def blockquote(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def blockquote(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('blockquote', *args, children=children, **kwargs)
 
-def body(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def body(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('body', *args, children=children, **kwargs)
 
-def br(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def br(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('br', *args, children=children, **kwargs)
 
-def button(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def button(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('button', *args, children=children, **kwargs)
 
-def canvas(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def canvas(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('canvas', *args, children=children, **kwargs)
 
-def caption(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def caption(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('caption', *args, children=children, **kwargs)
 
-def center(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def center(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('center', *args, children=children, **kwargs)
 
-def circle(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def circle(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('circle', *args, children=children, **kwargs)
 
-def cite(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def cite(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('cite', *args, children=children, **kwargs)
 
-def clipPath(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def clipPath(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('clipPath', *args, children=children, **kwargs)
 
-def code(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def code(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('code', *args, children=children, **kwargs)
 
-def col(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def col(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('col', *args, children=children, **kwargs)
 
-def colgroup(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def colgroup(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('colgroup', *args, children=children, **kwargs)
 
-def command(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def command(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('command', *args, children=children, **kwargs)
 
-def content(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def content(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('content', *args, children=children, **kwargs)
 
-def data(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def data(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('data', *args, children=children, **kwargs)
 
-def datalist(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def datalist(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('datalist', *args, children=children, **kwargs)
 
-def dd(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def dd(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('dd', *args, children=children, **kwargs)
 
-def defs(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def defs(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('defs', *args, children=children, **kwargs)
 
-def desc(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def desc(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('desc', *args, children=children, **kwargs)
 
-def details(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def details(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('details', *args, children=children, **kwargs)
 
-def dfn(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def dfn(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('dfn', *args, children=children, **kwargs)
 
-def dialog(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def dialog(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('dialog', *args, children=children, **kwargs)
 
-def dir(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def dir(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('dir', *args, children=children, **kwargs)
 
-def discard(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def discard(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('discard', *args, children=children, **kwargs)
 
-def div(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def div(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('div', *args, children=children, **kwargs)
 
-def dl(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def dl(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('dl', *args, children=children, **kwargs)
 
-def dt(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def dt(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('dt', *args, children=children, **kwargs)
 
-def ellipse(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def ellipse(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('ellipse', *args, children=children, **kwargs)
 
-def em(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def em(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('em', *args, children=children, **kwargs)
 
-def embed(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def embed(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('embed', *args, children=children, **kwargs)
 
-def eventsource(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def eventsource(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('eventsource', *args, children=children, **kwargs)
 
-def feBlend(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feBlend(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feBlend', *args, children=children, **kwargs)
 
-def feColorMatrix(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feColorMatrix(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feColorMatrix', *args, children=children, **kwargs)
 
-def feComponentTransfer(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feComponentTransfer(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feComponentTransfer', *args, children=children, **kwargs)
 
-def feComposite(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feComposite(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feComposite', *args, children=children, **kwargs)
 
-def feConvolveMatrix(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feConvolveMatrix(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feConvolveMatrix', *args, children=children, **kwargs)
 
-def feDiffuseLighting(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feDiffuseLighting(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feDiffuseLighting', *args, children=children, **kwargs)
 
-def feDisplacementMap(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feDisplacementMap(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feDisplacementMap', *args, children=children, **kwargs)
 
-def feDistantLight(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feDistantLight(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feDistantLight', *args, children=children, **kwargs)
 
-def feDropShadow(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feDropShadow(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feDropShadow', *args, children=children, **kwargs)
 
-def feFlood(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feFlood(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feFlood', *args, children=children, **kwargs)
 
-def feFuncA(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feFuncA(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feFuncA', *args, children=children, **kwargs)
 
-def feFuncB(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feFuncB(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feFuncB', *args, children=children, **kwargs)
 
-def feFuncG(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feFuncG(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feFuncG', *args, children=children, **kwargs)
 
-def feFuncR(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feFuncR(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feFuncR', *args, children=children, **kwargs)
 
-def feGaussianBlur(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feGaussianBlur(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feGaussianBlur', *args, children=children, **kwargs)
 
-def feImage(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feImage(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feImage', *args, children=children, **kwargs)
 
-def feMerge(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feMerge(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feMerge', *args, children=children, **kwargs)
 
-def feMergeNode(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feMergeNode(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feMergeNode', *args, children=children, **kwargs)
 
-def feMorphology(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feMorphology(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feMorphology', *args, children=children, **kwargs)
 
-def feOffset(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feOffset(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feOffset', *args, children=children, **kwargs)
 
-def fePointLight(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def fePointLight(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('fePointLight', *args, children=children, **kwargs)
 
-def feSpecularLighting(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feSpecularLighting(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feSpecularLighting', *args, children=children, **kwargs)
 
-def feSpotLight(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feSpotLight(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feSpotLight', *args, children=children, **kwargs)
 
-def feTile(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feTile(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feTile', *args, children=children, **kwargs)
 
-def feTurbulence(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def feTurbulence(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('feTurbulence', *args, children=children, **kwargs)
 
-def fieldset(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def fieldset(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('fieldset', *args, children=children, **kwargs)
 
-def figcaption(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def figcaption(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('figcaption', *args, children=children, **kwargs)
 
-def figure(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def figure(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('figure', *args, children=children, **kwargs)
 
-def filter(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def filter(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('filter', *args, children=children, **kwargs)
 
-def font(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def font(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('font', *args, children=children, **kwargs)
 
-def footer(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def footer(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('footer', *args, children=children, **kwargs)
 
-def foreignObject(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def foreignObject(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('foreignObject', *args, children=children, **kwargs)
 
-def form(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def form(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('form', *args, children=children, **kwargs)
 
-def frame(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def frame(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('frame', *args, children=children, **kwargs)
 
-def frameset(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def frameset(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('frameset', *args, children=children, **kwargs)
 
-def g(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def g(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('g', *args, children=children, **kwargs)
 
-def h1(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def h1(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('h1', *args, children=children, **kwargs)
 
-def h2(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def h2(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('h2', *args, children=children, **kwargs)
 
-def h3(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def h3(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('h3', *args, children=children, **kwargs)
 
-def h4(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def h4(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('h4', *args, children=children, **kwargs)
 
-def h5(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def h5(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('h5', *args, children=children, **kwargs)
 
-def h6(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def h6(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('h6', *args, children=children, **kwargs)
 
-def hatch(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def hatch(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('hatch', *args, children=children, **kwargs)
 
-def hatchpath(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def hatchpath(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('hatchpath', *args, children=children, **kwargs)
 
-def header(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def header(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('header', *args, children=children, **kwargs)
 
-def hgroup(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def hgroup(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('hgroup', *args, children=children, **kwargs)
 
-def hr(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def hr(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('hr', *args, children=children, **kwargs)
 
-def html(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def html(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('html', *args, children=children, **kwargs)
 
-def i(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def i(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('i', *args, children=children, **kwargs)
 
-def iframe(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def iframe(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('iframe', *args, children=children, **kwargs)
 
-def image(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def image(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('image', *args, children=children, **kwargs)
 
-def img(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def img(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('img', *args, children=children, **kwargs)
 
-def input(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def input(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('input', *args, children=children, **kwargs)
 
-def ins(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def ins(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('ins', *args, children=children, **kwargs)
 
-def kbd(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def kbd(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('kbd', *args, children=children, **kwargs)
 
-def keygen(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def keygen(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('keygen', *args, children=children, **kwargs)
 
-def label(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def label(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('label', *args, children=children, **kwargs)
 
-def legend(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def legend(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('legend', *args, children=children, **kwargs)
 
-def li(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def li(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('li', *args, children=children, **kwargs)
 
-def line(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def line(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('line', *args, children=children, **kwargs)
 
-def linearGradient(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def linearGradient(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('linearGradient', *args, children=children, **kwargs)
 
-def link(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def link(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('link', *args, children=children, **kwargs)
 
-def main(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def main(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('main', *args, children=children, **kwargs)
 
-def map(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def map(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('map', *args, children=children, **kwargs)
 
-def mark(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def mark(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('mark', *args, children=children, **kwargs)
 
-def marker(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def marker(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('marker', *args, children=children, **kwargs)
 
-def marquee(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def marquee(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('marquee', *args, children=children, **kwargs)
 
-def mask(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def mask(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('mask', *args, children=children, **kwargs)
 
-def menu(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def menu(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('menu', *args, children=children, **kwargs)
 
-def menuitem(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def menuitem(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('menuitem', *args, children=children, **kwargs)
 
-def mesh(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def mesh(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('mesh', *args, children=children, **kwargs)
 
-def meshgradient(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def meshgradient(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('meshgradient', *args, children=children, **kwargs)
 
-def meshpatch(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def meshpatch(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('meshpatch', *args, children=children, **kwargs)
 
-def meshrow(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def meshrow(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('meshrow', *args, children=children, **kwargs)
 
-def meta(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def meta(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('meta', *args, children=children, **kwargs)
 
-def metadata(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def metadata(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('metadata', *args, children=children, **kwargs)
 
-def meter(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def meter(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('meter', *args, children=children, **kwargs)
 
-def mpath(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def mpath(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('mpath', *args, children=children, **kwargs)
 
-def nav(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def nav(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('nav', *args, children=children, **kwargs)
 
-def nobr(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def nobr(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('nobr', *args, children=children, **kwargs)
 
-def noembed(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def noembed(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('noembed', *args, children=children, **kwargs)
 
-def noframes(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def noframes(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('noframes', *args, children=children, **kwargs)
 
-def noscript(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def noscript(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('noscript', *args, children=children, **kwargs)
 
-def object(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def object(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('object', *args, children=children, **kwargs)
 
-def ol(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def ol(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('ol', *args, children=children, **kwargs)
 
-def optgroup(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def optgroup(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('optgroup', *args, children=children, **kwargs)
 
-def option(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def option(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('option', *args, children=children, **kwargs)
 
-def output(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def output(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('output', *args, children=children, **kwargs)
 
-def p(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def p(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('p', *args, children=children, **kwargs)
 
-def param(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def param(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('param', *args, children=children, **kwargs)
 
-def path(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def path(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('path', *args, children=children, **kwargs)
 
-def pattern(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def pattern(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('pattern', *args, children=children, **kwargs)
 
-def picture(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def picture(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('picture', *args, children=children, **kwargs)
 
-def plaintext(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def plaintext(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('plaintext', *args, children=children, **kwargs)
 
-def polygon(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def polygon(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('polygon', *args, children=children, **kwargs)
 
-def polyline(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def polyline(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('polyline', *args, children=children, **kwargs)
 
-def portal(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def portal(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('portal', *args, children=children, **kwargs)
 
-def pre(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def pre(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('pre', *args, children=children, **kwargs)
 
-def progress(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def progress(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('progress', *args, children=children, **kwargs)
 
-def q(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def q(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('q', *args, children=children, **kwargs)
 
-def radialGradient(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def radialGradient(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('radialGradient', *args, children=children, **kwargs)
 
-def rb(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def rb(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('rb', *args, children=children, **kwargs)
 
-def rect(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def rect(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('rect', *args, children=children, **kwargs)
 
-def rp(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def rp(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('rp', *args, children=children, **kwargs)
 
-def rt(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def rt(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('rt', *args, children=children, **kwargs)
 
-def rtc(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def rtc(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('rtc', *args, children=children, **kwargs)
 
-def ruby(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def ruby(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('ruby', *args, children=children, **kwargs)
 
-def s(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def s(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('s', *args, children=children, **kwargs)
 
-def samp(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def samp(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('samp', *args, children=children, **kwargs)
 
-def script(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def script(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('script', *args, children=children, **kwargs)
 
-def section(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def section(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('section', *args, children=children, **kwargs)
 
-def select(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def select(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('select', *args, children=children, **kwargs)
 
-def set(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def set(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('set', *args, children=children, **kwargs)
 
-def shadow(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def shadow(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('shadow', *args, children=children, **kwargs)
 
-def slot(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def slot(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('slot', *args, children=children, **kwargs)
 
-def small(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def small(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('small', *args, children=children, **kwargs)
 
-def solidcolor(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def solidcolor(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('solidcolor', *args, children=children, **kwargs)
 
-def source(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def source(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('source', *args, children=children, **kwargs)
 
-def spacer(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def spacer(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('spacer', *args, children=children, **kwargs)
 
-def span(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def span(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('span', *args, children=children, **kwargs)
 
-def stop(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def stop(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('stop', *args, children=children, **kwargs)
 
-def strike(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def strike(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('strike', *args, children=children, **kwargs)
 
-def strong(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def strong(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('strong', *args, children=children, **kwargs)
 
-def style(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def style(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('style', *args, children=children, **kwargs)
 
-def sub(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def sub(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('sub', *args, children=children, **kwargs)
 
-def summary(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def summary(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('summary', *args, children=children, **kwargs)
 
-def sup(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def sup(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('sup', *args, children=children, **kwargs)
 
-def svg(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def svg(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('svg', *args, children=children, **kwargs)
 
-def switch(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def switch(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('switch', *args, children=children, **kwargs)
 
-def symbol(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def symbol(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('symbol', *args, children=children, **kwargs)
 
-def table(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def table(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('table', *args, children=children, **kwargs)
 
-def tbody(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def tbody(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('tbody', *args, children=children, **kwargs)
 
-def td(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def td(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('td', *args, children=children, **kwargs)
 
-def template(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def template(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('template', *args, children=children, **kwargs)
 
-def text(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def text(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('text', *args, children=children, **kwargs)
 
-def textarea(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def textarea(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('textarea', *args, children=children, **kwargs)
 
-def textPath(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def textPath(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('textPath', *args, children=children, **kwargs)
 
-def tfoot(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def tfoot(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('tfoot', *args, children=children, **kwargs)
 
-def th(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def th(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('th', *args, children=children, **kwargs)
 
-def thead(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def thead(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('thead', *args, children=children, **kwargs)
 
-def time(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def time(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('time', *args, children=children, **kwargs)
 
-def title(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def title(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('title', *args, children=children, **kwargs)
 
-def tr(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def tr(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('tr', *args, children=children, **kwargs)
 
-def track(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def track(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('track', *args, children=children, **kwargs)
 
-def tspan(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def tspan(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('tspan', *args, children=children, **kwargs)
 
-def tt(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def tt(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('tt', *args, children=children, **kwargs)
 
-def u(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def u(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('u', *args, children=children, **kwargs)
 
-def ul(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def ul(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('ul', *args, children=children, **kwargs)
 
-def unknown(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def unknown(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('unknown', *args, children=children, **kwargs)
 
-def use(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def use(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('use', *args, children=children, **kwargs)
 
-def var(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def var(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('var', *args, children=children, **kwargs)
 
-def video(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def video(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('video', *args, children=children, **kwargs)
 
-def view(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def view(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('view', *args, children=children, **kwargs)
 
-def wbr(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def wbr(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('wbr', *args, children=children, **kwargs)
 
-def xmp(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:
+def xmp(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: TagAttr) -> tag:
     return tag('xmp', *args, children=children, **kwargs)

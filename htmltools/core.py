@@ -25,18 +25,18 @@ __all__ = [
     "html",
     "jsx",
     "html_dependency",
+    "TagAttr",
+    "TagChild",
 ]
 
-AttrType = Union[str, None]
+from datetime import date, datetime
+
+TagAttr = Union[str, float, bool, date, datetime, List[str], None]
 
 TagListT = TypeVar("TagListT", bound="tag_list")
 
-
-# Types of objects that can be a child of a tag.
-TagChild = Union["tag_list", "html_dependency", str, int, float, bool]
-
-# With these objects, no conversion needs to be done.
-RenderedTagChild = Union["tag_list", "html_dependency", str, int, float, bool]
+# With these objects, no tagify() conversion needs to be done before writing as HTML
+RenderedTagChild = Union["tag_list", "html_dependency", str, float, bool]
 
 # A duck type: objects with tagify() methods are considered Tagifiable.
 @runtime_checkable
@@ -49,7 +49,7 @@ class Tagifiable(Protocol):
 TagChild = Union[Tagifiable, RenderedTagChild]
 
 
-class RenderedHTMLDocument(TypedDict):
+class RenderedHTML(TypedDict):
     dependencies: List["html_dependency"]
     html: str
 
@@ -113,7 +113,7 @@ class tag_list:
     def render(
         self,
         process_dep: Optional[Callable[["html_dependency"], "html_dependency"]] = None,
-    ) -> RenderedHTMLDocument:
+    ) -> RenderedHTML:
         self2 = self.tagify()
         deps = self2._get_dependencies()
         if callable(process_dep):
@@ -228,9 +228,9 @@ class tag(tag_list):
     def __init__(
         self,
         _name: str,
-        *args: TagChild,
+        *args: Union[TagChild, None],
         children: Optional[List[TagChild]] = None,
-        **kwargs: AttrType,
+        **kwargs: TagAttr,
     ) -> None:
         if children is None:
             children = []
@@ -259,19 +259,23 @@ class tag(tag_list):
             "wbr",
         ]
 
-    def __call__(self, *args: Any, **kwargs: AttrType) -> "tag":
+    def __call__(self, *args: Union[TagChild, None], **kwargs: TagAttr) -> "tag":
         self.append(*args, **kwargs)
         return self
 
-    def append(self, *args: Any, **kwargs: AttrType) -> None:
+    def append(self, *args: Union[TagChild, None], **kwargs: TagAttr) -> None:
         if args:
             super().append(*args)
         for k, v in kwargs.items():
-            if v is None:
+            if v is None or v is False:
                 continue
-            k_ = encode_attr(k)
-            v_ = self._attrs.get(k_, "")
-            self._attrs[k_] = (v_ + " " + str(v)) if v_ else str(v)
+            k_ = encode_attr_name(k)
+            v_old = self._attrs.get(k_, "")
+            if isinstance(v, list):
+                v_new = " ".join(v)
+            else:
+                v_new = "" if v is True else str(v)
+            self._attrs[k_] = (v_old + " " + v_new) if v_old else v_new
 
     def get_attrs(self) -> Dict[str, str]:
         return self._attrs
@@ -331,13 +335,13 @@ class tag(tag_list):
 # --------------------------------------------------------
 
 
-def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
+def jsx_tag(_name: str, allowedProps: Optional[List[str]] = None) -> None:
     pieces = _name.split(".")
     if pieces[-1][:1] != pieces[-1][:1].upper():
         raise NotImplementedError("JSX tags must be lowercase")
 
     # TODO: disallow props that are not in allowedProps
-    def as_tags(self, *args, **kwargs) -> tag_list:
+    def tagify(self, *args, **kwargs) -> tag_list:
         js = "\n".join(
             [
                 "(function() {",
@@ -418,7 +422,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
         for k, v in kwargs.items():
             if v is None:
                 continue
-            k_ = encode_attr(k)
+            k_ = encode_attr_name(k)
             if not self._attrs.get(k_):
                 self._attrs[k_] = []
             self._attrs[k_].append(v)
@@ -432,7 +436,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
     #     * Have a different get_html_string() method (returning the relevant JavaScript)
     #     * Have a different append method (attributes can be JSON instead of just a string)
     def __new__(
-        cls, *args: Any, children: Optional[Any] = None, **kwargs: AttrType
+        cls, *args: Any, children: Optional[Any] = None, **kwargs: TagAttr
     ) -> None:
         if allowedProps:
             for k in kwargs.keys():
@@ -445,7 +449,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
         def set_jsx_attrs(x):
             if not isinstance(x, tag_list):
                 return x
-            setattr(x, "__as_tags__", None)
+            setattr(x, "tagify", None)
             x._get_html_string = types.MethodType(_get_html_string, x)
             x.append = types.MethodType(append, x)
             return x
@@ -453,7 +457,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
         rewrite_tags(self, set_jsx_attrs, preorder=False)
         for k, v in self._attrs.items():
             self._attrs[k] = [rewrite_tags(x, set_jsx_attrs, preorder=False) for x in v]
-        setattr(self, "__as_tags__", as_tags)
+        self.tagify = types.MethodType(tagify, self)
         setattr(self, "_is_jsx", True)
         return self
 
@@ -473,7 +477,7 @@ class html_document(tag):
     """
 
     def __init__(
-        self, body: tag_list, head: Optional[tag_list] = None, **kwargs: AttrType
+        self, body: tag_list, head: Optional[tag_list] = None, **kwargs: TagAttr
     ) -> None:
         super().__init__("html", **kwargs)
 
@@ -487,7 +491,7 @@ class html_document(tag):
     def render(
         self,
         process_dep: Optional[Callable[["html_dependency"], "html_dependency"]] = None,
-    ) -> RenderedHTMLDocument:
+    ) -> RenderedHTML:
         self2 = self.tagify()
         deps: List[html_dependency] = self2._get_dependencies()
         if callable(process_dep):
@@ -765,7 +769,7 @@ def rewrite_tags(
 
 
 # e.g., foo_bar_ -> foo-bar
-def encode_attr(x: str) -> str:
+def encode_attr_name(x: str) -> str:
     if x.endswith("_"):
         x = x[:-1]
     return x.replace("_", "-")

@@ -2,7 +2,7 @@ import os
 import re
 import importlib
 import tempfile
-from typing import List, Tuple, Union, TypeVar, Hashable
+from typing import List, Tuple, Union, TypeVar, Hashable, Optional
 from contextlib import contextmanager, closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
@@ -13,8 +13,10 @@ T = TypeVar("T")
 
 HashableT = TypeVar("HashableT", bound=Hashable)
 
+__all__ = ["css"]
 
-def css(collapse_: str = "", **kwargs: str):
+
+def css(collapse_: str = "", **kwargs: Union[str, float, None]) -> Optional[str]:
     res = ""
     for k, v in kwargs.items():
         if v is None:

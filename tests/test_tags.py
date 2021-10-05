@@ -129,3 +129,20 @@ def test_html_save(snapshot):
         desc = tags.meta(name="description", content="test")
         doc = html_document(div("foo", dep), desc, lang="en")
         snapshot.assert_match(saved_html(doc), "html_save_doc")
+
+
+def test_attr_vals(snapshot):
+    import datetime
+
+    attrs = {
+        "none": None,
+        "false": False,
+        "true": True,
+        "str": "a",
+        "int": 1,
+        "float": 1.2,
+        "date": datetime.date(1999, 1, 2),
+    }
+    test = tag_list(div(**attrs), div(list=["foo", "bar"]))
+
+    snapshot.assert_match(str(test), "attr_vals.txt")
