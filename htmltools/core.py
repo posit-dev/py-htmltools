@@ -6,7 +6,7 @@ from copy import copy, deepcopy
 from urllib.parse import quote
 import webbrowser
 import types
-from typing import Optional, Union, List, Dict, Callable, Any, TypedDict, TypeVar
+from typing import Optional, Union, List, Dict, Callable, Any, TypedDict, TypeVar, cast
 
 from typing_extensions import Protocol, runtime_checkable
 from packaging import version
@@ -333,15 +333,17 @@ class tag(tag_list):
 # --------------------------------------------------------
 # JSX tags
 # --------------------------------------------------------
+JsxTagAttr = Union[TagAttr, tag_list, Dict[str, Any]]
+JsxTagAttrs = Dict[str, List[JsxTagAttr]]
 
 
-def jsx_tag(_name: str, allowedProps: Optional[List[str]] = None) -> None:
+def jsx_tag(_name: str, allowedProps: Optional[List[str]] = None) -> Callable[[], tag]:
     pieces = _name.split(".")
     if pieces[-1][:1] != pieces[-1][:1].upper():
         raise NotImplementedError("JSX tags must be lowercase")
 
     # TODO: disallow props that are not in allowedProps
-    def tagify(self, *args, **kwargs) -> tag_list:
+    def tagify(self: tag) -> tag_list:
         js = "\n".join(
             [
                 "(function() {",
@@ -355,20 +357,24 @@ def jsx_tag(_name: str, allowedProps: Optional[List[str]] = None) -> None:
         return tag_list(
             lib_dependency("react", script="react.production.min.js"),
             lib_dependency("react-dom", script="react-dom.production.min.js"),
-            self._get_dependencies(),
+            *self._get_dependencies(),
             tag("script", type="text/javascript")(html("\n" + js + "\n")),
         )
 
-    def _get_html_string(self) -> str:
-        if isinstance(self, tag_list) and not isinstance(self, tag):
-            self = jsx_tag("React.Fragment")(*self.children)
+    def _get_html_string(self: tag_list) -> str:
+        self2: tag = (
+            self if isinstance(self, tag) else jsx_tag("React.Fragment")(*self.children)
+        )
 
-        name = getattr(self, "_is_jsx", False) and self.name or "'" + self.name + "'"
+        if getattr(self2, "_is_jsx", False):
+            name = self2.name
+        else:
+            name = "'" + self2.name + "'"
         res_ = "React.createElement(" + name + ", "
 
         # Unfortunately we can't use json.dumps() here because I don't know how to
         # avoid quoting jsx(), jsx_tag(), tag(), etc.
-        def serialize_attr(x) -> str:
+        def serialize_attr(x: JsxTagAttr) -> str:
             if isinstance(x, (list, tuple)):
                 return "[" + ", ".join([serialize_attr(y) for y in x]) + "]"
             if isinstance(x, dict):
@@ -377,27 +383,32 @@ def jsx_tag(_name: str, allowedProps: Optional[List[str]] = None) -> None:
                 )
             if isinstance(x, jsx):
                 return str(x)
-            if isinstance(x, str):
-                return '"' + x + '"'
-            x_ = str(x)
             if isinstance(x, bool):
-                x_ = x_.lower()
-            return x_
+                return str(x).lower()
+            return '"' + str(x).replace('"', '\\"') + '"'
 
-        attrs = deepcopy(self.get_attrs())
-        if not attrs:
+        self._attrs = cast(JsxTagAttrs, self._attrs)
+        if not self._attrs:
             res_ += "null"
         else:
             res_ += "{"
-            for key, vals in attrs.items():
-                res_ += key + ": "
+            for key, vals in self._attrs.items():
+                res_ += f"'{key}': "
+                # React doesn't allow style to be a string, so convert them into objects
+                if key == "style" and isinstance(vals, str):
+                    vals = cast(str, vals)
+                    valz = {}
+                    for prop in [x.split(":") for x in vals.split(";")]:
+                        if len(prop) == 2:
+                            valz[prop[0]] = prop[1]
+                    vals = valz
                 # If this tag is jsx, then it should be a list (otherwise, it's a string)
                 if isinstance(vals, list):
                     for i, v in enumerate(vals):
                         vals[i] = serialize_attr(v)
                     res_ += vals[0] if len(vals) == 1 else "[" + ", ".join(vals) + "]"
                 else:
-                    res_ += vals
+                    res_ += serialize_attr(vals)
                 res_ += ", "
             res_ += "}"
 
@@ -410,15 +421,16 @@ def jsx_tag(_name: str, allowedProps: Optional[List[str]] = None) -> None:
             elif isinstance(x, jsx):
                 res_ += x
             else:
-                res_ += '"' + str(x) + '"'
+                res_ += '"' + str(x).replace('"', '\\"') + '"'
 
         return res_ + ")"
 
     # JSX attrs can be full-on JSON objects whereas html/svg attrs
     # always get encoded as string
-    def append(self, *args, **kwargs) -> None:
+    def append(self: tag, *args: Union[TagChild, None], **kwargs: JsxTagAttr) -> None:
         if args:
             self.children += flatten(args)
+        self._attrs = cast(JsxTagAttrs, self._attrs)
         for k, v in kwargs.items():
             if v is None:
                 continue
@@ -435,18 +447,17 @@ def jsx_tag(_name: str, allowedProps: Optional[List[str]] = None) -> None:
     # 3. Any tags within a JSX tag (inside children or attributes):
     #     * Have a different get_html_string() method (returning the relevant JavaScript)
     #     * Have a different append method (attributes can be JSON instead of just a string)
-    def __new__(
-        cls, *args: Any, children: Optional[Any] = None, **kwargs: TagAttr
-    ) -> None:
+    def tag_func(*args: Any, children: Optional[Any] = None, **kwargs: TagAttr) -> tag:
         if allowedProps:
             for k in kwargs.keys():
                 if k not in allowedProps:
                     raise NotImplementedError(f"{k} is not a valid prop for {_name}")
-        self = type(_name, (tag,), {"append": append})(
-            _name, *args, children=children, **kwargs
-        )
 
-        def set_jsx_attrs(x):
+        tag_ = deepcopy(tag)
+        tag_.append = append
+        jsxTag = tag_(_name)(*args, children=children, **kwargs)
+
+        def set_jsx_attrs(x: Any):
             if not isinstance(x, tag_list):
                 return x
             setattr(x, "tagify", None)
@@ -454,14 +465,18 @@ def jsx_tag(_name: str, allowedProps: Optional[List[str]] = None) -> None:
             x.append = types.MethodType(append, x)
             return x
 
-        rewrite_tags(self, set_jsx_attrs, preorder=False)
-        for k, v in self._attrs.items():
-            self._attrs[k] = [rewrite_tags(x, set_jsx_attrs, preorder=False) for x in v]
-        self.tagify = types.MethodType(tagify, self)
-        setattr(self, "_is_jsx", True)
-        return self
+        rewrite_tags(jsxTag, set_jsx_attrs, preorder=False)
+        for k, v in jsxTag._attrs.items():
+            jsxTag._attrs[k] = [
+                rewrite_tags(x, set_jsx_attrs, preorder=False) for x in v
+            ]
+        jsxTag.tagify = types.MethodType(tagify, jsxTag)
+        setattr(jsxTag, "_is_jsx", True)
+        return jsxTag
 
-    return type(_name, (tag,), {"__new__": __new__, "__init__": lambda self: None})
+    tag_func.__name__ = _name
+
+    return tag_func
 
 
 # --------------------------------------------------------
