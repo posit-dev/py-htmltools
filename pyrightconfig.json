@@ -1,0 +1,8 @@
+{
+    "typeCheckingMode": "basic",
+    "strict": [
+        "htmltools/",
+        "examples/",
+    ],
+    "reportImportCycles": false
+}
