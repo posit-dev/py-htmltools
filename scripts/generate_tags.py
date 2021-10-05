@@ -26,7 +26,7 @@ for nm in tags:
     if nm == "color-profile":
         continue
     code = (
-        f"def {nm}(*args: TagChild, children: Optional[List[TagChild]] = None, **kwargs: AttrType) -> tag:\n"
+        f"def {nm}(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttr) -> tag:\n"
         + f"    return tag('{nm}', *args, children=children, **kwargs)\n"
     )
     tags_code.append(code)
@@ -37,7 +37,7 @@ header = """\
 
 from typing import Optional, List
 
-from .core import tag, TagChild, AttrType
+from .core import tag, TagChildArg, TagAttr
 
 """
 

@@ -25,7 +25,7 @@ __all__ = (
     "html_dependency",
 )
 
-AttrType = Union[str, None]
+TagAttr = Union[str, None]
 
 TagListT = TypeVar("TagListT", bound="tag_list")
 
@@ -36,8 +36,12 @@ TagChild = Union["Tagifiable", "tag_list", "html_dependency", str]
 # A duck type: objects with tagify() methods are considered Tagifiable.
 @runtime_checkable
 class Tagifiable(Protocol):
-    def tagify(self) -> TagChild:
+    def tagify(self) -> Union["tag_list", "html_dependency", str]:
         ...
+
+
+# Types that can be passed as args to tag_list() and tag functions.
+TagChildArg = Union[TagChild, int, float, None, List["TagChildArg"]]
 
 
 class RenderedHTML(TypedDict):
@@ -68,7 +72,7 @@ class tag_list:
         >>> print(tag_list(h1('Hello htmltools'), tags.p('for python')))
     """
 
-    def __init__(self, *args: Union[TagChild, int, float, None]) -> None:
+    def __init__(self, *args: TagChildArg) -> None:
         self.children: List[TagChild] = []
         if args:
             self.append(*args)
@@ -82,7 +86,7 @@ class tag_list:
         cp.__dict__.update(new_dict)
         return cp
 
-    def append(self, *args: Union[TagChild, int, float, None]) -> None:
+    def append(self, *args: TagChildArg) -> None:
         new_children = flatten(args)
         for i, x in enumerate(new_children):
             if isinstance(x, (int, float)):
@@ -107,9 +111,15 @@ class tag_list:
                 cp.children[i] = child.tagify()
         return cp
 
+    def walk(
+        self,
+        pre: Optional[Callable[[TagChild], TagChild]] = None,
+        post: Optional[Callable[[TagChild], TagChild]] = None,
+    ) -> TagChild:
+        return _walk(self, pre, post)
+
     def render(self) -> RenderedHTML:
-        tagified = self.tagify()
-        deps = tagified._get_dependencies()
+        deps = self._get_dependencies()
         return {"dependencies": deps, "html": self._get_html_string()}
 
     def save_html(self, file: str, libdir: str = "lib") -> str:
@@ -124,8 +134,13 @@ class tag_list:
                 html_ += x._get_html_string(indent, eol)
             elif isinstance(x, html_dependency):
                 continue
+            elif isinstance(x, Tagifiable):
+                raise RuntimeError(
+                    "Encountered a non-tagified object. x.tagify() must be called before x.render()"
+                )
             else:
-                html_ += normalize_text(str(x))
+                # If we get here, x must be a string.
+                html_ += normalize_text(x)
             if i < n - 1:
                 html_ += eol + indent_str
         return html(html_)
@@ -223,10 +238,11 @@ class tag(tag_list):
     def __init__(
         self,
         _name: str,
-        *args: Union[TagChild, int, float, None],
-        children: Optional[List[Union[TagChild, int, float, None]]] = None,
-        **kwargs: AttrType,
+        *args: TagChildArg,
+        children: Optional[List[TagChildArg]] = None,
+        **kwargs: TagAttr,
     ) -> None:
+        children: List[TagChild]
         if children is None:
             children = []
         super().__init__(*args, *children)
@@ -254,12 +270,12 @@ class tag(tag_list):
             "wbr",
         ]
 
-    def __call__(self, *args: Any, **kwargs: AttrType) -> "tag":
+    def __call__(self, *args: Any, **kwargs: TagAttr) -> "tag":
         self.append(*args, **kwargs)
         return self
 
     def append(
-        self, *args: Union[TagChild, int, float, None], **kwargs: AttrType
+        self, *args: Union[TagChild, int, float, None], **kwargs: TagAttr
     ) -> None:
         if args:
             super().append(*args)
@@ -430,7 +446,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
     #     * Have a different get_html_string() method (returning the relevant JavaScript)
     #     * Have a different append method (attributes can be JSON instead of just a string)
     def __new__(
-        cls, *args: Any, children: Optional[Any] = None, **kwargs: AttrType
+        cls, *args: Any, children: Optional[Any] = None, **kwargs: TagAttr
     ) -> None:
         if allowedProps:
             for k in kwargs.keys():
@@ -471,7 +487,7 @@ class html_document(tag):
     """
 
     def __init__(
-        self, body: tag_list, head: Optional[tag_list] = None, **kwargs: AttrType
+        self, body: tag_list, head: Optional[tag_list] = None, **kwargs: TagAttr
     ) -> None:
         super().__init__("html", **kwargs)
 
@@ -731,6 +747,25 @@ class html_dependency:
 # ---------------------------------------------------------------------------
 # Utility functions
 # ---------------------------------------------------------------------------
+
+# Walk a tag_list tree, and apply a function to each node. The node in the tree will be
+# replaced with the value returned from `pre()` or `post()`. Note that the
+def _walk(
+    x: TagChild,
+    pre: Optional[Callable[[TagChild], TagChild]] = None,
+    post: Optional[Callable[[TagChild], TagChild]] = None,
+) -> TagChild:
+    if pre:
+        x = pre(x)
+
+    if isinstance(x, tag_list):
+        for i, child in enumerate(x.children):
+            x.children[i] = _walk(child, pre, post)
+
+    if post:
+        x = post(x)
+
+    return x
 
 
 def rewrite_tags(
