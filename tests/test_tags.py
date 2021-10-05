@@ -141,3 +141,30 @@ def test_html_save(snapshot):
         desc = tags.meta(name="description", content="test")
         doc = html_document(div("foo", dep), desc, lang="en")
         snapshot.assert_match(saved_html(doc), "html_save_doc")
+
+
+def test_tag_walk():
+    # walk() alters the tree in place, and also returns the altered object.
+    x = div("hello ", tags.i("world"))
+    y = div("The value of x is: ", x)
+
+    def alter(x: TagChild) -> TagChild:
+        if isinstance(x, str):
+            return x.upper()
+        elif isinstance(x, tag):
+            x._attrs["a"] = "foo"
+            if x.name == "i":
+                x.name = "b"
+
+        return x
+
+    res = x.walk(alter)
+
+    assert y.children[1] is x
+    assert x is res
+
+    assert x.get_attr("a") == "foo"
+    assert x.children[0] == "HELLO "
+    assert x.children[1].name == "b"
+    assert x.children[1].get_attr("a") == "foo"
+    assert x.children[1].children[0] == "WORLD"
