@@ -147,7 +147,7 @@ class tag_list:
         indent_str = "  " * indent
         html_ = indent_str
         for i, x in enumerate(self.children):
-            if isinstance(x, tag_list):
+            if isinstance(x, tag):
                 html_ += x._get_html_string(indent, eol)
             elif isinstance(x, html_dependency):
                 continue
@@ -167,7 +167,7 @@ class tag_list:
         for x in self.children:
             if isinstance(x, html_dependency):
                 deps.append(x)
-            elif isinstance(x, tag_list):
+            elif isinstance(x, tag):
                 deps.extend(x._get_dependencies())
 
         unames = unique([d.name for d in deps])
@@ -520,7 +520,7 @@ class html_document(tag):
         deps: List[html_dependency] = self._get_dependencies()
 
         child0_children: List[TagChild] = []
-        if isinstance(self.children[0], tag_list):
+        if isinstance(self.children[0], tag):
             child0_children = self.children[0].children
 
         head = tag(
