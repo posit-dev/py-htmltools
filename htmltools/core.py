@@ -511,7 +511,7 @@ class html_document(tag):
         head = tag(
             "head",
             tag("meta", charset="utf-8"),
-            *[d.as_tags() for d in deps],
+            *[d.as_html_tags() for d in deps],
             *child0_children,
         )
         body = tagified.children[1]
@@ -626,9 +626,14 @@ class html_dependency:
         self.meta = meta if meta else []
         self.head = head
 
-    # I don't think we need hrefFilter (seems rmarkdown was the only one that needed it)?
+    # I don't think we need hrefFilter (seems rmarkdown was the only one that needed
+    # it)?
     # https://github.com/search?l=r&q=%22hrefFilter%22+user%3Acran+language%3AR&ref=searchresults&type=Code&utf8=%E2%9C%93
-    def as_tags(
+    #
+    # This method is used to get an HTML tag representation of the html_dependency
+    # object. It is _not_ used by `tagify()`; instead, it's used when generating HEAD
+    # content for HTML.
+    def as_html_tags(
         self, src_type: Optional[str] = None, encode_path: Callable[[str], str] = quote
     ) -> tag_list:
         # Prefer the first listed src type if not specified
@@ -740,7 +745,7 @@ class html_dependency:
         return f'<html_dependency "{self.name}@{self.version}">'
 
     def __str__(self):
-        return str(self.as_tags())
+        return str(self.as_html_tags())
 
     def __eq__(self, other: Any) -> bool:
         return equals_impl(self, other)
