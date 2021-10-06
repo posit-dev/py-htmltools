@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import tempfile
 from pathlib import Path
@@ -14,12 +15,15 @@ from typing import (
     Dict,
     Callable,
     Any,
-    TypedDict,
     TypeVar,
     cast,
 )
 
-from typing_extensions import Protocol, runtime_checkable
+if sys.version_info >= (3, 8):
+    from typing import TypedDict, Protocol, runtime_checkable
+else:
+    from typing_extensions import TypedDict, Protocol, runtime_checkable
+
 from packaging.version import parse as version_parse
 from packaging.version import Version
 
