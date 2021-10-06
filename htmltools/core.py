@@ -276,9 +276,7 @@ class tag(tag_list):
         self.append(*args, **kwargs)
         return self
 
-    def append(
-        self, *args: Union[TagChild, int, float, None], **kwargs: TagAttr
-    ) -> None:
+    def append(self, *args: TagChildArg, **kwargs: TagAttr) -> None:
         if args:
             super().append(*args)
         for k, v in kwargs.items():
