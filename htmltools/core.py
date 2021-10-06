@@ -93,8 +93,7 @@ class tag_list:
 
     def __init__(self, *args: TagChildArg) -> None:
         self.children: List[TagChild] = []
-        if args:
-            self.append(*args)
+        self.extend(args)
 
     def __copy__(self: TagListT) -> TagListT:
         cls = self.__class__
@@ -259,13 +258,10 @@ class tag(tag_list):
         children: Optional[List[TagChildArg]] = None,
         **kwargs: TagAttr,
     ) -> None:
-        if children is None:
-            children = []
-
         self.children: List[TagChild] = []
-        self.extend([*args, *children])
-
-        super().__init__(*args, *children)
+        self.extend(args)
+        if children:
+            self.extend(children)
 
         self.name: str = _name
         self._attrs: Dict[str, str] = {}
