@@ -147,7 +147,7 @@ class tag_list:
         html_ = indent_str
         for i, x in enumerate(self.children):
             if isinstance(x, tag):
-                html_ += x._get_html_string(indent, eol)
+                html_ += x._get_html_string(indent, eol)  # type: ignore
             elif isinstance(x, html_dependency):
                 continue
             elif isinstance(x, Tagifiable):
@@ -184,7 +184,7 @@ class tag_list:
             try:
                 import IPython
 
-                ipy = IPython.get_ipython()
+                ipy = IPython.get_ipython()  # type: ignore
                 renderer = "ipython" if ipy else "browser"
             except ImportError:
                 renderer = "browser"
@@ -196,7 +196,7 @@ class tag_list:
             # https://github.com/ipython/ipython/pull/10962
             return display_html(
                 str(self), raw=True, metadata={"text/html": {"isolated": True}}
-            )
+            )  # type: ignore
 
         if renderer == "browser":
             tmpdir = tempfile.gettempdir()
@@ -634,10 +634,10 @@ class html_dependency:
         for i, s in enumerate(self.stylesheet):
             if "rel" not in s:
                 self.stylesheet[i].update({"rel": "stylesheet"})
-        self.package = package
-        self.all_files = all_files
-        self.meta = meta if meta else []
-        self.head = head
+        self.package: Optional[str] = package
+        self.all_files: bool = all_files
+        self.meta: List[Dict[str, str]] = meta if meta else []
+        self.head: Optional[str] = head
 
     # I don't think we need hrefFilter (seems rmarkdown was the only one that needed
     # it)?
