@@ -2,10 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-        <link href="srcpath/css/bar%20foo.css" rel="stylesheet"/>
+    <link href="srcpath/css/bar%20foo.css" rel="stylesheet"/>
     <script src="srcpath/js/foo%20bar.js"></script>
   </head>
-  <body>
-        
-  </body>
+  <body></body>
 </html>

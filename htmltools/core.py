@@ -6,13 +6,24 @@ from copy import copy, deepcopy
 from urllib.parse import quote
 import webbrowser
 import types
-from typing import Optional, Union, List, Dict, Callable, Any, TypedDict, TypeVar, cast
+from typing import (
+    Iterable,
+    Optional,
+    Union,
+    List,
+    Dict,
+    Callable,
+    Any,
+    TypedDict,
+    TypeVar,
+    cast,
+)
 
 from typing_extensions import Protocol, runtime_checkable
 from packaging.version import parse as version_parse
 from packaging.version import Version
 
-from .util import flatten, unique, html_escape, ensure_http_server, package_dir
+from .util import unique, html_escape, ensure_http_server, package_dir
 from .versions import versions
 
 __all__ = (
@@ -25,23 +36,27 @@ __all__ = (
     "html_dependency",
     "TagAttr",
     "TagChildArg",
+    "TagChild",
 )
+
+T = TypeVar("T")
 
 TagAttr = Union[str, None]
 
 TagListT = TypeVar("TagListT", bound="tag_list")
 
 # Types of objects that can be a child of a tag.
-TagChild = Union["Tagifiable", "tag_list", "html_dependency", str]
+TagChild = Union["Tagifiable", "tag", "html_dependency", str]
+
 # A duck type: objects with tagify() methods are considered Tagifiable.
 @runtime_checkable
 class Tagifiable(Protocol):
-    def tagify(self) -> Union["tag_list", "html_dependency", str]:
+    def tagify(self) -> Union["tag_list", "tag", "html_dependency", str]:
         ...
 
 
 # Types that can be passed as args to tag_list() and tag functions.
-TagChildArg = Union[TagChild, int, float, None, List["TagChildArg"]]
+TagChildArg = Union[TagChild, "tag_list", int, float, None, List["TagChildArg"]]
 
 
 class RenderedHTML(TypedDict):
@@ -86,18 +101,14 @@ class tag_list:
         cp.__dict__.update(new_dict)
         return cp
 
+    def extend(self, x: Iterable[TagChildArg]) -> None:
+        self.children.extend(_tagchildargs_to_tagchilds(x))
+
     def append(self, *args: TagChildArg) -> None:
-        new_children = flatten(args)
-        for i, x in enumerate(new_children):
-            if isinstance(x, (int, float)):
-                new_children[i] = str(x)
+        self.extend(args)
 
-        new_children = cast(List[TagChild], new_children)
-        self.children.extend(new_children)
-
-    def insert(self, index: int = 0, *args: TagChild) -> None:
-        if args:
-            self.children.insert(index, *flatten(args))
+    def insert(self, index: int = 0, *args: TagChildArg) -> None:
+        self.children.insert(index, *_tagchildargs_to_tagchilds(args))
 
     def tagify(self: TagListT) -> TagListT:
         # Make a shallow copy, then recurse into children. We don't want to make a deep
@@ -244,9 +255,12 @@ class tag(tag_list):
         children: Optional[List[TagChildArg]] = None,
         **kwargs: TagAttr,
     ) -> None:
-        children: List[TagChild]
         if children is None:
             children = []
+
+        self.children: List[TagChild] = []
+        self.extend([*args, *children])
+
         super().__init__(*args, *children)
 
         self.name: str = _name
@@ -428,7 +442,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
     # always get encoded as string
     def append(self, *args, **kwargs) -> None:
         if args:
-            self.children += flatten(args)
+            self.children += _flatten(args)
         for k, v in kwargs.items():
             if v is None:
                 continue
@@ -681,7 +695,7 @@ class html_dependency:
         if self.all_files:
             src_files = list(Path(src).glob("*"))
         else:
-            src_files = flatten(
+            src_files = _flatten(
                 [[s["src"] for s in self.script], [s["href"] for s in self.stylesheet]]
             )
 
@@ -771,6 +785,49 @@ def _walk(
         x = post(x)
 
     return x
+
+
+# Convert a list of TagChildArg objects to a list of TagChild objects. Does not alter
+# input object.
+def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
+    result = _flatten(x, taglist_=True)
+    for i, child in enumerate(result):
+        if isinstance(child, (int, float)):
+            result[i] = str(child)
+
+    # At this point, we know that all items in new_children must be valid TagChild
+    # objects, because None, int, float, and tag_list objects have been removed. (Note
+    # that the tag_list objects that have been flattened are tag_lists which are NOT
+    # tags.)
+    return cast(List[TagChild], result)
+
+
+# Flatten a arbitrarily nested list and remove None. Does not alter input object.
+#  - taglist_: if True, also flatten objects with class tag_list (but not subclasses
+#    like objects with class tag).
+#
+# Note that this function is in this file instead of util.py because the tag_list check
+# would result in a circular dependency.
+def _flatten(x: Iterable[Union[T, None]], taglist_: bool = False) -> List[T]:
+    result: List[T] = []
+    _flatten_recurse(x, result, taglist_)  # type: ignore
+    return result
+
+
+# Having this separate function and passing along `result` is faster than defining
+# a closure inside of `flatten()` (and not passing `result`).
+def _flatten_recurse(
+    x: Iterable[Union[T, None]], result: List[T], taglist_: bool = False
+) -> None:
+    for item in x:
+        if isinstance(item, (list, tuple)):
+            # Don't yet know how to specify recursive generic types, so we'll tell
+            # the type checker to ignore this line.
+            _flatten_recurse(item, result)  # type: ignore
+        elif taglist_ and type(item) == tag_list:
+            _flatten_recurse(item.children, result)  # type: ignore
+        elif item is not None:
+            result.append(item)
 
 
 def rewrite_tags(

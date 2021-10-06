@@ -2,10 +2,10 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-        <script src="/a1.js"></script>
+    <script src="/a1.js"></script>
   </head>
   <body>
-        <div>foo</div>
+    <div>foo</div>
     bar
   </body>
 </html>
@@ -14,10 +14,10 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-        <script src="/a2.js"></script>
+    <script src="/a2.js"></script>
   </head>
   <body>
-        <div>foo</div>
+    <div>foo</div>
     bar
   </body>
 </html>
@@ -26,7 +26,7 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-        <script src="/a1.js"></script>
+    <script src="/a1.js"></script>
   </head>
   <body>
     <div>
@@ -40,10 +40,10 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-        <script src="/a1.js"></script>
+    <script src="/a1.js"></script>
   </head>
   <body>
-        <div>foo</div>
+    <div>foo</div>
     bar
   </body>
 </html>
@@ -52,7 +52,7 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-        <script src="/a1.js"></script>
+    <script src="/a1.js"></script>
   </head>
   <body>
     <div>
