@@ -42,6 +42,7 @@ def test_flatten():
         )
         == [0, "1", "2", div(), span(div()), span(), 3, 4]
     )
+    assert _flatten([1, [tag_list("2"), 3], 4], taglist_=True) == [1, "2", 3, 4]
 
     # With taglist_=False, the tag_lists are unchanged.
     assert (
@@ -51,3 +52,9 @@ def test_flatten():
         )
         == [0, tag_list(1, 2, div(), tag_list(span(div()), span())), 3, 4]
     )
+    assert _flatten([1, [tag_list("2"), 3], 4], taglist_=False) == [
+        1,
+        tag_list("2"),
+        3,
+        4,
+    ]

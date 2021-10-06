@@ -828,9 +828,9 @@ def _flatten_recurse(
         if isinstance(item, (list, tuple)):
             # Don't yet know how to specify recursive generic types, so we'll tell
             # the type checker to ignore this line.
-            _flatten_recurse(item, result)  # type: ignore
+            _flatten_recurse(item, result, taglist_)  # type: ignore
         elif taglist_ and type(item) == tag_list:
-            _flatten_recurse(item.children, result)  # type: ignore
+            _flatten_recurse(item.children, result, taglist_)  # type: ignore
         elif item is not None:
             result.append(item)
 
