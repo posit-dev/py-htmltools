@@ -4,9 +4,9 @@ import importlib
 import tempfile
 from typing import (
     Any,
+    Iterable,
     List,
     NamedTuple,
-    Tuple,
     Union,
     TypeVar,
     Hashable,
@@ -40,7 +40,7 @@ def css(collapse_: str = "", **kwargs: Union[str, float, None]) -> Optional[str]
 
 
 # Both flatten a arbitrarily nested list *and* remove None.
-def flatten(x: Union[List[Union[T, None]], Tuple[Union[T, None], ...]]) -> List[T]:
+def flatten(x: Iterable[Union[T, None]]) -> List[T]:
     result: List[T] = []
     _flatten_recurse(x, result)  # type: ignore
     return result
@@ -48,9 +48,7 @@ def flatten(x: Union[List[Union[T, None]], Tuple[Union[T, None], ...]]) -> List[
 
 # Having this separate function and passing along `result` is faster than defining
 # a closure inside of `flatten()` (and not passing `result`).
-def _flatten_recurse(
-    x: Union[List[Union[T, None]], Tuple[Union[T, None], ...]], result: List[T]
-) -> None:
+def _flatten_recurse(x: Iterable[Union[T, None]], result: List[T]) -> None:
     for item in x:
         if isinstance(item, (list, tuple)):
             # Don't yet know how to specify recursive generic types, so we'll tell
