@@ -167,3 +167,11 @@ def test_tag_walk():
     assert x.children[1].name == "b"
     assert x.children[1].get_attr("a") == "foo"
     assert x.children[1].children[0] == "WORLD"
+
+
+def test_tag_list_flatten():
+    x = div(1, tag_list(2, tag_list(span(3), 4)))
+    assert x.children == ["1", "2", span("3"), "4"]
+
+    x = tag_list(1, tag_list(2, tag_list(span(3), 4)))
+    assert x.children == ["1", "2", span("3"), "4"]
