@@ -513,12 +513,11 @@ class html_document(tag):
         self.append(head, body)
 
     def render(self) -> RenderedHTML:
-        tagified = self.tagify()
-        deps: List[html_dependency] = tagified._get_dependencies()
+        deps: List[html_dependency] = self._get_dependencies()
 
         child0_children: List[TagChild] = []
-        if isinstance(tagified.children[0], tag_list):
-            child0_children = tagified.children[0].children
+        if isinstance(self.children[0], tag_list):
+            child0_children = self.children[0].children
 
         head = tag(
             "head",
@@ -526,7 +525,7 @@ class html_document(tag):
             *[d.as_html_tags() for d in deps],
             *child0_children,
         )
-        body = tagified.children[1]
+        body = self.children[1]
         return {
             "dependencies": deps,
             "html": "<!DOCTYPE html>\n" + str(tag("html", head, body)),
@@ -537,13 +536,15 @@ class html_document(tag):
         dir = str(Path(file).resolve().parent)
         libdir = os.path.join(dir, libdir)
 
-        def copy_dep(d: html_dependency) -> html_dependency:
-            d = d.copy_to(libdir, False)
-            d = d.make_relative(dir, False)
+        def copy_dep(d: TagChild) -> TagChild:
+            if isinstance(d, html_dependency):
+                d = d.copy_to(libdir, False)
+                d = d.make_relative(dir, False)
             return d
 
-        res = self.render()
-        res["dependencies"] = [copy_dep(d) for d in res["dependencies"]]
+        res = self.tagify()
+        res.walk(copy_dep)
+        res = res.render()
         with open(file, "w") as f:
             f.write(res["html"])
         return file

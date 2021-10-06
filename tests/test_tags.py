@@ -136,7 +136,6 @@ def test_html_save(snapshot):
         dep = html_dependency(
             "foo", "1.0", "assets", stylesheet="css/my-styles.css", script="js/my-js.js"
         )
-        # TODO: the indenting isn't quite right here
         snapshot.assert_match(saved_html(div("foo", dep)), "html_save_dep")
         desc = tags.meta(name="description", content="test")
         doc = html_document(div("foo", dep), desc, lang="en")
