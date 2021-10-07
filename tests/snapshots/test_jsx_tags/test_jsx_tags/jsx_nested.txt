@@ -2,14 +2,19 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-        <script src="lib/react/react.production.min.js"></script>
-        <script src="lib/react-dom/react-dom.production.min.js"></script>
+    <script src="lib/react/react.production.min.js"></script>
+    <script src="lib/react-dom/react-dom.production.min.js"></script>
   </head>
   <body>
-        <script type="text/javascript">
+    <script type="text/javascript">
 (function() {
   var container = new DocumentFragment();
-  ReactDOM.render(React.createElement(Foo, null, React.createElement(Bar, null)), container);
+  ReactDOM.render(
+        React.createElement(
+          Foo, {}, 
+          React.createElement(
+            Bar, {})        )
+  , container);
   document.currentScript.after(container);
 })();
 </script>

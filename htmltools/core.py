@@ -2,11 +2,11 @@ import os
 import sys
 import shutil
 import tempfile
+import re
 from pathlib import Path
 from copy import copy, deepcopy
 from urllib.parse import quote
 import webbrowser
-import types
 from typing import (
     Iterable,
     Optional,
@@ -27,16 +27,13 @@ else:
 from packaging.version import parse as version_parse
 from packaging.version import Version
 
-from .util import unique, html_escape, ensure_http_server, package_dir
-from .versions import versions
+from .util import unique, ensure_http_server, package_dir, _encode_attr_name
 
 __all__ = (
     "tag_list",
     "tag",
-    "jsx_tag",
     "html_document",
     "html",
-    "jsx",
     "html_dependency",
     "TagAttr",
     "TagChildArg",
@@ -307,9 +304,9 @@ class tag(tag_list):
                 elif isinstance(x, html):
                     res.append(x)
                 else:
-                    res.append(html_escape(str(x), attr=True))
+                    res.append(_html_escape(str(x), attr=True))
             if len(res) > 0:
-                k_ = encode_attr_name(k)
+                k_ = _encode_attr_name(k)
                 v_old = self.attrs.get(k_, None)
                 v_new = " ".join(res)
                 self.attrs[k_] = v_new if v_old is None else v_old + " " + v_new
@@ -359,140 +356,6 @@ class tag(tag_list):
 
     def __repr__(self) -> str:
         return tag_repr_impl(self.name, self.attrs, self.children)
-
-
-# --------------------------------------------------------
-# JSX tags
-# --------------------------------------------------------
-
-
-def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
-    pieces = _name.split(".")
-    if pieces[-1][:1] != pieces[-1][:1].upper():
-        raise NotImplementedError("JSX tags must be lowercase")
-
-    # TODO: disallow props that are not in allowedProps
-    def as_tags(self, *args, **kwargs) -> tag_list:
-        js = "\n".join(
-            [
-                "(function() {",
-                "  var container = new DocumentFragment();",
-                f"  ReactDOM.render({self._get_html_string()}, container);",
-                "  document.currentScript.after(container);",
-                "})();",
-            ]
-        )
-        # TODO: avoid the inline script tag (for security)
-        return tag_list(
-            lib_dependency("react", script="react.production.min.js"),
-            lib_dependency("react-dom", script="react-dom.production.min.js"),
-            self._get_dependencies(),
-            tag("script", type="text/javascript")(html("\n" + js + "\n")),
-        )
-
-    def _get_html_string(self) -> str:
-        if isinstance(self, tag_list) and not isinstance(self, tag):
-            self = jsx_tag("React.Fragment")(*self.children)
-
-        name = getattr(self, "_is_jsx", False) and self.name or "'" + self.name + "'"
-        res_ = "React.createElement(" + name + ", "
-
-        # Unfortunately we can't use json.dumps() here because I don't know how to
-        # avoid quoting jsx(), jsx_tag(), tag(), etc.
-        def serialize_attr(x) -> str:
-            if isinstance(x, (list, tuple)):
-                return "[" + ", ".join([serialize_attr(y) for y in x]) + "]"
-            if isinstance(x, dict):
-                return (
-                    "{" + ", ".join([y + ": " + serialize_attr(x[y]) for y in x]) + "}"
-                )
-            if isinstance(x, jsx):
-                return str(x)
-            if isinstance(x, str):
-                return '"' + x + '"'
-            x_ = str(x)
-            if isinstance(x, bool):
-                x_ = x_.lower()
-            return x_
-
-        attrs = deepcopy(self.attrs)
-        if not attrs:
-            res_ += "null"
-        else:
-            res_ += "{"
-            for key, vals in attrs.items():
-                res_ += key + ": "
-                # If this tag is jsx, then it should be a list (otherwise, it's a string)
-                if isinstance(vals, list):
-                    for i, v in enumerate(vals):
-                        vals[i] = serialize_attr(v)
-                    res_ += vals[0] if len(vals) == 1 else "[" + ", ".join(vals) + "]"
-                else:
-                    res_ += vals
-                res_ += ", "
-            res_ += "}"
-
-        for x in self.children:
-            if isinstance(x, html_dependency):
-                continue
-            res_ += ", "
-            if isinstance(x, tag_list):
-                res_ += x._get_html_string()
-            elif isinstance(x, jsx):
-                res_ += x
-            else:
-                res_ += '"' + str(x) + '"'
-
-        return res_ + ")"
-
-    # JSX attrs can be full-on JSON objects whereas html/svg attrs
-    # always get encoded as string
-    def append(self, *args, **kwargs) -> None:
-        if args:
-            self.children += _flatten(args)
-        for k, v in kwargs.items():
-            if v is None:
-                continue
-            k_ = encode_attr_name(k)
-            if not self._attrs.get(k_):
-                self._attrs[k_] = []
-            self._attrs[k_].append(v)
-
-    # JSX tags are similar to HTML tags, but have the following key differences:
-    # 1. _All_ JSX tags have _is_jsx set to True
-    #    * This differentiates from normal tags in the tag writing logic.
-    # 2. Only the _root_ JSX tag has an __as_tags__ method
-    #    * This ensures that only the root JSX tag is wrapped in a <script> tag
-    # 3. Any tags within a JSX tag (inside children or attributes):
-    #     * Have a different get_html_string() method (returning the relevant JavaScript)
-    #     * Have a different append method (attributes can be JSON instead of just a string)
-    def __new__(
-        cls, *args: Any, children: Optional[Any] = None, **kwargs: TagAttr
-    ) -> None:
-        if allowedProps:
-            for k in kwargs.keys():
-                if k not in allowedProps:
-                    raise NotImplementedError(f"{k} is not a valid prop for {_name}")
-        self = type(_name, (tag,), {"append": append})(
-            _name, *args, children=children, **kwargs
-        )
-
-        def set_jsx_attrs(x):
-            if not isinstance(x, tag_list):
-                return x
-            setattr(x, "__as_tags__", None)
-            x._get_html_string = types.MethodType(_get_html_string, x)
-            x.append = types.MethodType(append, x)
-            return x
-
-        rewrite_tags(self, set_jsx_attrs, preorder=False)
-        for k, v in self._attrs.items():
-            self._attrs[k] = [rewrite_tags(x, set_jsx_attrs, preorder=False) for x in v]
-        setattr(self, "__as_tags__", as_tags)
-        setattr(self, "_is_jsx", True)
-        return self
-
-    return type(_name, (tag,), {"__new__": __new__, "__init__": lambda self: None})
 
 
 # --------------------------------------------------------
@@ -580,29 +443,6 @@ class html(str):
     def __add__(self, other: Union[str, "html"]) -> str:
         res = str.__add__(self, other)
         return html(res) if isinstance(other, html) else res
-
-
-# --------------------------------------------------------
-# jsx expressions
-# --------------------------------------------------------
-class jsx(str):
-    """
-    Mark a string as a JSX expression.
-
-    Example:
-    -------
-    >>> Foo = jsx_tag("Foo")
-    >>> print(Foo(myProp = "<p>Hello</p>"))
-    >>> print(Foo(myProp = jsx("<p>Hello</p>")))
-    """
-
-    def __new__(cls, *args: str) -> "jsx":
-        return super().__new__(cls, "\n".join(args))
-
-    # html() + html() should return html()
-    def __add__(self, other: Union[str, "jsx"]) -> str:
-        res = str.__add__(self, other)
-        return jsx(res) if isinstance(other, jsx) else res
 
 
 # --------------------------------------------------------
@@ -838,36 +678,19 @@ def _flatten_recurse(
             result.append(item)
 
 
-def rewrite_tags(
-    ui: Tagifiable, func: Callable[[Tagifiable], tag_list], preorder: bool
-) -> tag_list:
-    if preorder:
-        ui = func(ui)
-
-    if isinstance(ui, tag_list):
-        new_children: List[TagChild] = []
-        for child in ui.children:
-            if isinstance(child, (tag_list, Tagifiable)):
-                new_children.append(rewrite_tags(child, func, preorder))
-            else:
-                new_children.append(child)
-
-        ui.children = new_children
-
-    elif isinstance(ui, list):
-        ui = [rewrite_tags(item, func, preorder) for item in ui]
-
-    if not preorder:
-        ui = func(ui)
-
-    return ui
-
-
-# e.g., foo_bar_ -> foo-bar
-def encode_attr_name(x: str) -> str:
-    if x.endswith("_"):
-        x = x[:-1]
-    return x.replace("_", "-")
+def _html_escape(text: str, attr: bool = False) -> str:
+    specials = {
+        "&": "&amp;",
+        ">": "&gt;",
+        "<": "&lt;",
+    }
+    if attr:
+        specials.update({'"': "&quot;", "'": "&apos;", "\r": "&#13;", "\n": "&#10;"})
+    if not re.search("|".join(specials), text):
+        return text
+    for key, value in specials.items():
+        text = text.replace(key, value)
+    return text
 
 
 def tag_repr_impl(name: str, attrs: Dict[str, str], children: List[TagChild]) -> str:
@@ -891,7 +714,7 @@ def normalize_text(txt: str) -> str:
     if isinstance(txt, html):
         return txt
     else:
-        return html_escape(txt, attr=False)
+        return _html_escape(txt, attr=False)
 
 
 def equals_impl(x: Any, y: Any) -> bool:
@@ -901,9 +724,3 @@ def equals_impl(x: Any, y: Any) -> bool:
         if getattr(x, key, None) != getattr(y, key, None):
             return False
     return True
-
-
-def lib_dependency(pkg: str, **kwargs: object) -> html_dependency:
-    return html_dependency(
-        name=pkg, version=versions[pkg], package="htmltools", src="lib/" + pkg, **kwargs
-    )

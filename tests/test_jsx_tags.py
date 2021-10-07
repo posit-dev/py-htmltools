@@ -17,7 +17,7 @@ def test_jsx_tags(snapshot):
         int=1,
         float=2.0,
         bool=True,
-        null=None,
+        None_=None,
         string="string",
         list=[1, 2, 3],
         dict={"a": 1, "b": 2},

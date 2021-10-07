@@ -11,7 +11,12 @@ from typing import (
     Hashable,
     Dict,
     Optional,
+    Iterable,
+    TYPE_CHECKING,
 )
+
+if TYPE_CHECKING:
+    from .core import tag_list
 from contextlib import contextmanager, closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
@@ -45,19 +50,11 @@ def unique(x: List[HashableT]) -> List[HashableT]:
     return list(dict.fromkeys(x))
 
 
-def html_escape(text: str, attr: bool = False) -> str:
-    specials = {
-        "&": "&amp;",
-        ">": "&gt;",
-        "<": "&lt;",
-    }
-    if attr:
-        specials.update({'"': "&quot;", "'": "&apos;", "\r": "&#13;", "\n": "&#10;"})
-    if not re.search("|".join(specials), text):
-        return text
-    for key, value in specials.items():
-        text = text.replace(key, value)
-    return text
+# e.g., foo_bar_ -> foo-bar
+def _encode_attr_name(x: str) -> str:
+    if x.endswith("_"):
+        x = x[:-1]
+    return x.replace("_", "-")
 
 
 # similar to base::system.file()
