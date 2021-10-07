@@ -103,9 +103,14 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
     res += f"{eol}{indent_str}  {nm}, "
 
     res += "{"
+    is_first_attr = True
     for k, v in attrs.items():
+        if not is_first_attr:
+            res += ", "
+        is_first_attr = False
+
         v_ = v.replace(eol, "")
-        res += f'"{k}": {v_}, '
+        res += f'"{k}": {v_}'
     res += "}"
 
     if len(children) == 0:
