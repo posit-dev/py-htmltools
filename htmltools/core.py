@@ -143,8 +143,7 @@ class tag_list:
 
     def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         n = len(self.children)
-        indent_str = "  " * indent
-        html_ = indent_str
+        html_ = ""
         for i, x in enumerate(self.children):
             if isinstance(x, tag):
                 html_ += x._get_html_string(indent, eol)  # type: ignore
@@ -156,9 +155,9 @@ class tag_list:
                 )
             else:
                 # If we get here, x must be a string.
-                html_ += normalize_text(x)
+                html_ += ("  " * indent) + normalize_text(x)
             if i < n - 1:
-                html_ += eol + indent_str
+                html_ += eol
         return html(html_)
 
     def _get_dependencies(self) -> List["html_dependency"]:
@@ -316,7 +315,8 @@ class tag(tag_list):
         return class_ in class_attr.split(" ")
 
     def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
-        html_ = "<" + self.name
+        indent_str = "  " * indent
+        html_ = indent_str + "<" + self.name
 
         # write attributes (boolean attributes should be empty strings)
         for key, val in self.get_attrs().items():
@@ -345,7 +345,7 @@ class tag(tag_list):
         # TODO: inline elements should eat ws?
         html_ += eol
         html_ += super()._get_html_string(indent + 1, eol)
-        return html(html_ + eol + ("  " * indent) + close)
+        return html(html_ + eol + indent_str + close)
 
     def __bool__(self) -> bool:
         return True
