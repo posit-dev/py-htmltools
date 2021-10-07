@@ -64,7 +64,7 @@ class JsxTag(tag):
                 "(function() {",
                 "  var container = new DocumentFragment();",
                 "  ReactDOM.render(",
-                _get_react_js(self, indent + 2, eol),
+                _get_react_js(self, 2, eol),
                 "  , container);",
                 "  document.currentScript.after(container);",
                 "})();",
@@ -100,7 +100,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
     if len(attrs) == 0 and len(children) == 0:
         return res + nm + ")"
 
-    res += f"{eol}{indent_str}{nm}, "
+    res += f"{eol}{indent_str}  {nm}, "
 
     res += "{"
     for k, v in attrs.items():
@@ -115,7 +115,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
         res += ", " + eol
         res += _get_react_js(child, indent + 1, eol)
 
-    return res + indent_str + ")"
+    return res + eol + indent_str + ")"
 
 
 def _get_jsx_attrs(x: JsxTag) -> Dict[str, str]:
