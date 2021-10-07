@@ -6,7 +6,6 @@ from pathlib import Path
 from copy import copy, deepcopy
 from urllib.parse import quote
 import webbrowser
-import types
 from typing import (
     Iterable,
     Optional,
@@ -44,8 +43,6 @@ __all__ = (
 )
 
 T = TypeVar("T")
-
-TagAttr = Union[str, None]
 
 TagListT = TypeVar("TagListT", bound="tag_list")
 
@@ -141,7 +138,9 @@ class tag_list:
     def save_html(self, file: str, libdir: str = "lib") -> str:
         return html_document(self).save_html(file, libdir)
 
-    def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
+    # N.B. since tag_list()'s get flattened when passed to a tag(),
+    # this method shouldn't ever be called from tag._get_html_string()
+    def _get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
         n = len(self.children)
         indent_str = "  " * indent
         html_ = indent_str
@@ -224,6 +223,14 @@ class tag_list:
         return tag_repr_impl("tag_list", {}, self.children)
 
 
+from datetime import date, datetime
+
+TagAttr = Union[str, bool, float, date, datetime, List[str], None]
+TagAttrs = Dict[str, List[TagAttr]]
+JsxTagAttr = Union[TagAttr, tag_list, Dict[str, Any]]
+JsxTagAttrs = Dict[str, List[JsxTagAttr]]
+
+
 class tag(tag_list):
     """
     Create an HTML tag.
@@ -264,7 +271,7 @@ class tag(tag_list):
             self.extend(children)
 
         self.name: str = _name
-        self._attrs: Dict[str, str] = {}
+        self._attrs: TagAttrs = {}
         self.append(**kwargs)
         # http://dev.w3.org/html5/spec/single-page.html#void-elements
         self._is_void = _name in [
@@ -286,25 +293,67 @@ class tag(tag_list):
             "wbr",
         ]
 
-    def __call__(self, *args: Any, **kwargs: TagAttr) -> "tag":
+    def __call__(self, *args: TagChildArg, **kwargs: TagAttr) -> "tag":
         self.append(*args, **kwargs)
         return self
 
     def append(self, *args: TagChildArg, **kwargs: TagAttr) -> None:
         if args:
             super().append(*args)
+        # Don't coerce attributes to values yet so that jsx_tag()
+        # may also use this method
         for k, v in kwargs.items():
             if v is None:
                 continue
-            k_ = encode_attr(k)
-            v_ = self._attrs.get(k_, "")
-            self._attrs[k_] = (v_ + " " + str(v)) if v_ else str(v)
+            k_ = encode_attr_name(k)
+            if not self._attrs.get(k_, None):
+                self._attrs[k_] = []
+            self._attrs[k_].append(v)
+
+    def get_attr(self, key: str) -> Any:
+        if self._is_jsx_context():
+            return self._get_jsx_attr(key)
+        else:
+            return self._get_html_attr(key)
+
+    def _get_html_attr(self, key: str) -> Optional[str]:
+        vals = _flatten(self._attrs.get(key, []))
+        res: List[str] = []
+        for v in vals:
+            if v is False:
+                continue
+            v_ = "" if v is True else str(v)
+            if not isinstance(v_, html):
+                v_ = html_escape(v_, attr=True)
+            res.append(v_)
+        return " ".join(res) if len(res) > 0 else None
+
+    def _get_jsx_attr(self, key: str) -> Any:
+        vals: Optional[List[Any]] = self._attrs.get(key, None)
+        if vals is None:
+            return None
+        # React requires style prop to be an object...
+        if key == "style":
+            styles: Dict[str, str] = {}
+            for v in vals:
+                if isinstance(v, dict):
+                    styles.update(v)
+                elif isinstance(v, str):
+                    rules: Dict[str, str] = dict(
+                        [tuple(x.split(":")) for x in v.split(";")]
+                    )
+                    styles.update(rules)
+            vals = [styles]
+        res: List[str] = [serialize_jsx_attr(v) for v in vals]
+        return res[0] if len(res) == 1 else "[" + ", ".join(res) + "]"
 
     def get_attrs(self) -> Dict[str, str]:
-        return self._attrs
-
-    def get_attr(self, key: str) -> Optional[str]:
-        return self.get_attrs().get(key)
+        attrs: Dict[str, str] = {}
+        for nm in list(self._attrs.keys()):
+            val = self.get_attr(nm)
+            if val is not None:
+                attrs[nm] = val
+        return attrs
 
     def has_attr(self, key: str) -> bool:
         return key in self.get_attrs()
@@ -315,13 +364,35 @@ class tag(tag_list):
             return False
         return class_ in class_attr.split(" ")
 
-    def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
-        html_ = "<" + self.name
+    def remove_attr(self, key: str) -> Optional[str]:
+        if not self.has_attr(key):
+            return None
+        val = self.get_attr(key)
+        del self._attrs[key]
+        return val
+
+    def _get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
+        indent_str: str = "  " * indent
+
+        if self._is_jsx_context():
+            jsx: str = self._get_jsx_string()
+            # TODO: avoid the inline script tag (for security)
+            if self._is_jsx_root():
+                wrapper: List[str] = [
+                    "<script type='text/javascript'>",
+                    "  (function() {{",
+                    "    var container = new DocumentFragment();",
+                    f"    ReactDOM.render({jsx}, container);"
+                    "    document.currentScript.after(container);",
+                    "  }})();",
+                    "</script>",
+                ]
+            return eol.join([indent_str + x for x in wrapper])
+
+        html_ = indent_str + "<" + self.name
 
         # write attributes (boolean attributes should be empty strings)
         for key, val in self.get_attrs().items():
-            if not isinstance(val, html):
-                val = html_escape(val, attr=True)
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output
@@ -343,9 +414,60 @@ class tag(tag_list):
 
         # Write children
         # TODO: inline elements should eat ws?
-        html_ += eol
-        html_ += super()._get_html_string(indent + 1, eol)
-        return html(html_ + eol + ("  " * indent) + close)
+        for x in children:
+            html_ += eol
+            if isinstance(x, tag):
+                html_ += x._get_html_string(indent + 1, eol)
+            elif isinstance(x, Tagifiable):
+                raise RuntimeError(
+                    "Encountered a non-tagified object. x.tagify() must be called before x.render()"
+                )
+            else:
+                html_ += ("  " + indent_str) + normalize_text(x)
+
+        return html(html_ + eol + indent_str + close)
+
+    def _get_jsx_string(self: "tag_list") -> str:
+        if not isinstance(self, tag):
+            self = jsx_tag("React.Fragment")(*self.children)
+
+        name = self.name if self._is_jsx_tag() else "'" + self.name + "'"
+        res_ = "React.createElement(" + name + ", "
+
+        attrs = cast(Dict[str, Any], self.get_attrs())
+        if not attrs:
+            res_ += "null"
+        else:
+            res_ += "{"
+            for nm in list(attrs.keys()):
+                res_ += "'" + nm + "': " + attrs[nm] + ", "
+            res_ += "}"
+
+        # Dependencies are ignored in the HTML output
+        children = [x for x in self.children if not isinstance(x, html_dependency)]
+
+        for x in children:
+            res_ += ", "
+            if isinstance(x, tag):
+                res_ += x._get_jsx_string()
+            elif isinstance(x, jsx):
+                res_ += x
+            else:
+                res_ += '"' + str(x).replace('"', '\\"') + '"'
+
+        return res_ + ")"
+
+    # Is this tag a jsx_tag()?
+    def _is_jsx_tag(self) -> bool:
+        return getattr(self, "_isJsxTag", False)
+
+    # Does this tag have a jsx_tag() parent?
+    def _is_jsx_context(self) -> bool:
+        return getattr(self, "_isJsxContext", False)
+
+    # Is this a "top level" jsx_tag() (i.e., no jsx_tag() parent)?
+    def _is_jsx_root(self) -> bool:
+        return getattr(self, "_isJsxRoot", False)
 
     def __bool__(self) -> bool:
         return True
@@ -354,138 +476,65 @@ class tag(tag_list):
         return tag_repr_impl(self.name, self.get_attrs(), self.children)
 
 
+# Unfortunately we can't use json.dumps() here because I don't know how to
+# avoid quoting jsx(), jsx_tag(), tag(), etc.
+def serialize_jsx_attr(x: JsxTagAttr) -> str:
+    if isinstance(x, tag):
+        return x._get_jsx_string()
+    if isinstance(x, (list, tuple)):
+        return "[" + ", ".join([serialize_jsx_attr(y) for y in x]) + "]"
+    if isinstance(x, dict):
+        return "{" + ", ".join([y + ": " + serialize_jsx_attr(x[y]) for y in x]) + "}"
+    if isinstance(x, bool):
+        return str(x).lower()
+    if isinstance(x, (jsx, int, float)):
+        return str(x)
+    return '"' + str(x).replace('"', '\\"') + '"'
+
+
 # --------------------------------------------------------
 # JSX tags
 # --------------------------------------------------------
 
 
-def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
+def jsx_tag(_name: str, allowedProps: Optional[List[str]] = None) -> Callable[[], tag]:
     pieces = _name.split(".")
     if pieces[-1][:1] != pieces[-1][:1].upper():
         raise NotImplementedError("JSX tags must be lowercase")
 
-    # TODO: disallow props that are not in allowedProps
-    def as_tags(self, *args, **kwargs) -> tag_list:
-        js = "\n".join(
-            [
-                "(function() {",
-                "  var container = new DocumentFragment();",
-                f"  ReactDOM.render({self._get_html_string()}, container);",
-                "  document.currentScript.after(container);",
-                "})();",
-            ]
-        )
-        # TODO: avoid the inline script tag (for security)
-        return tag_list(
-            lib_dependency("react", script="react.production.min.js"),
-            lib_dependency("react-dom", script="react-dom.production.min.js"),
-            self._get_dependencies(),
-            tag("script", type="text/javascript")(html("\n" + js + "\n")),
-        )
-
-    def _get_html_string(self) -> str:
-        if isinstance(self, tag_list) and not isinstance(self, tag):
-            self = jsx_tag("React.Fragment")(*self.children)
-
-        name = getattr(self, "_is_jsx", False) and self.name or "'" + self.name + "'"
-        res_ = "React.createElement(" + name + ", "
-
-        # Unfortunately we can't use json.dumps() here because I don't know how to
-        # avoid quoting jsx(), jsx_tag(), tag(), etc.
-        def serialize_attr(x) -> str:
-            if isinstance(x, (list, tuple)):
-                return "[" + ", ".join([serialize_attr(y) for y in x]) + "]"
-            if isinstance(x, dict):
-                return (
-                    "{" + ", ".join([y + ": " + serialize_attr(x[y]) for y in x]) + "}"
-                )
-            if isinstance(x, jsx):
-                return str(x)
-            if isinstance(x, str):
-                return '"' + x + '"'
-            x_ = str(x)
-            if isinstance(x, bool):
-                x_ = x_.lower()
-            return x_
-
-        attrs = deepcopy(self.get_attrs())
-        if not attrs:
-            res_ += "null"
-        else:
-            res_ += "{"
-            for key, vals in attrs.items():
-                res_ += key + ": "
-                # If this tag is jsx, then it should be a list (otherwise, it's a string)
-                if isinstance(vals, list):
-                    for i, v in enumerate(vals):
-                        vals[i] = serialize_attr(v)
-                    res_ += vals[0] if len(vals) == 1 else "[" + ", ".join(vals) + "]"
-                else:
-                    res_ += vals
-                res_ += ", "
-            res_ += "}"
-
-        for x in self.children:
-            if isinstance(x, html_dependency):
-                continue
-            res_ += ", "
-            if isinstance(x, tag_list):
-                res_ += x._get_html_string()
-            elif isinstance(x, jsx):
-                res_ += x
-            else:
-                res_ += '"' + str(x) + '"'
-
-        return res_ + ")"
-
-    # JSX attrs can be full-on JSON objects whereas html/svg attrs
-    # always get encoded as string
-    def append(self, *args, **kwargs) -> None:
-        if args:
-            self.children += _flatten(args)
-        for k, v in kwargs.items():
-            if v is None:
-                continue
-            k_ = encode_attr(k)
-            if not self._attrs.get(k_):
-                self._attrs[k_] = []
-            self._attrs[k_].append(v)
-
-    # JSX tags are similar to HTML tags, but have the following key differences:
-    # 1. _All_ JSX tags have _is_jsx set to True
-    #    * This differentiates from normal tags in the tag writing logic.
-    # 2. Only the _root_ JSX tag has an __as_tags__ method
-    #    * This ensures that only the root JSX tag is wrapped in a <script> tag
-    # 3. Any tags within a JSX tag (inside children or attributes):
-    #     * Have a different get_html_string() method (returning the relevant JavaScript)
-    #     * Have a different append method (attributes can be JSON instead of just a string)
-    def __new__(
-        cls, *args: Any, children: Optional[Any] = None, **kwargs: TagAttr
-    ) -> None:
+    def tag_func(*args: Any, children: Optional[Any] = None, **kwargs: TagAttr) -> tag:
         if allowedProps:
             for k in kwargs.keys():
                 if k not in allowedProps:
                     raise NotImplementedError(f"{k} is not a valid prop for {_name}")
-        self = type(_name, (tag,), {"append": append})(
-            _name, *args, children=children, **kwargs
+
+        jsxTag = tag(_name)(
+            lib_dependency("react", script="react.production.min.js"),
+            lib_dependency("react-dom", script="react-dom.production.min.js"),
+            *args,
+            children=children,
+            **kwargs,
         )
 
-        def set_jsx_attrs(x):
-            if not isinstance(x, tag_list):
-                return x
-            setattr(x, "__as_tags__", None)
-            x._get_html_string = types.MethodType(_get_html_string, x)
-            x.append = types.MethodType(append, x)
+        # Set flags that get_html_string() uses to switch it's logic
+        def set_jsx_attrs(x: Any):
+            if isinstance(x, tag_list):
+                setattr(x, "_isJsxContext", True)
+                setattr(jsxTag, "_isJsxRoot", False)
+            if isinstance(x, tag):
+                for vals in x._attrs.values():
+                    for v in vals:
+                        set_jsx_attrs(v)
             return x
 
-        rewrite_tags(self, set_jsx_attrs, preorder=False)
-        for k, v in self._attrs.items():
-            self._attrs[k] = [rewrite_tags(x, set_jsx_attrs, preorder=False) for x in v]
-        setattr(self, "__as_tags__", as_tags)
-        setattr(self, "_is_jsx", True)
-        return self
+        jsxTag.walk(set_jsx_attrs)
+        setattr(jsxTag, "_isJsxTag", True)
+        setattr(jsxTag, "_isJsxRoot", True)
+        return jsxTag
 
-    return type(_name, (tag,), {"__new__": __new__, "__init__": lambda self: None})
+    tag_func.__name__ = _name
+
+    return tag_func
 
 
 # --------------------------------------------------------
@@ -857,7 +906,7 @@ def rewrite_tags(
 
 
 # e.g., foo_bar_ -> foo-bar
-def encode_attr(x: str) -> str:
+def encode_attr_name(x: str) -> str:
     if x.endswith("_"):
         x = x[:-1]
     return x.replace("_", "-")

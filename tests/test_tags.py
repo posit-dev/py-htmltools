@@ -37,15 +37,15 @@ def test_tag_shallow_copy():
     x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
     y = copy.copy(x)
     y.children[0].children[0] = "HELLO"
-    y.children[0]._attrs["prop"] = "VALUE"
+    y.children[0]._attrs["prop"] = ["VALUE"]
     y.children[1] = "WORLD"
-    y._attrs["class"] = "MYCLASS"
+    y._attrs["class"] = ["MYCLASS"]
     y.children[2].name = "A"
 
     # With a shallow copy(), the ._attrs and .children are shallow copies, but if a
     # child is modified in place, then the the original child is modified as well.
     assert x is not y
-    assert x._attrs == {"class": "myclass"}
+    assert x._attrs == {"class": ["myclass"]}
     assert x.children is not y.children
     # If a mutable child is modified in place, both x and y see the changes.
     assert x.children[0] is y.children[0]
@@ -68,15 +68,15 @@ def test_tagify_deep_copy():
 
     y = x.tagify()
     y.children[0].children[0] = "HELLO"
-    y.children[0]._attrs["prop"] = "VALUE"
+    y.children[0]._attrs["prop"] = ["VALUE"]
     y.children[1] = "WORLD"
-    y._attrs["class"] = "MYCLASS"
+    y._attrs["class"] = ["MYCLASS"]
     y.children[2].name = "A"
 
-    assert x._attrs == {"class": "myclass"}
-    assert y._attrs == {"class": "MYCLASS"}
-    assert x.children[0]._attrs == {"prop": "value"}
-    assert y.children[0]._attrs == {"prop": "VALUE"}
+    assert x._attrs == {"class": ["myclass"]}
+    assert y._attrs == {"class": ["MYCLASS"]}
+    assert x.children[0]._attrs == {"prop": ["value"]}
+    assert y.children[0]._attrs == {"prop": ["VALUE"]}
     assert x.children[0].children[0] == "hello"
     assert y.children[0].children[0] == "HELLO"
     assert x.children[1] == "world"
@@ -151,7 +151,7 @@ def test_tag_walk():
         if isinstance(x, str):
             return x.upper()
         elif isinstance(x, tag):
-            x._attrs["a"] = "foo"
+            x.append(a="foo")
             if x.name == "i":
                 x.name = "b"
 
@@ -175,3 +175,20 @@ def test_tag_list_flatten():
 
     x = tag_list(1, tag_list(2, tag_list(span(3), 4)))
     assert x.children == ["1", "2", span("3"), "4"]
+
+
+def test_attr_vals(snapshot):
+    import datetime
+
+    attrs = {
+        "none": None,
+        "false": False,
+        "true": True,
+        "str": "a",
+        "int": 1,
+        "float": 1.2,
+        "date": datetime.date(1999, 1, 2),
+    }
+    test = tag_list(div(**attrs), div(list=["foo", "bar"]))
+
+    snapshot.assert_match(str(test), "attr_vals.txt")

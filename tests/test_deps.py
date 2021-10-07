@@ -1,5 +1,4 @@
 from htmltools import *
-import json
 
 
 def test_dep_resolution(snapshot):
