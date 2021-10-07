@@ -35,7 +35,7 @@ class JsxTag(tag):
         # JSX attrs can be full-on JSON objects whereas html attrs
         # always get encoded as string, so use a different property to hold them
         del self.attrs
-        self.jsxAttrs: JsxTagAttrs = {}
+        self.jsx_attrs: JsxTagAttrs = {}
 
         # Add these html dependencies to the end, to reduce possible confusion when
         # users index into the children.
@@ -50,9 +50,9 @@ class JsxTag(tag):
             self.extend(args)
         for k, v in kwargs.items():
             k_ = _encode_attr_name(k)
-            if not self.jsxAttrs.get(k_):
-                self.jsxAttrs[k_] = []
-            self.jsxAttrs[k_].append(v)
+            if not self.jsx_attrs.get(k_):
+                self.jsx_attrs[k_] = []
+            self.jsx_attrs[k_].append(v)
 
     def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         # When ._get_html_string()  is called on a JsxTag object, we'll recurse, but
@@ -120,7 +120,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
 
 def _get_jsx_attrs(x: JsxTag) -> Dict[str, str]:
     res: Dict[str, str] = {}
-    for key, vals in x.jsxAttrs.items():
+    for key, vals in x.jsx_attrs.items():
         func = _serialize_style_attr if key == "style" else _serialize_attr
         valz = [func(v) for v in vals]
         res[key] = valz[0] if len(valz) == 1 else "[" + ", ".join(valz) + "]"
