@@ -45,8 +45,6 @@ __all__ = (
 
 T = TypeVar("T")
 
-TagAttr = Union[str, None]
-
 TagListT = TypeVar("TagListT", bound="tag_list")
 
 # Types of objects that can be a child of a tag.
@@ -223,6 +221,12 @@ class tag_list:
         return tag_repr_impl("tag_list", {}, self.children)
 
 
+from datetime import date, datetime
+
+TagAttr = Union[str, bool, float, date, datetime, List[str], None]
+TagAttrs = Dict[str, List[TagAttr]]
+
+
 class tag(tag_list):
     """
     Create an HTML tag.
@@ -263,7 +267,7 @@ class tag(tag_list):
             self.extend(children)
 
         self.name: str = _name
-        self._attrs: Dict[str, str] = {}
+        self.attrs: Dict[str, str] = {}
         self.append(**kwargs)
         # http://dev.w3.org/html5/spec/single-page.html#void-elements
         self._is_void = _name in [
@@ -285,7 +289,7 @@ class tag(tag_list):
             "wbr",
         ]
 
-    def __call__(self, *args: Any, **kwargs: TagAttr) -> "tag":
+    def __call__(self, *args: TagChildArg, **kwargs: TagAttr) -> "tag":
         self.append(*args, **kwargs)
         return self
 
@@ -293,35 +297,38 @@ class tag(tag_list):
         if args:
             super().append(*args)
         for k, v in kwargs.items():
-            if v is None:
-                continue
-            k_ = encode_attr(k)
-            v_ = self._attrs.get(k_, "")
-            self._attrs[k_] = (v_ + " " + str(v)) if v_ else str(v)
-
-    def get_attrs(self) -> Dict[str, str]:
-        return self._attrs
-
-    def get_attr(self, key: str) -> Optional[str]:
-        return self.get_attrs().get(key)
+            v_list = _flatten(v if isinstance(v, list) else [v])
+            res: List[str] = []
+            for x in v_list:
+                if x is False:  # _flatten() has already dropped None
+                    continue
+                if x is True:
+                    res.append("")
+                elif isinstance(x, html):
+                    res.append(x)
+                else:
+                    res.append(html_escape(str(x), attr=True))
+            if len(res) > 0:
+                k_ = encode_attr_name(k)
+                v_old = self.attrs.get(k_, None)
+                v_new = " ".join(res)
+                self.attrs[k_] = v_new if v_old is None else v_old + " " + v_new
 
     def has_attr(self, key: str) -> bool:
-        return key in self.get_attrs()
+        return key in self.attrs
 
     def has_class(self, class_: str) -> bool:
-        class_attr = self.get_attr("class")
-        if class_attr is None:
+        attr = self.attrs.get("class", None)
+        if attr is None:
             return False
-        return class_ in class_attr.split(" ")
+        return class_ in attr.split(" ")
 
     def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         indent_str = "  " * indent
         html_ = indent_str + "<" + self.name
 
         # write attributes (boolean attributes should be empty strings)
-        for key, val in self.get_attrs().items():
-            if not isinstance(val, html):
-                val = html_escape(val, attr=True)
+        for key, val in self.attrs.items():
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output
@@ -351,7 +358,7 @@ class tag(tag_list):
         return True
 
     def __repr__(self) -> str:
-        return tag_repr_impl(self.name, self.get_attrs(), self.children)
+        return tag_repr_impl(self.name, self.attrs, self.children)
 
 
 # --------------------------------------------------------
@@ -408,7 +415,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
                 x_ = x_.lower()
             return x_
 
-        attrs = deepcopy(self.get_attrs())
+        attrs = deepcopy(self.attrs)
         if not attrs:
             res_ += "null"
         else:
@@ -446,7 +453,7 @@ def jsx_tag(_name: str, allowedProps: List[str] = None) -> None:
         for k, v in kwargs.items():
             if v is None:
                 continue
-            k_ = encode_attr(k)
+            k_ = encode_attr_name(k)
             if not self._attrs.get(k_):
                 self._attrs[k_] = []
             self._attrs[k_].append(v)
@@ -857,7 +864,7 @@ def rewrite_tags(
 
 
 # e.g., foo_bar_ -> foo-bar
-def encode_attr(x: str) -> str:
+def encode_attr_name(x: str) -> str:
     if x.endswith("_"):
         x = x[:-1]
     return x.replace("_", "-")
