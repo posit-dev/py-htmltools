@@ -10,8 +10,7 @@
 (function() {
   var container = new DocumentFragment();
   ReactDOM.render(
-        React.createElement(
-          Foo, {})
+        React.createElement(Foo)
   , container);
   document.currentScript.after(container);
 })();

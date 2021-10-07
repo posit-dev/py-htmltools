@@ -85,29 +85,28 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
     elif isinstance(x, str):
         return indent_str + '"' + x.replace('"', '\\"') + '"'
 
-    # TODO: don't line break if there aren't attrs/children
-    res = indent_str + "React.createElement(" + eol + indent_str + "  "
+    res = indent_str + "React.createElement("
 
     if isinstance(x, JsxTag):
-        res += x.name
+        nm = x.name
     elif isinstance(x, tag):
-        res += "'" + x.name + "'"
+        nm = "'" + x.name + "'"
     else:
         raise TypeError("x must be a tag or JsxTag object. Did you run tagify()?")
 
-    res += ", "
-
     attrs = _get_jsx_attrs(x) if isinstance(x, JsxTag) else _get_html_attrs(x)
-    if len(attrs) == 0:
-        res += "{}"
-    else:
-        res += "{" + eol
-        for k, v in attrs.items():
-            v_ = v.replace(eol, "")
-            res += f'{indent_str}  "{k}": {v_},{eol}'
-        res += indent_str + "}"
-
     children = [child for child in x.children if not isinstance(child, html_dependency)]
+
+    if len(attrs) == 0 and len(children) == 0:
+        return res + nm + ")"
+
+    res += f"{eol}{indent_str}{nm}, "
+
+    res += "{"
+    for k, v in attrs.items():
+        v_ = v.replace(eol, "")
+        res += f'"{k}": {v_}, '
+    res += "}"
 
     if len(children) == 0:
         return res + ")"
@@ -124,7 +123,6 @@ def _get_jsx_attrs(x: JsxTag) -> Dict[str, str]:
     for key, vals in x.jsxAttrs.items():
         func = _serialize_style_attr if key == "style" else _serialize_attr
         valz = [func(v) for v in vals]
-        # TODO: encode attr name?
         res[key] = valz[0] if len(valz) == 1 else "[" + ", ".join(valz) + "]"
     return res
 

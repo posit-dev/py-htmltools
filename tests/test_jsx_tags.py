@@ -23,7 +23,7 @@ def test_jsx_tags(snapshot):
         dict={"a": 1, "b": 2},
         jsxTag=Bar(),
         htmlTag=[div(), div(foo=1)],
-        baz=jsx("foo"),
+        func=jsx("() => console.log('foo')"),
         style={"margin": "1rem"},
     )
     snapshot.assert_match(str(x), "jsx.txt")

@@ -11,9 +11,8 @@
   var container = new DocumentFragment();
   ReactDOM.render(
         React.createElement(
-          Foo, {}, 
-          React.createElement(
-            Bar, {})        )
+        Foo, {}, 
+          React.createElement(Bar)        )
   , container);
   document.currentScript.after(container);
 })();
