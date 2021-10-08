@@ -11,12 +11,8 @@ from typing import (
     Hashable,
     Dict,
     Optional,
-    Iterable,
-    TYPE_CHECKING,
 )
 
-if TYPE_CHECKING:
-    from .core import tag_list
 from contextlib import contextmanager, closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket

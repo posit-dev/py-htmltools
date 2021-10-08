@@ -2,7 +2,6 @@ import os
 import sys
 import shutil
 import tempfile
-import re
 from pathlib import Path
 from copy import copy, deepcopy
 from urllib.parse import quote
