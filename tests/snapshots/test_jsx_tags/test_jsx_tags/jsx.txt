@@ -3,15 +3,16 @@
   var container = new DocumentFragment();
   ReactDOM.render(
     React.createElement(
-    Foo, {"int": 1, "float": 2.0, "bool": true, "None": null, "string": "string", "list": [1, 2, 3], "dict": {a: 1, b: 2}, "jsxTag": React.createElement(Bar), "htmlTag": [React.createElement('div'), React.createElement('div', {"foo": "1", })], "func": () => console.log('foo'), "style": {margin: "1rem"}, }, 
-      React.createElement('span'), 
-      "childtext", 
-      "`childexpression`", 
-      React.createElement(Foo), 
-      React.createElement(Foo), 
-      React.createElement(Bar), 
-      React.createElement(Foo), 
-      React.createElement(Bar)    )
+      Foo, {"int": 1, "float": 2.0, "bool": true, "none": null, "string": "string", "list": [1, 2, 3], "dict": {a: 1, b: 2}, "jsxtag": React.createElement(Bar), "htmltag": [React.createElement('div'), React.createElement(  'div', {"foo": "1"})], "func": () => console.log('foo'), "style": {margin: "1rem"}},
+      React.createElement('span'),
+      "childtext",
+      "`childexpression`",
+      React.createElement(Foo),
+      React.createElement(Foo),
+      React.createElement(Bar),
+      React.createElement(Foo),
+      React.createElement(Bar)
+    )
   , container);
   document.currentScript.after(container);
 })();

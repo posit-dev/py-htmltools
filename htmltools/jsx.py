@@ -117,7 +117,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
         return res + ")"
 
     for child in children:
-        res += ", " + eol
+        res += "," + eol
         res += _get_react_js(child, indent + 1, eol)
 
     return res + eol + indent_str + ")"
