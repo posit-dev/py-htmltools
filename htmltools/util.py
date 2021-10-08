@@ -57,6 +57,30 @@ def _encode_attr_name(x: str) -> str:
     return x.replace("_", "-")
 
 
+HTML_ESCAPE_TABLE = {
+    "&": "&amp;",
+    ">": "&gt;",
+    "<": "&lt;",
+}
+
+HTML_ATTRS_ESCAPE_TABLE = {
+    **HTML_ESCAPE_TABLE,
+    '"': "&quot;",
+    "'": "&apos;",
+    "\r": "&#13;",
+    "\n": "&#10;",
+}
+
+
+def _html_escape(text: str, attr: bool = False) -> str:
+    table = HTML_ATTRS_ESCAPE_TABLE if attr else HTML_ESCAPE_TABLE
+    if not re.search("|".join(table), text):
+        return text
+    for key, value in table.items():
+        text = text.replace(key, value)
+    return text
+
+
 # similar to base::system.file()
 def package_dir(package: str) -> str:
     with tempfile.TemporaryDirectory():

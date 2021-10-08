@@ -27,7 +27,13 @@ else:
 from packaging.version import parse as version_parse
 from packaging.version import Version
 
-from .util import unique, ensure_http_server, package_dir, _encode_attr_name
+from .util import (
+    unique,
+    ensure_http_server,
+    package_dir,
+    _encode_attr_name,  # type: ignore
+    _html_escape,  # type: ignore
+)
 
 __all__ = (
     "tag_list",
@@ -676,21 +682,6 @@ def _flatten_recurse(
             _flatten_recurse(item.children, result, taglist_)  # type: ignore
         elif item is not None:
             result.append(item)
-
-
-def _html_escape(text: str, attr: bool = False) -> str:
-    specials = {
-        "&": "&amp;",
-        ">": "&gt;",
-        "<": "&lt;",
-    }
-    if attr:
-        specials.update({'"': "&quot;", "'": "&apos;", "\r": "&#13;", "\n": "&#10;"})
-    if not re.search("|".join(specials), text):
-        return text
-    for key, value in specials.items():
-        text = text.replace(key, value)
-    return text
 
 
 def tag_repr_impl(name: str, attrs: Dict[str, str], children: List[TagChild]) -> str:
