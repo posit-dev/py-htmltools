@@ -17,13 +17,14 @@ def test_basic_tag_api(snapshot):
     x2 = div(**props, children=children)
     x3 = div(**props)(*children)
     x4 = div()
-    x4.append(*children, **props)
+    x4.append(*children)
+    x4.set_attr(**props)
     assert x1 == x2 == x3 == x4
     assert x1.attrs["id"] == "baz"
     assert x1.attrs["bool"] == ""
     snapshot.assert_match(str(x1), "basic_tag_api")
     assert x1.attrs["class"] == "foo"
-    x1.append(class_="bar")
+    x1.add_class("bar")
     assert x1.attrs["class"] == "foo bar"
     assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing")
     x5 = tag_list()
@@ -189,6 +190,6 @@ def test_attr_vals(snapshot):
         "float": 1.2,
         "date": datetime.date(1999, 1, 2),
     }
-    test = tag_list(div(**attrs), div(list=["foo", "bar"]))
+    test = tag_list(div(**attrs), div(class_="foo").add_class("bar"))
 
     snapshot.assert_match(str(test), "attr_vals.txt")

@@ -6,6 +6,7 @@ from pathlib import Path
 from copy import copy, deepcopy
 from urllib.parse import quote
 import webbrowser
+from datetime import date, datetime
 from typing import (
     Iterable,
     Optional,
@@ -30,7 +31,7 @@ from .util import (
     unique,
     ensure_http_server,
     package_dir,
-    _encode_attr_name,  # type: ignore
+    _normalize_attr_name,  # type: ignore
     _html_escape,  # type: ignore
 )
 
@@ -40,7 +41,7 @@ __all__ = (
     "html_document",
     "html",
     "html_dependency",
-    "TagAttr",
+    "TagAttrArg",
     "TagChildArg",
     "TagChild",
 )
@@ -61,6 +62,9 @@ class Tagifiable(Protocol):
 
 # Types that can be passed as args to tag_list() and tag functions.
 TagChildArg = Union[TagChild, "tag_list", int, float, None, List["TagChildArg"]]
+
+# Types that can be passed in as attributes to tag functions.
+TagAttrArg = Union[str, int, float, date, datetime, bool, None]
 
 
 class RenderedHTML(TypedDict):
@@ -223,12 +227,6 @@ class tag_list:
         return tag_repr_impl("tag_list", {}, self.children)
 
 
-from datetime import date, datetime
-
-TagAttr = Union[str, bool, float, date, datetime, List[str], None]
-TagAttrs = Dict[str, List[TagAttr]]
-
-
 class tag(tag_list):
     """
     Create an HTML tag.
@@ -261,16 +259,17 @@ class tag(tag_list):
         _name: str,
         *args: TagChildArg,
         children: Optional[List[TagChildArg]] = None,
-        **kwargs: TagAttr,
+        **kwargs: TagAttrArg,
     ) -> None:
         self.children: List[TagChild] = []
+        self.name: str = _name
+        self.attrs: Dict[str, str] = {}
+
         self.extend(args)
         if children:
             self.extend(children)
 
-        self.name: str = _name
-        self.attrs: Dict[str, str] = {}
-        self.append(**kwargs)
+        self.set_attr(**kwargs)
         # http://dev.w3.org/html5/spec/single-page.html#void-elements
         self._is_void = _name in [
             "area",
@@ -291,30 +290,38 @@ class tag(tag_list):
             "wbr",
         ]
 
-    def __call__(self, *args: TagChildArg, **kwargs: TagAttr) -> "tag":
-        self.append(*args, **kwargs)
+    def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "tag":
+        self.append(*args)
+        self.set_attr(**kwargs)
         return self
 
-    def append(self, *args: TagChildArg, **kwargs: TagAttr) -> None:
+    def append(self, *args: TagChildArg) -> None:
         if args:
             super().append(*args)
-        for k, v in kwargs.items():
-            v_list = _flatten(v if isinstance(v, list) else [v])
-            res: List[str] = []
-            for x in v_list:
-                if x is False:  # _flatten() has already dropped None
-                    continue
-                if x is True:
-                    res.append("")
-                elif isinstance(x, html):
-                    res.append(x)
-                else:
-                    res.append(_html_escape(str(x), attr=True))
-            if len(res) > 0:
-                k_ = _encode_attr_name(k)
-                v_old = self.attrs.get(k_, None)
-                v_new = " ".join(res)
-                self.attrs[k_] = v_new if v_old is None else v_old + " " + v_new
+
+    def set_attr(self, **kwargs: TagAttrArg) -> None:
+        for key, val in kwargs.items():
+            if val is None or val is False:
+                continue
+            elif val is True:
+                val = ""
+            elif isinstance(val, html):
+                # If it's html, make sure not to call str() on it, because we want to
+                # preserve the html class wrapper.
+                pass
+            else:
+                val = str(val)
+
+            key = _normalize_attr_name(key)
+            self.attrs[key] = val
+            # TODO: Escape when rendering, not  here
+
+    def add_class(self, x: str) -> "tag":
+        if "class" in self.attrs:
+            self.attrs["class"] += " " + x
+        else:
+            self.attrs["class"] = x
+        return self
 
     def has_attr(self, key: str) -> bool:
         return key in self.attrs
@@ -331,6 +338,8 @@ class tag(tag_list):
 
         # write attributes (boolean attributes should be empty strings)
         for key, val in self.attrs.items():
+            if not isinstance(val, html):
+                val = _html_escape(val)
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output
@@ -376,7 +385,7 @@ class html_document(tag):
     """
 
     def __init__(
-        self, body: tag_list, head: Optional[tag_list] = None, **kwargs: TagAttr
+        self, body: tag_list, head: Optional[tag_list] = None, **kwargs: TagAttrArg
     ) -> None:
         super().__init__("html", **kwargs)
 

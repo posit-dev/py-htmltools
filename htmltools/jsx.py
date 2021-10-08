@@ -1,19 +1,19 @@
 from typing import Callable, List, Dict, Union, Optional, Any
 
-from .core import TagAttr, tag, TagChild, TagChildArg, html, html_dependency
+from .core import TagAttrArg, tag, TagChild, TagChildArg, html, html_dependency
 
 from .versions import versions
-from .util import _encode_attr_name  # type: ignore
+from .util import _normalize_attr_name  # type: ignore
 
 __all__ = (
     "jsx",
     "jsx_tag",
-    "JsxTagAttr",
-    "JsxTagAttrs",
+    "JsxTagAttrArg",
+    "JsxTagAttrArgs",
 )
 
-JsxTagAttr = Union[TagAttr, tag, Dict[str, Any]]
-JsxTagAttrs = Dict[str, List[JsxTagAttr]]
+JsxTagAttrArg = Union[TagAttrArg, tag, Dict[str, Any]]
+JsxTagAttrArgs = Dict[str, List[JsxTagAttrArg]]
 
 
 class JsxTag(tag):
@@ -23,7 +23,7 @@ class JsxTag(tag):
         *args: TagChildArg,
         allowedProps: Optional[List[str]] = None,
         children: Optional[List[TagChildArg]] = None,
-        **kwargs: TagAttr,
+        **kwargs: TagAttrArg,
     ) -> None:
         if allowedProps:
             for k in kwargs.keys():
@@ -35,7 +35,7 @@ class JsxTag(tag):
         # JSX attrs can be full-on JSON objects whereas html attrs
         # always get encoded as string, so use a different property to hold them
         del self.attrs
-        self.jsx_attrs: JsxTagAttrs = {}
+        self.jsx_attrs: JsxTagAttrArgs = {}
 
         # Add these html dependencies to the end, to reduce possible confusion when
         # users index into the children.
@@ -45,11 +45,11 @@ class JsxTag(tag):
             **kwargs,
         )
 
-    def append(self, *args: TagChildArg, **kwargs: JsxTagAttr) -> None:
+    def append(self, *args: TagChildArg, **kwargs: JsxTagAttrArg) -> None:
         if args:
             self.extend(args)
         for k, v in kwargs.items():
-            k_ = _encode_attr_name(k)
+            k_ = _normalize_attr_name(k)
             if not self.jsx_attrs.get(k_):
                 self.jsx_attrs[k_] = []
             self.jsx_attrs[k_].append(v)
@@ -142,7 +142,7 @@ def _get_html_attrs(x: tag) -> Dict[str, str]:
 
 # Unfortunately we can't use json.dumps() here because I don't know how to
 # avoid quoting jsx(), jsx_tag(), tag(), etc.
-def _serialize_attr(x: JsxTagAttr) -> str:
+def _serialize_attr(x: JsxTagAttrArg) -> str:
     if x is None:
         return "null"
     if isinstance(x, tag):
@@ -158,7 +158,7 @@ def _serialize_attr(x: JsxTagAttr) -> str:
     return '"' + str(x).replace('"', '\\"') + '"'
 
 
-def _serialize_style_attr(x: JsxTagAttr) -> str:
+def _serialize_style_attr(x: JsxTagAttrArg) -> str:
     styles: Dict[str, str] = {}
     vals = x if isinstance(x, list) else [x]
     for v in vals:
@@ -184,7 +184,7 @@ def jsx_tag(
     def jsx_tag_create(
         *args: TagChildArg,
         children: Optional[List[TagChildArg]] = None,
-        **kwargs: TagAttr,
+        **kwargs: TagAttrArg,
     ) -> JsxTag:
         return JsxTag(
             _name, *args, allowedProps=allowedProps, children=children, **kwargs
