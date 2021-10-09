@@ -48,7 +48,15 @@ __all__ = (
     "TagChild",
 )
 
+
+class RenderedHTML(TypedDict):
+    dependencies: List["html_dependency"]
+    html: str
+
+
 T = TypeVar("T")
+
+TagContainerT = TypeVar("TagContainerT", bound="TagContainer")
 
 TagListT = TypeVar("TagListT", bound="TagList")
 
@@ -57,26 +65,17 @@ TagT = TypeVar("TagT", bound="Tag")
 # Types of objects that can be a child of a tag.
 TagChild = Union["Tagifiable", "Tag", "html_dependency", str]
 
-# A duck type: objects with tagify() methods are considered Tagifiable.
-@runtime_checkable
-class Tagifiable(Protocol):
-    def tagify(self) -> Union["TagList", "Tag", "html_dependency", str]:
-        ...
-
-
 # Types that can be passed as args to TagList() and tag functions.
 TagChildArg = Union[TagChild, "TagContainer", int, float, None, List["TagChildArg"]]
 
 # Types that can be passed in as attributes to tag functions.
 TagAttrArg = Union[str, int, float, date, datetime, bool, None]
 
-
-class RenderedHTML(TypedDict):
-    dependencies: List["html_dependency"]
-    html: str
-
-
-TagContainerT = TypeVar("TagContainerT", bound="TagContainer")
+# A duck type: objects with tagify() methods are considered Tagifiable.
+@runtime_checkable
+class Tagifiable(Protocol):
+    def tagify(self) -> Union["TagContainer", "html_dependency", str]:
+        ...
 
 
 class TagContainer(ABC):
