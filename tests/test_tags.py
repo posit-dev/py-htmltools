@@ -6,8 +6,8 @@ from htmltools import *
 from htmltools.util import cwd
 
 
-def expect_html(tag: tag, expected: str):
-    assert str(tag) == expected
+def expect_html(x: TagContainer, expected: str):
+    assert str(x) == expected
 
 
 def test_basic_tag_api(snapshot):

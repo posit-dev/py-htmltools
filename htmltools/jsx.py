@@ -34,7 +34,6 @@ class JsxTag(tag):
 
         # JSX attrs can be full-on JSON objects whereas html attrs
         # always get encoded as string, so use a different property to hold them
-        del self.attrs
         self.jsx_attrs: JsxTagAttrArgs = {}
 
         # Add these html dependencies to the end, to reduce possible confusion when
@@ -54,7 +53,7 @@ class JsxTag(tag):
                 self.jsx_attrs[k_] = []
             self.jsx_attrs[k_].append(v)
 
-    def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         # When ._get_html_string()  is called on a JsxTag object, we'll recurse, but
         # instead of calling the standard tag._get_html_string() method to format the
         # object, we'll recurse using _get_react_html_string(), which descends into the
@@ -72,7 +71,7 @@ class JsxTag(tag):
         )
         html_ = tag(
             "script", type="text/javascript", children=[html("\n" + js + "\n")]
-        )._get_html_string(indent=indent)
+        ).get_html_string(indent=indent)
 
         return html_
 

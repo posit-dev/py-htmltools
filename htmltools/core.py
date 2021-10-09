@@ -7,6 +7,7 @@ from copy import copy, deepcopy
 from urllib.parse import quote
 import webbrowser
 from datetime import date, datetime
+from abc import ABC, abstractmethod
 from typing import (
     Iterable,
     Optional,
@@ -36,6 +37,7 @@ from .util import (
 )
 
 __all__ = (
+    "TagContainer",
     "tag_list",
     "tag",
     "html_document",
@@ -50,6 +52,8 @@ T = TypeVar("T")
 
 TagListT = TypeVar("TagListT", bound="tag_list")
 
+TagT = TypeVar("TagT", bound="tag")
+
 # Types of objects that can be a child of a tag.
 TagChild = Union["Tagifiable", "tag", "html_dependency", str]
 
@@ -61,7 +65,7 @@ class Tagifiable(Protocol):
 
 
 # Types that can be passed as args to tag_list() and tag functions.
-TagChildArg = Union[TagChild, "tag_list", int, float, None, List["TagChildArg"]]
+TagChildArg = Union[TagChild, "TagContainer", int, float, None, List["TagChildArg"]]
 
 # Types that can be passed in as attributes to tag functions.
 TagAttrArg = Union[str, int, float, date, datetime, bool, None]
@@ -72,7 +76,53 @@ class RenderedHTML(TypedDict):
     html: str
 
 
-class tag_list:
+TagContainerT = TypeVar("TagContainerT", bound="TagContainer")
+
+
+class TagContainer(ABC):
+    @abstractmethod
+    def __init__(self, *args: TagChildArg) -> None:
+        self.children: List[TagChild] = []
+        ...
+
+    @abstractmethod
+    def extend(self, x: Iterable[TagChildArg]) -> None:
+        ...
+
+    @abstractmethod
+    def append(self, *args: TagChildArg) -> None:
+        ...
+
+    @abstractmethod
+    def insert(self, index: int = 0, *args: TagChildArg) -> None:
+        ...
+
+    @abstractmethod
+    def tagify(self: TagContainerT) -> TagContainerT:
+        ...
+
+    @abstractmethod
+    def walk(
+        self,
+        pre: Optional[Callable[[TagChild], TagChild]] = None,
+        post: Optional[Callable[[TagChild], TagChild]] = None,
+    ) -> TagChild:
+        ...
+
+    @abstractmethod
+    def render(self) -> RenderedHTML:
+        ...
+
+    @abstractmethod
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
+        ...
+
+    @abstractmethod
+    def get_dependencies(self) -> List["html_dependency"]:
+        ...
+
+
+class tag_list(TagContainer):
     """
     Create a list (i.e., fragment) of HTML content
 
@@ -117,7 +167,7 @@ class tag_list:
     def insert(self, index: int = 0, *args: TagChildArg) -> None:
         self.children.insert(index, *_tagchildargs_to_tagchilds(args))
 
-    def tagify(self: TagListT) -> TagListT:
+    def tagify(self: TagContainerT) -> TagContainerT:
         # Make a shallow copy, then recurse into children. We don't want to make a deep
         # copy, because then each time it recursed, it would create an unnecessary deep
         # copy. Additionally, children that aren't tag objects (but which have a
@@ -139,18 +189,18 @@ class tag_list:
         return _walk(self, pre, post)
 
     def render(self) -> RenderedHTML:
-        deps = self._get_dependencies()
-        return {"dependencies": deps, "html": self._get_html_string()}
+        deps = self.get_dependencies()
+        return {"dependencies": deps, "html": self.get_html_string()}
 
     def save_html(self, file: str, libdir: str = "lib") -> str:
         return html_document(self).save_html(file, libdir)
 
-    def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         n = len(self.children)
         html_ = ""
         for i, x in enumerate(self.children):
             if isinstance(x, tag):
-                html_ += x._get_html_string(indent, eol)  # type: ignore
+                html_ += x.get_html_string(indent, eol)  # type: ignore
             elif isinstance(x, html_dependency):
                 continue
             elif isinstance(x, Tagifiable):
@@ -164,13 +214,13 @@ class tag_list:
                 html_ += eol
         return html(html_)
 
-    def _get_dependencies(self) -> List["html_dependency"]:
+    def get_dependencies(self) -> List["html_dependency"]:
         deps: List[html_dependency] = []
         for x in self.children:
             if isinstance(x, html_dependency):
                 deps.append(x)
             elif isinstance(x, tag):
-                deps.extend(x._get_dependencies())
+                deps.extend(x.get_dependencies())
 
         unames = unique([d.name for d in deps])
         resolved: List[html_dependency] = []
@@ -215,19 +265,16 @@ class tag_list:
         raise Exception(f"Unknown renderer {renderer}")
 
     def __str__(self) -> str:
-        return self._get_html_string()
+        return self.get_html_string()
 
     def __eq__(self, other: Any) -> bool:
         return equals_impl(self, other)
-
-    def __bool__(self) -> bool:
-        return len(self.children) > 0
 
     def __repr__(self) -> str:
         return tag_repr_impl("tag_list", {}, self.children)
 
 
-class tag(tag_list):
+class tag(TagContainer):
     """
     Create an HTML tag.
 
@@ -290,14 +337,28 @@ class tag(tag_list):
             "wbr",
         ]
 
+    def __copy__(self: TagT) -> TagT:
+        cls = self.__class__
+        cp = cls.__new__(cls)
+        # Any instance fields (like .children, and _attrs for the tag subclass) are
+        # shallow-copied.
+        new_dict = {key: copy(value) for key, value in self.__dict__.items()}
+        cp.__dict__.update(new_dict)
+        return cp
+
     def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "tag":
         self.append(*args)
         self.set_attr(**kwargs)
         return self
 
+    def extend(self, x: Iterable[TagChildArg]) -> None:
+        self.children.extend(_tagchildargs_to_tagchilds(x))
+
     def append(self, *args: TagChildArg) -> None:
-        if args:
-            super().append(*args)
+        self.extend(args)
+
+    def insert(self, index: int = 0, *args: TagChildArg) -> None:
+        self.children.insert(index, *_tagchildargs_to_tagchilds(args))
 
     def set_attr(self, **kwargs: TagAttrArg) -> None:
         for key, val in kwargs.items():
@@ -332,7 +393,35 @@ class tag(tag_list):
             return False
         return class_ in attr.split(" ")
 
-    def _get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
+    def tagify(self: TagContainerT) -> TagContainerT:
+        # Make a shallow copy, then recurse into children. We don't want to make a deep
+        # copy, because then each time it recursed, it would create an unnecessary deep
+        # copy. Additionally, children that aren't tag objects (but which have a
+        # tagify() method which would return a tag object) might be unnecessarily
+        # copied.
+        cp = copy(self)
+        for i, child in enumerate(cp.children):
+            if isinstance(child, Tagifiable):
+                cp.children[i] = child.tagify()
+            elif isinstance(child, html_dependency):
+                cp.children[i] = copy(child)
+        return cp
+
+    def walk(
+        self,
+        pre: Optional[Callable[[TagChild], TagChild]] = None,
+        post: Optional[Callable[[TagChild], TagChild]] = None,
+    ) -> TagChild:
+        return _walk(self, pre, post)
+
+    def render(self) -> RenderedHTML:
+        deps = self.get_dependencies()
+        return {"dependencies": deps, "html": self.get_html_string()}
+
+    def save_html(self, file: str, libdir: str = "lib") -> str:
+        return html_document(self).save_html(file, libdir)
+
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         indent_str = "  " * indent
         html_ = indent_str + "<" + self.name
 
@@ -362,11 +451,33 @@ class tag(tag_list):
         # Write children
         # TODO: inline elements should eat ws?
         html_ += eol
-        html_ += super()._get_html_string(indent + 1, eol)
+        # TODO: Fix tag_list super hack
+        html_ += tag_list.get_html_string(self, indent + 1, eol)
         return html(html_ + eol + indent_str + close)
 
-    def __bool__(self) -> bool:
-        return True
+    def get_dependencies(self) -> List["html_dependency"]:
+        deps: List[html_dependency] = []
+        for x in self.children:
+            if isinstance(x, html_dependency):
+                deps.append(x)
+            elif isinstance(x, tag):
+                deps.extend(x.get_dependencies())
+
+        unames = unique([d.name for d in deps])
+        resolved: List[html_dependency] = []
+        for nm in unames:
+            latest = max([d.version for d in deps if d.name == nm])
+            deps_ = [d for d in deps if d.name == nm]
+            for d in deps_:
+                if d.version == latest and d not in resolved:
+                    resolved.append(d)
+        return resolved
+
+    def __str__(self) -> str:
+        return self.get_html_string()
+
+    def __eq__(self, other: Any) -> bool:
+        return equals_impl(self, other)
 
     def __repr__(self) -> str:
         return tag_repr_impl(self.name, self.attrs, self.children)
@@ -385,7 +496,10 @@ class html_document(tag):
     """
 
     def __init__(
-        self, body: tag_list, head: Optional[tag_list] = None, **kwargs: TagAttrArg
+        self,
+        body: TagContainer,
+        head: Optional[TagContainer] = None,
+        **kwargs: TagAttrArg,
     ) -> None:
         super().__init__("html", **kwargs)
 
@@ -397,7 +511,7 @@ class html_document(tag):
         self.append(head, body)
 
     def render(self) -> RenderedHTML:
-        deps: List[html_dependency] = self._get_dependencies()
+        deps: List[html_dependency] = self.get_dependencies()
 
         child0_children: List[TagChild] = []
         if isinstance(self.children[0], tag):
@@ -636,10 +750,11 @@ def _walk(
     pre: Optional[Callable[[TagChild], TagChild]] = None,
     post: Optional[Callable[[TagChild], TagChild]] = None,
 ) -> TagChild:
+    print(f"_walk({x})")
     if pre:
         x = pre(x)
 
-    if isinstance(x, tag_list):
+    if isinstance(x, TagContainer):
         for i, child in enumerate(x.children):
             x.children[i] = _walk(child, pre, post)
 
