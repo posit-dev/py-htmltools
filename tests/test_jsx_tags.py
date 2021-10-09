@@ -13,7 +13,7 @@ def test_jsx_tags(snapshot):
         jsx("`childexpression`"),
         Foo(),
         [Foo(), Bar()],
-        tag_list(Foo(), Bar()),
+        TagList(Foo(), Bar()),
         int=1,
         float=2.0,
         bool=True,

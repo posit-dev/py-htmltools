@@ -26,8 +26,8 @@ for nm in tags:
     if nm == "color-profile":
         continue
     code = (
-        f"def {nm}(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> tag:\n"
-        + f"    return tag('{nm}', *args, children=children, **kwargs)\n"
+        f"def {nm}(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:\n"
+        + f"    return Tag('{nm}', *args, children=children, **kwargs)\n"
     )
     tags_code.append(code)
 

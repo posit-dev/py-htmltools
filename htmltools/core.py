@@ -38,8 +38,8 @@ from .util import (
 
 __all__ = (
     "TagContainer",
-    "tag_list",
-    "tag",
+    "TagList",
+    "Tag",
     "html_document",
     "html",
     "html_dependency",
@@ -50,21 +50,21 @@ __all__ = (
 
 T = TypeVar("T")
 
-TagListT = TypeVar("TagListT", bound="tag_list")
+TagListT = TypeVar("TagListT", bound="TagList")
 
-TagT = TypeVar("TagT", bound="tag")
+TagT = TypeVar("TagT", bound="Tag")
 
 # Types of objects that can be a child of a tag.
-TagChild = Union["Tagifiable", "tag", "html_dependency", str]
+TagChild = Union["Tagifiable", "Tag", "html_dependency", str]
 
 # A duck type: objects with tagify() methods are considered Tagifiable.
 @runtime_checkable
 class Tagifiable(Protocol):
-    def tagify(self) -> Union["tag_list", "tag", "html_dependency", str]:
+    def tagify(self) -> Union["TagList", "Tag", "html_dependency", str]:
         ...
 
 
-# Types that can be passed as args to tag_list() and tag functions.
+# Types that can be passed as args to TagList() and tag functions.
 TagChildArg = Union[TagChild, "TagContainer", int, float, None, List["TagChildArg"]]
 
 # Types that can be passed in as attributes to tag functions.
@@ -122,7 +122,7 @@ class TagContainer(ABC):
         ...
 
 
-class tag_list(TagContainer):
+class TagList(TagContainer):
     """
     Create a list (i.e., fragment) of HTML content
 
@@ -142,7 +142,7 @@ class tag_list(TagContainer):
 
     Examples:
     ---------
-        >>> print(tag_list(h1('Hello htmltools'), tags.p('for python')))
+        >>> print(TagList(h1('Hello htmltools'), tags.p('for python')))
     """
 
     def __init__(self, *args: TagChildArg) -> None:
@@ -199,7 +199,7 @@ class tag_list(TagContainer):
         n = len(self.children)
         html_ = ""
         for i, x in enumerate(self.children):
-            if isinstance(x, tag):
+            if isinstance(x, Tag):
                 html_ += x.get_html_string(indent, eol)  # type: ignore
             elif isinstance(x, html_dependency):
                 continue
@@ -219,7 +219,7 @@ class tag_list(TagContainer):
         for x in self.children:
             if isinstance(x, html_dependency):
                 deps.append(x)
-            elif isinstance(x, tag):
+            elif isinstance(x, Tag):
                 deps.extend(x.get_dependencies())
 
         unames = unique([d.name for d in deps])
@@ -271,10 +271,10 @@ class tag_list(TagContainer):
         return equals_impl(self, other)
 
     def __repr__(self) -> str:
-        return tag_repr_impl("tag_list", {}, self.children)
+        return tag_repr_impl("TagList", {}, self.children)
 
 
-class tag(TagContainer):
+class Tag(TagContainer):
     """
     Create an HTML tag.
 
@@ -346,7 +346,7 @@ class tag(TagContainer):
         cp.__dict__.update(new_dict)
         return cp
 
-    def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "tag":
+    def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "Tag":
         self.append(*args)
         self.set_attr(**kwargs)
         return self
@@ -377,7 +377,7 @@ class tag(TagContainer):
             self.attrs[key] = val
             # TODO: Escape when rendering, not  here
 
-    def add_class(self, x: str) -> "tag":
+    def add_class(self, x: str) -> "Tag":
         if "class" in self.attrs:
             self.attrs["class"] += " " + x
         else:
@@ -451,8 +451,8 @@ class tag(TagContainer):
         # Write children
         # TODO: inline elements should eat ws?
         html_ += eol
-        # TODO: Fix tag_list super hack
-        html_ += tag_list.get_html_string(self, indent + 1, eol)
+        # TODO: Fix TagList super hack
+        html_ += TagList.get_html_string(self, indent + 1, eol)
         return html(html_ + eol + indent_str + close)
 
     def get_dependencies(self) -> List["html_dependency"]:
@@ -460,7 +460,7 @@ class tag(TagContainer):
         for x in self.children:
             if isinstance(x, html_dependency):
                 deps.append(x)
-            elif isinstance(x, tag):
+            elif isinstance(x, Tag):
                 deps.extend(x.get_dependencies())
 
         unames = unique([d.name for d in deps])
@@ -486,7 +486,7 @@ class tag(TagContainer):
 # --------------------------------------------------------
 # Document class
 # --------------------------------------------------------
-class html_document(tag):
+class html_document(Tag):
     """
     Create an HTML document.
 
@@ -503,10 +503,10 @@ class html_document(tag):
     ) -> None:
         super().__init__("html", **kwargs)
 
-        if not (isinstance(head, tag) and head.name == "head"):
-            head = tag("head", head)
-        if not (isinstance(body, tag) and body.name == "body"):
-            body = tag("body", body)
+        if not (isinstance(head, Tag) and head.name == "head"):
+            head = Tag("head", head)
+        if not (isinstance(body, Tag) and body.name == "body"):
+            body = Tag("body", body)
 
         self.append(head, body)
 
@@ -514,19 +514,19 @@ class html_document(tag):
         deps: List[html_dependency] = self.get_dependencies()
 
         child0_children: List[TagChild] = []
-        if isinstance(self.children[0], tag):
+        if isinstance(self.children[0], Tag):
             child0_children = self.children[0].children
 
-        head = tag(
+        head = Tag(
             "head",
-            tag("meta", charset="utf-8"),
+            Tag("meta", charset="utf-8"),
             *[d.as_html_tags() for d in deps],
             *child0_children,
         )
         body = self.children[1]
         return {
             "dependencies": deps,
-            "html": "<!DOCTYPE html>\n" + str(tag("html", head, body)),
+            "html": "<!DOCTYPE html>\n" + str(Tag("html", head, body)),
         }
 
     def save_html(self, file: str, libdir: str = "lib") -> str:
@@ -623,7 +623,7 @@ class html_dependency:
     # content for HTML.
     def as_html_tags(
         self, src_type: Optional[str] = None, encode_path: Callable[[str], str] = quote
-    ) -> tag_list:
+    ) -> TagList:
         # Prefer the first listed src type if not specified
         if not src_type:
             src_type = list(self.src.keys())[0]
@@ -645,11 +645,11 @@ class html_dependency:
         for s in script:
             s.update({"src": os.path.join(src, encode_path(s["src"]))})
 
-        metas: List[tag] = [tag("meta", **m) for m in self.meta]
-        links: List[tag] = [tag("link", **s) for s in sheets]
-        scripts: List[tag] = [tag("script", **s) for s in script]
+        metas: List[Tag] = [Tag("meta", **m) for m in self.meta]
+        links: List[Tag] = [Tag("link", **s) for s in sheets]
+        scripts: List[Tag] = [Tag("script", **s) for s in script]
         head = html(self.head) if self.head else None
-        return tag_list(*metas, *links, *scripts, head)
+        return TagList(*metas, *links, *scripts, head)
 
     def copy_to(self, path: str, must_work: bool = True) -> "html_dependency":
         src = self.src["file"]
@@ -743,7 +743,7 @@ class html_dependency:
 # Utility functions
 # ---------------------------------------------------------------------------
 
-# Walk a tag_list tree, and apply a function to each node. The node in the tree will be
+# Walk a TagList tree, and apply a function to each node. The node in the tree will be
 # replaced with the value returned from `pre()` or `post()`. Note that the
 def _walk(
     x: TagChild,
@@ -773,17 +773,17 @@ def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
             result[i] = str(child)
 
     # At this point, we know that all items in new_children must be valid TagChild
-    # objects, because None, int, float, and tag_list objects have been removed. (Note
-    # that the tag_list objects that have been flattened are tag_lists which are NOT
+    # objects, because None, int, float, and TagList objects have been removed. (Note
+    # that the TagList objects that have been flattened are TagList which are NOT
     # tags.)
     return cast(List[TagChild], result)
 
 
 # Flatten a arbitrarily nested list and remove None. Does not alter input object.
-#  - taglist_: if True, also flatten objects with class tag_list (but not subclasses
+#  - taglist_: if True, also flatten objects with class TagList (but not subclasses
 #    like objects with class tag).
 #
-# Note that this function is in this file instead of util.py because the tag_list check
+# Note that this function is in this file instead of util.py because the TagList check
 # would result in a circular dependency.
 def _flatten(x: Iterable[Union[T, None]], taglist_: bool = False) -> List[T]:
     result: List[T] = []
@@ -801,7 +801,7 @@ def _flatten_recurse(
             # Don't yet know how to specify recursive generic types, so we'll tell
             # the type checker to ignore this line.
             _flatten_recurse(item, result, taglist_)  # type: ignore
-        elif taglist_ and type(item) == tag_list:
+        elif taglist_ and isinstance(item, TagList):
             _flatten_recurse(item.children, result, taglist_)  # type: ignore
         elif item is not None:
             result.append(item)

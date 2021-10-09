@@ -1,6 +1,6 @@
 from typing import Callable, List, Dict, Union, Optional, Any
 
-from .core import TagAttrArg, tag, TagChild, TagChildArg, html, html_dependency
+from .core import TagAttrArg, Tag, TagChild, TagChildArg, html, html_dependency
 
 from .versions import versions
 from .util import _normalize_attr_name  # type: ignore
@@ -12,11 +12,11 @@ __all__ = (
     "JsxTagAttrArgs",
 )
 
-JsxTagAttrArg = Union[TagAttrArg, tag, Dict[str, Any]]
+JsxTagAttrArg = Union[TagAttrArg, Tag, Dict[str, Any]]
 JsxTagAttrArgs = Dict[str, List[JsxTagAttrArg]]
 
 
-class JsxTag(tag):
+class JsxTag(Tag):
     def __init__(
         self,
         _name: str,
@@ -69,7 +69,7 @@ class JsxTag(tag):
                 "})();",
             ]
         )
-        html_ = tag(
+        html_ = Tag(
             "script", type="text/javascript", children=[html("\n" + js + "\n")]
         ).get_html_string(indent=indent)
 
@@ -88,7 +88,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
 
     if isinstance(x, JsxTag):
         nm = x.name
-    elif isinstance(x, tag):
+    elif isinstance(x, Tag):
         nm = "'" + x.name + "'"
     else:
         raise TypeError("x must be a tag or JsxTag object. Did you run tagify()?")
@@ -131,7 +131,7 @@ def _get_jsx_attrs(x: JsxTag) -> Dict[str, str]:
     return res
 
 
-def _get_html_attrs(x: tag) -> Dict[str, str]:
+def _get_html_attrs(x: Tag) -> Dict[str, str]:
     res: Dict[str, str] = {}
     for key, val in x.attrs.items():
         func = _serialize_style_attr if key == "style" else _serialize_attr
@@ -144,7 +144,7 @@ def _get_html_attrs(x: tag) -> Dict[str, str]:
 def _serialize_attr(x: JsxTagAttrArg) -> str:
     if x is None:
         return "null"
-    if isinstance(x, tag):
+    if isinstance(x, Tag):
         return _get_react_js(x)
     if isinstance(x, (list, tuple)):
         return "[" + ", ".join([_serialize_attr(y) for y in x]) + "]"

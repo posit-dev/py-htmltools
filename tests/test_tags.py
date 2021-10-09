@@ -27,7 +27,7 @@ def test_basic_tag_api(snapshot):
     x1.add_class("bar")
     assert x1.attrs["class"] == "foo bar"
     assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing")
-    x5 = tag_list()
+    x5 = TagList()
     x5.append(a())
     x5.insert(0, span())
     expect_html(x5, "<span></span>\n<a></a>")
@@ -88,13 +88,13 @@ def test_tagify_deep_copy():
 
 
 def test_tag_writing(snapshot):
-    expect_html(tag_list("hi"), "hi")
-    expect_html(tag_list("one", "two", tag_list("three")), "one\ntwo\nthree")
+    expect_html(TagList("hi"), "hi")
+    expect_html(TagList("one", "two", TagList("three")), "one\ntwo\nthree")
     expect_html(tags.b("one"), "<b>one</b>")
     expect_html(tags.b("one", "two"), "<b>\n  one\n  two\n</b>")
-    expect_html(tag_list(["one"]), "one")
-    expect_html(tag_list([tag_list("one")]), "one")
-    expect_html(tag_list(tags.br(), "one"), "<br/>\none")
+    expect_html(TagList(["one"]), "one")
+    expect_html(TagList([TagList("one")]), "one")
+    expect_html(TagList(tags.br(), "one"), "<br/>\none")
     snapshot.assert_match(
         str(tags.b("one", "two", span("foo", "bar", span("baz")))), "tag_writing"
     )
@@ -123,7 +123,7 @@ def test_tag_escaping():
     expect_html(div("text", class_=html("<a&b>")), '<div class="<a&b>">text</div>')
 
 
-def saved_html(tag: tag):
+def saved_html(tag: Tag):
     with TemporaryDirectory() as tmpdir:
         f = os.path.join(tmpdir, "index.html")
         tag.save_html(f)
@@ -151,7 +151,7 @@ def test_tag_walk():
     def alter(x: TagChild) -> TagChild:
         if isinstance(x, str):
             return x.upper()
-        elif isinstance(x, tag):
+        elif isinstance(x, Tag):
             x.attrs["a"] = "foo"
             if x.name == "i":
                 x.name = "b"
@@ -171,10 +171,10 @@ def test_tag_walk():
 
 
 def test_tag_list_flatten():
-    x = div(1, tag_list(2, tag_list(span(3), 4)))
+    x = div(1, TagList(2, TagList(span(3), 4)))
     assert x.children == ["1", "2", span("3"), "4"]
 
-    x = tag_list(1, tag_list(2, tag_list(span(3), 4)))
+    x = TagList(1, TagList(2, TagList(span(3), 4)))
     assert x.children == ["1", "2", span("3"), "4"]
 
 
@@ -190,6 +190,6 @@ def test_attr_vals(snapshot):
         "float": 1.2,
         "date": datetime.date(1999, 1, 2),
     }
-    test = tag_list(div(**attrs), div(class_="foo").add_class("bar"))
+    test = TagList(div(**attrs), div(class_="foo").add_class("bar"))
 
     snapshot.assert_match(str(test), "attr_vals.txt")

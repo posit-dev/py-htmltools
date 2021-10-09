@@ -9,7 +9,7 @@ def test_dep_resolution(snapshot):
     b1_0_0 = html_dependency("b", "1.0.0", {"href": "/"}, script="b1.js")
     b1_0_1 = html_dependency("b", "1.0.1", {"href": "/"}, script="b2.js")
     c1_0 = html_dependency("c", "1.0", {"href": "/"}, script="c1.js")
-    test = tag_list(*[a1_1, b1_0_0, b1_0_1, a1_2, a1_2_1, b1_0_0, b1_0_1, c1_0])
+    test = TagList(*[a1_1, b1_0_0, b1_0_1, a1_2, a1_2_1, b1_0_0, b1_0_1, c1_0])
     snapshot.assert_match(html_document(test).render()["html"], "dep_resolution.txt")
 
 
@@ -18,10 +18,10 @@ def test_inline_deps(snapshot):
     a1_1 = html_dependency("a", "1.1", {"href": "/"}, script="a1.js")
     a1_2 = html_dependency("a", "1.2", {"href": "/"}, script="a2.js")
     tests = [
-        tag_list(a1_1, div("foo"), "bar"),
-        tag_list(a1_1, div("foo"), a1_2, "bar"),
+        TagList(a1_1, div("foo"), "bar"),
+        TagList(a1_1, div("foo"), a1_2, "bar"),
         div(a1_1, div("foo"), "bar"),
-        tag_list([a1_1, div("foo")], "bar"),
+        TagList([a1_1, div("foo")], "bar"),
         div([a1_1, div("foo")], "bar"),
     ]
     html_ = "\n\n".join([html_document(t).render()["html"] for t in tests])
@@ -55,6 +55,6 @@ def test_script_input(snapshot):
     )
     assert dep1 == dep2 == dep3
     # Make sure repeated calls to as_html() repeatedly encode
-    test = tag_list([dep1, dep2, dep3])
+    test = TagList([dep1, dep2, dep3])
     for i in range(2):
         snapshot.assert_match(html_document(test).render()["html"], "script_input.txt")
