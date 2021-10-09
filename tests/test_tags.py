@@ -34,7 +34,7 @@ def test_basic_tag_api(snapshot):
 
 
 def test_tag_shallow_copy():
-    dep = html_dependency("a", "1.1", {"href": "/"}, script="a1.js")
+    dep = HTMLDependency("a", "1.1", {"href": "/"}, script="a1.js")
     x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
     y = copy.copy(x)
     y.children[0].children[0] = "HELLO"
@@ -55,7 +55,7 @@ def test_tag_shallow_copy():
     assert x.children[1] is not y.children[1]
     assert x.children[1] == "world"
     assert x.children[1] is not y.children[1]
-    # An html_dependency is mutable, so it is modified in place.
+    # An HTMLDependency is mutable, so it is modified in place.
     assert x.children[2].name == "A"
     assert y.children[2].name == "A"
     assert x.children[2] is y.children[2]
@@ -64,7 +64,7 @@ def test_tag_shallow_copy():
 def test_tagify_deep_copy():
     # Each call to .tagify() should do a shallow copy, but since it recurses, the result
     # is a deep copy.
-    dep = html_dependency("a", "1.1", {"href": "/"}, script="a1.js")
+    dep = HTMLDependency("a", "1.1", {"href": "/"}, script="a1.js")
     x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
 
     y = x.tagify()
@@ -134,7 +134,7 @@ def test_html_save(snapshot):
     snapshot.assert_match(saved_html(div()), "html_save_div")
     test_dir = os.path.dirname(__file__)
     with cwd(test_dir):
-        dep = html_dependency(
+        dep = HTMLDependency(
             "foo", "1.0", "assets", stylesheet="css/my-styles.css", script="js/my-js.js"
         )
         snapshot.assert_match(saved_html(div("foo", dep)), "html_save_dep")

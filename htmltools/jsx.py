@@ -1,6 +1,6 @@
 from typing import Callable, List, Dict, Union, Optional, Any
 
-from .core import TagAttrArg, Tag, TagChild, TagChildArg, html, html_dependency
+from .core import TagAttrArg, Tag, TagChild, TagChildArg, html, HTMLDependency
 
 from .versions import versions
 from .util import _normalize_attr_name  # type: ignore
@@ -79,7 +79,7 @@ class JsxTag(Tag):
 def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
     indent_str = "  " * indent
 
-    if isinstance(x, html_dependency):
+    if isinstance(x, HTMLDependency):
         raise RuntimeError("Shouldn't get here")
     elif isinstance(x, str):
         return indent_str + '"' + x.replace('"', '\\"') + '"'
@@ -94,7 +94,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
         raise TypeError("x must be a tag or JsxTag object. Did you run tagify()?")
 
     attrs = _get_jsx_attrs(x) if isinstance(x, JsxTag) else _get_html_attrs(x)
-    children = [child for child in x.children if not isinstance(child, html_dependency)]
+    children = [child for child in x.children if not isinstance(child, HTMLDependency)]
 
     if len(attrs) == 0 and len(children) == 0:
         return res + nm + ")"
@@ -217,7 +217,7 @@ class jsx(str):
         return jsx(res) if isinstance(other, jsx) else res
 
 
-def _lib_dependency(pkg: str, **kwargs: object) -> html_dependency:
-    return html_dependency(
+def _lib_dependency(pkg: str, **kwargs: object) -> HTMLDependency:
+    return HTMLDependency(
         name=pkg, version=versions[pkg], package="htmltools", src="lib/" + pkg, **kwargs
     )

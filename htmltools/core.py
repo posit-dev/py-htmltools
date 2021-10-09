@@ -42,7 +42,7 @@ __all__ = (
     "Tag",
     "html_document",
     "html",
-    "html_dependency",
+    "HTMLDependency",
     "TagAttrArg",
     "TagChildArg",
     "TagChild",
@@ -50,7 +50,7 @@ __all__ = (
 
 
 class RenderedHTML(TypedDict):
-    dependencies: List["html_dependency"]
+    dependencies: List["HTMLDependency"]
     html: str
 
 
@@ -63,7 +63,7 @@ TagListT = TypeVar("TagListT", bound="TagList")
 TagT = TypeVar("TagT", bound="Tag")
 
 # Types of objects that can be a child of a tag.
-TagChild = Union["Tagifiable", "Tag", "html_dependency", str]
+TagChild = Union["Tagifiable", "Tag", "HTMLDependency", str]
 
 # Types that can be passed as args to TagList() and tag functions.
 TagChildArg = Union[TagChild, "TagContainer", int, float, None, List["TagChildArg"]]
@@ -74,7 +74,7 @@ TagAttrArg = Union[str, int, float, date, datetime, bool, None]
 # A duck type: objects with tagify() methods are considered Tagifiable.
 @runtime_checkable
 class Tagifiable(Protocol):
-    def tagify(self) -> Union["TagContainer", "html_dependency", str]:
+    def tagify(self) -> Union["TagContainer", "HTMLDependency", str]:
         ...
 
 
@@ -121,7 +121,7 @@ class TagContainer(ABC):
         ...
 
     @abstractmethod
-    def get_dependencies(self) -> List["html_dependency"]:
+    def get_dependencies(self) -> List["HTMLDependency"]:
         ...
 
 
@@ -189,7 +189,7 @@ class TagList(TagContainer):
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         return _tag_container_get_children_html_string(self, indent, eol)
 
-    def get_dependencies(self) -> List["html_dependency"]:
+    def get_dependencies(self) -> List["HTMLDependency"]:
         return _tag_container_get_dependencies(self)
 
     def show(self, renderer: str = "auto") -> Any:
@@ -220,7 +220,7 @@ def _tag_container_tagify(self: TagContainerT) -> TagContainerT:
     for i, child in enumerate(cp.children):
         if isinstance(child, Tagifiable):
             cp.children[i] = child.tagify()
-        elif isinstance(child, html_dependency):
+        elif isinstance(child, HTMLDependency):
             cp.children[i] = copy(child)
     return cp
 
@@ -253,7 +253,7 @@ def _tag_container_get_children_html_string(
     for i, x in enumerate(self.children):
         if isinstance(x, Tag):
             html_ += x.get_html_string(indent, eol)  # type: ignore
-        elif isinstance(x, html_dependency):
+        elif isinstance(x, HTMLDependency):
             continue
         elif isinstance(x, Tagifiable):
             raise RuntimeError(
@@ -300,16 +300,16 @@ def _tag_container_show(self: TagContainer, renderer: str = "auto") -> Any:
     raise Exception(f"Unknown renderer {renderer}")
 
 
-def _tag_container_get_dependencies(self: TagContainer) -> List["html_dependency"]:
-    deps: List[html_dependency] = []
+def _tag_container_get_dependencies(self: TagContainer) -> List["HTMLDependency"]:
+    deps: List[HTMLDependency] = []
     for x in self.children:
-        if isinstance(x, html_dependency):
+        if isinstance(x, HTMLDependency):
             deps.append(x)
         elif isinstance(x, Tag):
             deps.extend(x.get_dependencies())
 
     unames = unique([d.name for d in deps])
-    resolved: List[html_dependency] = []
+    resolved: List[HTMLDependency] = []
     for nm in unames:
         latest = max([d.version for d in deps if d.name == nm])
         deps_ = [d for d in deps if d.name == nm]
@@ -441,7 +441,7 @@ class Tag(TagContainer):
         return self
 
     def has_attr(self, key: str) -> bool:
-        return key in self.attrs
+        return _normalize_attr_name(key) in self.attrs
 
     def has_class(self, class_: str) -> bool:
         attr = self.attrs.get("class", None)
@@ -476,7 +476,7 @@ class Tag(TagContainer):
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output
-        children = [x for x in self.children if not isinstance(x, html_dependency)]
+        children = [x for x in self.children if not isinstance(x, HTMLDependency)]
 
         # Don't enclose JSX/void elements if there are no children
         if len(children) == 0 and self._is_void:
@@ -498,7 +498,7 @@ class Tag(TagContainer):
         html_ += _tag_container_get_children_html_string(self, indent + 1, eol)
         return html(html_ + eol + indent_str + close)
 
-    def get_dependencies(self) -> List["html_dependency"]:
+    def get_dependencies(self) -> List["HTMLDependency"]:
         return _tag_container_get_dependencies(self)
 
     def __str__(self) -> str:
@@ -539,7 +539,7 @@ class html_document(Tag):
         self.append(head, body)
 
     def render(self) -> RenderedHTML:
-        deps: List[html_dependency] = self.get_dependencies()
+        deps: List[HTMLDependency] = self.get_dependencies()
 
         child0_children: List[TagChild] = []
         if isinstance(self.children[0], Tag):
@@ -563,7 +563,7 @@ class html_document(Tag):
         libdir = os.path.join(dir, libdir)
 
         def copy_dep(d: TagChild) -> TagChild:
-            if isinstance(d, html_dependency):
+            if isinstance(d, HTMLDependency):
                 d = d.copy_to(libdir, False)
                 d = d.make_relative(dir, False)
             return d
@@ -602,15 +602,15 @@ class html(str):
 
 
 # =============================================================================
-# html dependencies
+# HTML dependencies
 # =============================================================================
-class html_dependency:
+class HTMLDependency:
     """
     Create an HTML dependency.
 
     Example:
     -------
-    >>> x = div("foo", html_dependency(name = "bar", version = "1.0", src = ".", script = "lib/bar.js"))
+    >>> x = div("foo", HTMLDependency(name = "bar", version = "1.0", src = ".", script = "lib/bar.js"))
     >>> x.render()
     """
 
@@ -646,7 +646,7 @@ class html_dependency:
     # it)?
     # https://github.com/search?l=r&q=%22hrefFilter%22+user%3Acran+language%3AR&ref=searchresults&type=Code&utf8=%E2%9C%93
     #
-    # This method is used to get an HTML tag representation of the html_dependency
+    # This method is used to get an HTML tag representation of the HTMLDependency
     # object. It is _not_ used by `tagify()`; instead, it's used when generating HEAD
     # content for HTML.
     def as_html_tags(
@@ -679,7 +679,7 @@ class html_dependency:
         head = html(self.head) if self.head else None
         return TagList(*metas, *links, *scripts, head)
 
-    def copy_to(self, path: str, must_work: bool = True) -> "html_dependency":
+    def copy_to(self, path: str, must_work: bool = True) -> "HTMLDependency":
         src = self.src["file"]
         version = str(self.version)
         if not src:
@@ -724,9 +724,9 @@ class html_dependency:
         # return a new instance of this class with the new path
         kwargs = deepcopy(self.__dict__)
         kwargs["src"]["file"] = str(Path(target).resolve())
-        return html_dependency(**kwargs)
+        return HTMLDependency(**kwargs)
 
-    def make_relative(self, path: str, must_work: bool = True) -> "html_dependency":
+    def make_relative(self, path: str, must_work: bool = True) -> "HTMLDependency":
         src = self.src["file"]
         if not src:
             if must_work:
@@ -744,7 +744,7 @@ class html_dependency:
 
         kwargs = deepcopy(self.__dict__)
         kwargs["src"]["file"] = str(src.relative_to(Path(path).resolve()))
-        return html_dependency(**kwargs)
+        return HTMLDependency(**kwargs)
 
     def _as_dicts(self, val: Any, attr: str) -> List[Dict[str, str]]:
         if val is None:
@@ -758,7 +758,7 @@ class html_dependency:
         )
 
     def __repr__(self):
-        return f'<html_dependency "{self.name}@{self.version}">'
+        return f'<HTMLDependency "{self.name}@{self.version}">'
 
     def __str__(self):
         return str(self.as_html_tags())
