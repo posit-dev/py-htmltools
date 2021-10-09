@@ -139,7 +139,7 @@ def test_html_save(snapshot):
         )
         snapshot.assert_match(saved_html(div("foo", dep)), "html_save_dep")
         desc = tags.meta(name="description", content="test")
-        doc = html_document(div("foo", dep), desc, lang="en")
+        doc = HTMLDocument(div("foo", dep), desc, lang="en")
         snapshot.assert_match(saved_html(doc), "html_save_doc")
 
 

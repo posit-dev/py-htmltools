@@ -40,7 +40,7 @@ __all__ = (
     "TagContainer",
     "TagList",
     "Tag",
-    "html_document",
+    "HTMLDocument",
     "html",
     "HTMLDependency",
     "TagAttrArg",
@@ -325,7 +325,7 @@ def _tag_container_render(self: TagContainer) -> RenderedHTML:
 
 
 def _tag_container_save_html(self: TagContainer, file: str, libdir: str = "lib") -> str:
-    return html_document(self).save_html(file, libdir)
+    return HTMLDocument(self).save_html(file, libdir)
 
 
 # =============================================================================
@@ -511,16 +511,16 @@ class Tag(TagContainer):
         return tag_repr_impl(self.name, self.attrs, self.children)
 
 
-# --------------------------------------------------------
+# =============================================================================
 # Document class
-# --------------------------------------------------------
-class html_document(Tag):
+# =============================================================================
+class HTMLDocument(Tag):
     """
     Create an HTML document.
 
     Examples:
     ---------
-        >>> print(html_document(h1("Hello"), tags.meta(name="description", content="test"), lang = "en"))
+        >>> print(HTMLDocument(h1("Hello"), tags.meta(name="description", content="test"), lang = "en"))
     """
 
     def __init__(
@@ -577,7 +577,7 @@ class html_document(Tag):
 
 
 # =============================================================================
-# html strings
+# HTML strings
 # =============================================================================
 class html(str):
     """
