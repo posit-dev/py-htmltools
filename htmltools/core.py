@@ -61,7 +61,7 @@ TagT = TypeVar("TagT", bound="Tag")
 TagChild = Union["Tagifiable", "Tag", "HTMLDependency", str]
 
 # Types that can be passed as args to TagList() and tag functions.
-TagChildArg = Union[TagChild, "TagList", int, float, None, List["TagChildArg"]]
+TagChildArg = Union[TagChild, "TagList", int, float, None, Iterable["TagChildArg"]]
 
 # Types that can be passed in as attributes to tag functions.
 TagAttrArg = Union[str, int, float, date, datetime, bool, None]
