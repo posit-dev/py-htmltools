@@ -143,23 +143,28 @@ class TagList(List[TagChild]):
                 html_ += eol
         return html(html_)
 
-    def get_dependencies(self) -> List["HTMLDependency"]:
+    def get_dependencies(self, *, dedup: bool = True) -> List["HTMLDependency"]:
         deps: List[HTMLDependency] = []
         for x in self:
             if isinstance(x, HTMLDependency):
                 deps.append(x)
             elif isinstance(x, Tag):
-                deps.extend(x.get_dependencies())
+                # When we recurse, don't deduplicate at every node. We only need to do
+                # that once, at the top level.
+                deps.extend(x.get_dependencies(dedup=False))
 
-        unames = unique([d.name for d in deps])
-        resolved: List[HTMLDependency] = []
-        for nm in unames:
-            latest = max([d.version for d in deps if d.name == nm])
-            deps_ = [d for d in deps if d.name == nm]
-            for d in deps_:
-                if d.version == latest and d not in resolved:
-                    resolved.append(d)
-        return resolved
+        if dedup:
+            unames = unique([d.name for d in deps])
+            resolved: List[HTMLDependency] = []
+            for nm in unames:
+                latest = max([d.version for d in deps if d.name == nm])
+                deps_ = [d for d in deps if d.name == nm]
+                for d in deps_:
+                    if d.version == latest and d not in resolved:
+                        resolved.append(d)
+            return resolved
+        else:
+            return deps
 
     def show(self, renderer: str = "auto") -> Any:
         _tag_show(self, renderer)
@@ -344,8 +349,8 @@ class Tag:
     def save_html(self, file: str, libdir: str = "lib") -> str:
         return HTMLDocument(self).save_html(file, libdir)
 
-    def get_dependencies(self) -> List["HTMLDependency"]:
-        return self.children.get_dependencies()
+    def get_dependencies(self, dedup: bool = True) -> List["HTMLDependency"]:
+        return self.children.get_dependencies(dedup=dedup)
 
     def show(self, renderer: str = "auto") -> Any:
         _tag_show(self, renderer)
