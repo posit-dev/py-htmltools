@@ -11,6 +11,7 @@ from typing import (
     Hashable,
     Dict,
     Optional,
+    Iterable,
 )
 
 from contextlib import contextmanager, closing
@@ -37,6 +38,25 @@ def css(collapse_: str = "", **kwargs: Union[str, float, None]) -> Optional[str]
             v += " !important"
         res += k + ":" + v + ";" + collapse_
     return None if res == "" else res
+
+
+# Flatten a arbitrarily nested list and remove None. Does not alter input object.
+def _flatten(x: Iterable[Union[T, None]]) -> List[T]:
+    result: List[T] = []
+    _flatten_recurse(x, result)  # type: ignore
+    return result
+
+
+# Having this separate function and passing along `result` is faster than defining
+# a closure inside of `flatten()` (and not passing `result`).
+def _flatten_recurse(x: Iterable[Union[T, None]], result: List[T]) -> None:
+    for item in x:
+        if isinstance(item, (list, tuple)):
+            # Don't yet know how to specify recursive generic types, so we'll tell
+            # the type checker to ignore this line.
+            _flatten_recurse(item, result)  # type: ignore
+        elif item is not None:
+            result.append(item)
 
 
 # similar to unique() in R (set() doesn't preserve order)

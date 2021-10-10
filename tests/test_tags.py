@@ -2,11 +2,12 @@ import os
 import copy
 from tempfile import TemporaryDirectory
 
+from typing import Union, Any
 from htmltools import *
 from htmltools.util import cwd
 
 
-def expect_html(x: TagContainer, expected: str):
+def expect_html(x: Any, expected: str):
     assert str(x) == expected
 
 
@@ -172,10 +173,10 @@ def test_tag_walk():
 
 def test_tag_list_flatten():
     x = div(1, TagList(2, TagList(span(3), 4)))
-    assert x.children == ["1", "2", span("3"), "4"]
+    assert list(x.children) == ["1", "2", span("3"), "4"]
 
     x = TagList(1, TagList(2, TagList(span(3), 4)))
-    assert x.children == ["1", "2", span("3"), "4"]
+    assert list(x) == ["1", "2", span("3"), "4"]
 
 
 def test_attr_vals(snapshot):

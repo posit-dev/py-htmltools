@@ -46,7 +46,7 @@ class JsxTag(Tag):
 
     def append(self, *args: TagChildArg, **kwargs: JsxTagAttrArg) -> None:
         if args:
-            self.extend(args)
+            self.children.extend(args)
         for k, v in kwargs.items():
             k_ = _normalize_attr_name(k)
             if not self.jsx_attrs.get(k_):
