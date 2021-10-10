@@ -45,6 +45,7 @@ __all__ = (
     "TagAttrArg",
     "TagChildArg",
     "TagChild",
+    "TagFunction",
 )
 
 
@@ -66,10 +67,23 @@ TagChildArg = Union[TagChild, "TagList", int, float, None, Iterable["TagChildArg
 # Types that can be passed in as attributes to tag functions.
 TagAttrArg = Union[str, int, float, date, datetime, bool, None]
 
-# A duck type: objects with tagify() methods are considered Tagifiable.
+
+# Objects with tagify() methods are considered Tagifiable.
 @runtime_checkable
 class Tagifiable(Protocol):
     def tagify(self) -> Union["Tag", "HTMLDependency", str]:
+        ...
+
+
+# Tag functions, like div(), span(), etc.
+@runtime_checkable
+class TagFunction(Protocol):
+    def __call__(
+        self,
+        *args: TagChildArg,
+        children: Optional[List[TagChildArg]] = None,
+        **kwargs: TagAttrArg,
+    ) -> "Tag":
         ...
 
 
