@@ -363,6 +363,10 @@ class Tag:
         html_ += self.children.get_html_string(indent + 1, eol)
         return html(html_ + eol + indent_str + close)
 
+    def render(self) -> RenderedHTML:
+        deps = self.get_dependencies()
+        return {"dependencies": deps, "html": self.get_html_string()}
+
     def save_html(self, file: str, libdir: str = "lib") -> str:
         return HTMLDocument(self).save_html(file, libdir)
 
