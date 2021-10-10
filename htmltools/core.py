@@ -262,6 +262,9 @@ class Tag:
     def append(self, *args: TagChildArg) -> None:
         self.children.append(*args)
 
+    def get_attr(self, key: str) -> Optional[str]:
+        return self.attrs.get(key)
+
     def set_attr(self, **kwargs: TagAttrArg) -> None:
         for key, val in kwargs.items():
             if val is None or val is False:
@@ -278,15 +281,15 @@ class Tag:
             key = _normalize_attr_name(key)
             self.attrs[key] = val
 
+    def has_attr(self, key: str) -> bool:
+        return _normalize_attr_name(key) in self.attrs
+
     def add_class(self, x: str) -> "Tag":
         if "class" in self.attrs:
             self.attrs["class"] += " " + x
         else:
             self.attrs["class"] = x
         return self
-
-    def has_attr(self, key: str) -> bool:
-        return _normalize_attr_name(key) in self.attrs
 
     def has_class(self, class_: str) -> bool:
         attr = self.attrs.get("class", None)
