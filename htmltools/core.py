@@ -317,7 +317,7 @@ class Tag:
         indent_str = "  " * indent
         html_ = indent_str + "<" + self.name
 
-        # write attributes (boolean attributes should be empty strings)
+        # Write attributes
         for key, val in self.attrs.items():
             if not isinstance(val, html):
                 val = _html_escape(val)
