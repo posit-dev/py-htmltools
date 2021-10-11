@@ -1,6 +1,15 @@
-from typing import Callable, List, Dict, Union, Optional, Any
+from typing import Callable, Iterable, List, Dict, Union, Optional, Any
 
-from .core import TagAttrArg, Tag, TagChild, TagChildArg, html, HTMLDependency
+from .core import (
+    TagList,
+    TagAttrArg,
+    Tag,
+    TagChild,
+    TagChildArg,
+    Tagifiable,
+    html,
+    HTMLDependency,
+)
 
 from .versions import versions
 from .util import _normalize_attr_name  # type: ignore
@@ -9,14 +18,12 @@ __all__ = (
     "jsx",
     "jsx_tag",
     "JsxTagAttrArg",
-    "JsxTagAttrArgs",
 )
 
 JsxTagAttrArg = Union[TagAttrArg, Tag, Dict[str, Any]]
-JsxTagAttrArgs = Dict[str, List[JsxTagAttrArg]]
 
 
-class JsxTag(Tag):
+class JsxTag:
     def __init__(
         self,
         _name: str,
@@ -30,30 +37,47 @@ class JsxTag(Tag):
                 if k not in allowedProps:
                     raise NotImplementedError(f"{k} is not a valid prop for {_name}")
 
-        super().__init__(_name, *args, children=children)
+        self.children: TagList = TagList()
+        self.name: str = _name
+        # Unlike HTML tags, JSX tag attributes can be anything.
+        self.attrs: Dict[str, object] = {}
 
-        # JSX attrs can be full-on JSON objects whereas html attrs
-        # always get encoded as string, so use a different property to hold them
-        self.jsx_attrs: JsxTagAttrArgs = {}
+        self.children.extend(args)
+        if children:
+            self.children.extend(children)
 
-        # Add these html dependencies to the end, to reduce possible confusion when
-        # users index into the children.
-        self.append(
-            _lib_dependency("react", script="react.production.min.js"),
-            _lib_dependency("react-dom", script="react-dom.production.min.js"),
-            **kwargs,
-        )
+        # self.set_attr(**kwargs)
+        self.attrs.update(kwargs)
 
-    def append(self, *args: TagChildArg, **kwargs: JsxTagAttrArg) -> None:
-        if args:
-            self.children.extend(args)
-        for k, v in kwargs.items():
-            k_ = _normalize_attr_name(k)
-            if not self.jsx_attrs.get(k_):
-                self.jsx_attrs[k_] = []
-            self.jsx_attrs[k_].append(v)
+    def extend(self, x: Iterable[TagChildArg]) -> None:
+        self.children.extend(x)
 
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
+    def append(self, *args: TagChildArg) -> None:
+        self.children.append(*args)
+
+    def get_attr(self, key: str) -> Any:
+        return self.attrs.get(key)
+
+    def set_attr(self, **kwargs: TagAttrArg) -> None:
+        for key, val in kwargs.items():
+            if val is None or val is False:
+                continue
+            elif val is True:
+                val = ""
+            elif isinstance(val, html):
+                # If it's html, make sure not to call str() on it, because we want to
+                # preserve the html class wrapper.
+                pass
+            else:
+                val = str(val)
+
+            key = _normalize_attr_name(key)
+            self.attrs[key] = val
+
+    def has_attr(self, key: str) -> bool:
+        return _normalize_attr_name(key) in self.attrs
+
+    def tagify(self) -> Tag:
         # When ._get_html_string()  is called on a JsxTag object, we'll recurse, but
         # instead of calling the standard tag._get_html_string() method to format the
         # object, we'll recurse using _get_react_html_string(), which descends into the
@@ -63,17 +87,23 @@ class JsxTag(Tag):
                 "(function() {",
                 "  var container = new DocumentFragment();",
                 "  ReactDOM.render(",
-                _get_react_js(self, 2, eol),
+                _get_react_js(self, 2, "\n"),
                 "  , container);",
                 "  document.currentScript.after(container);",
                 "})();",
             ]
         )
-        html_ = Tag(
-            "script", type="text/javascript", children=[html("\n" + js + "\n")]
-        ).get_html_string(indent=indent)
+        # TODO: Need to recurse into the JSX tag's children and tagify them as well.
 
-        return html_
+        return Tag(
+            "script",
+            type="text/javascript",
+            children=[
+                html("\n" + js + "\n"),
+                _lib_dependency("react", script="react.production.min.js"),
+                _lib_dependency("react-dom", script="react-dom.production.min.js"),
+            ],
+        )
 
 
 def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
@@ -93,7 +123,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
     else:
         raise TypeError("x must be a tag or JsxTag object. Did you run tagify()?")
 
-    attrs = _get_jsx_attrs(x) if isinstance(x, JsxTag) else _get_html_attrs(x)
+    attrs = x.attrs
     children = [child for child in x.children if not isinstance(child, HTMLDependency)]
 
     if len(attrs) == 0 and len(children) == 0:
@@ -116,6 +146,8 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
         return res + ")"
 
     for child in children:
+        if not isinstance(child, JsxTag) and isinstance(child, Tagifiable):
+            child = child.tagify()
         res += "," + eol
         res += _get_react_js(child, indent + 1, eol)
 
