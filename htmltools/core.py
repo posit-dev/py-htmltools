@@ -270,6 +270,9 @@ class Tag:
         cp.__dict__.update(new_dict)
         return cp
 
+    def insert(self, index: SupportsIndex, x: TagChildArg) -> None:
+        self.children.insert(index, x)
+
     def extend(self, x: Iterable[TagChildArg]) -> None:
         self.children.extend(x)
 
@@ -389,7 +392,7 @@ class Tag:
 # =============================================================================
 # Document class
 # =============================================================================
-class HTMLDocument(Tag):
+class HTMLDocument:
     """
     Create an HTML document.
 
@@ -400,31 +403,28 @@ class HTMLDocument(Tag):
 
     def __init__(
         self,
-        body: TagChildArg,
-        head: Optional[TagChildArg] = None,
+        *args: TagChildArg,
         **kwargs: TagAttrArg,
     ) -> None:
-        super().__init__("html", **kwargs)
+        self.html: Tag
 
-        if not (isinstance(head, Tag) and head.name == "head"):
-            head = Tag("head", head)
-        if not (isinstance(body, Tag) and body.name == "body"):
-            body = Tag("body", body)
+        if len(args) == 1 and isinstance(args[0], Tag) and args[0].name == "html":
+            self.html = args[0]
+            return
 
-        self.children.append(head, body)
+        if len(args) == 1 and isinstance(args[0], Tag) and args[0].name == "body":
+            body = args[0]
+        else:
+            body = Tag("body", *args)
+
+        head = Tag("head", _extract_head_content(body))
+        self.html = Tag("html", head, body, **kwargs)
 
     def render(self) -> RenderedHTML:
-        deps: List[HTMLDependency] = self.get_dependencies()
-
-        head = copy(cast(Tag, self.children[0]))
-        head.children.insert(
-            0, [Tag("meta", charset="utf-8"), *[d.as_html_tags() for d in deps]]
-        )
-        body = self.children[1]
-        return {
-            "dependencies": deps,
-            "html": "<!DOCTYPE html>\n" + str(Tag("html", head, body)),
-        }
+        res = HTMLDocument._insert_head_content(self.html)
+        rendered = res.render()
+        rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
+        return rendered
 
     def save_html(self, file: str, libdir: str = "lib") -> str:
         # Copy dependencies to libdir (relative to the file)
@@ -437,12 +437,43 @@ class HTMLDocument(Tag):
                 d = d.make_relative(dir, False)
             return d
 
-        res = self.tagify()
+        res = self.html.tagify()
         res.walk(copy_dep)
-        res = res.render()
+        res = HTMLDocument._insert_head_content(res)
+        rendered = res.render()
+        rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
         with open(file, "w") as f:
-            f.write(res["html"])
+            f.write(rendered["html"])
         return file
+
+    @staticmethod
+    def _insert_head_content(x: Tag) -> Tag:
+        deps: List[HTMLDependency] = x.get_dependencies()
+        res = copy(x)
+        res.children[0] = copy(res.children[0])
+        head = cast(Tag, res.children[0])
+        head.insert(
+            0, [Tag("meta", charset="utf-8"), *[d.as_html_tags() for d in deps]]
+        )
+        return res
+
+
+# Given a Tag object, extract content that is inside of <head> tags, and return it in a
+# TagList.
+def _extract_head_content(x: Tag) -> TagList:
+    head_content: TagList = TagList()
+
+    # Given a TagChild, remove all <head> tags, recursively.
+    def remove_head_content(item: TagChild) -> TagChild:
+        if isinstance(item, Tag):
+            for i, child in enumerate(item.children):
+                if isinstance(child, Tag) and child.name == "head":
+                    head_content.append(child)
+                    item.children.pop(i)
+        return item
+
+    x.walk(remove_head_content)
+    return head_content
 
 
 # =============================================================================

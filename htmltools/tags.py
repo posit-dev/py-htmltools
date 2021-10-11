@@ -5,7 +5,7 @@ from typing import Optional, List
 
 from .core import Tag, TagChildArg, TagAttrArg
 
-__all__ = [
+__all__ = (
     'p',
     'h1',
     'h2',
@@ -23,7 +23,9 @@ __all__ = [
     'strong',
     'em',
     'hr',
-]
+)
+
+
 def a(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     return Tag('a', *args, children=children, **kwargs)
 
@@ -311,6 +313,9 @@ def hatch(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
 
 def hatchpath(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     return Tag('hatchpath', *args, children=children, **kwargs)
+
+def head(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+    return Tag('head', *args, children=children, **kwargs)
 
 def header(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     return Tag('header', *args, children=children, **kwargs)
