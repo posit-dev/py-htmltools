@@ -1,2 +1,0 @@
-<div true="" str="a" int="1" float="1.2" date="1999-01-02"></div>
-<div class="foo bar"></div>
