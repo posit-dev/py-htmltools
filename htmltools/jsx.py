@@ -10,17 +10,12 @@ from .core import (
     html,
     HTMLDependency,
 )
-
 from .versions import versions
-from .util import _normalize_attr_name  # type: ignore
 
 __all__ = (
     "jsx",
     "jsx_tag",
-    "JsxTagAttrArg",
 )
-
-JsxTagAttrArg = Union[TagAttrArg, Tag, Dict[str, Any]]
 
 
 class JsxTag:
@@ -30,7 +25,7 @@ class JsxTag:
         *args: TagChildArg,
         allowedProps: Optional[List[str]] = None,
         children: Optional[List[TagChildArg]] = None,
-        **kwargs: TagAttrArg,
+        **kwargs: object,
     ) -> None:
         if allowedProps:
             for k in kwargs.keys():
@@ -57,24 +52,13 @@ class JsxTag:
     def get_attr(self, key: str) -> Any:
         return self.attrs.get(key)
 
-    def set_attr(self, **kwargs: TagAttrArg) -> None:
+    def set_attr(self, **kwargs: object) -> None:
         for key, val in kwargs.items():
-            if val is None or val is False:
-                continue
-            elif val is True:
-                val = ""
-            elif isinstance(val, html):
-                # If it's html, make sure not to call str() on it, because we want to
-                # preserve the html class wrapper.
-                pass
-            else:
-                val = str(val)
-
-            key = _normalize_attr_name(key)
+            key = _normalize_jsx_attr_name(key)
             self.attrs[key] = val
 
     def has_attr(self, key: str) -> bool:
-        return _normalize_attr_name(key) in self.attrs
+        return _normalize_jsx_attr_name(key) in self.attrs
 
     def tagify(self) -> Tag:
         # When ._get_html_string()  is called on a JsxTag object, we'll recurse, but
@@ -92,7 +76,6 @@ class JsxTag:
                 "})();",
             ]
         )
-        # TODO: Need to recurse into the JSX tag's children and tagify them as well.
 
         return Tag(
             "script",
@@ -139,16 +122,19 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
         if not is_first_attr:
             res += ", "
         is_first_attr = False
-
-        v_ = v.replace(eol, "")
-        res += f'"{k}": {v_}'
+        v = _serialize_attr(v)
+        res += f'"{k}": {v}'
     res += "}"
 
     if len(children) == 0:
         return res + ")"
 
     for child in children:
-        if not isinstance(child, JsxTag) and isinstance(child, Tagifiable):
+        if not (isinstance(child, Tag) or isinstance(child, JsxTag)) and isinstance(
+            child, Tagifiable
+        ):
+            # This is for unknown Tagifiable objects (not Tag or JsxTag). One potential
+            # issue is that if `child` becomes a
             child = child.tagify()
         res += "," + eol
         res += _get_react_js(child, indent + 1, eol)
@@ -156,29 +142,12 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
     return res + eol + indent_str + ")"
 
 
-def _get_jsx_attrs(x: JsxTag) -> Dict[str, str]:
-    res: Dict[str, str] = {}
-    for key, vals in x.jsx_attrs.items():
-        func = _serialize_style_attr if key == "style" else _serialize_attr
-        valz = [func(v) for v in vals]
-        res[key] = valz[0] if len(valz) == 1 else "[" + ", ".join(valz) + "]"
-    return res
-
-
-def _get_html_attrs(x: Tag) -> Dict[str, str]:
-    res: Dict[str, str] = {}
-    for key, val in x.attrs.items():
-        func = _serialize_style_attr if key == "style" else _serialize_attr
-        res[key] = func(val)
-    return res
-
-
 # Unfortunately we can't use json.dumps() here because I don't know how to
 # avoid quoting jsx(), jsx_tag(), tag(), etc.
-def _serialize_attr(x: JsxTagAttrArg) -> str:
+def _serialize_attr(x: object) -> str:
     if x is None:
         return "null"
-    if isinstance(x, Tag):
+    if isinstance(x, Tag) or isinstance(x, JsxTag):
         return _get_react_js(x)
     if isinstance(x, (list, tuple)):
         return "[" + ", ".join([_serialize_attr(y) for y in x]) + "]"
@@ -191,7 +160,7 @@ def _serialize_attr(x: JsxTagAttrArg) -> str:
     return '"' + str(x).replace('"', '\\"') + '"'
 
 
-def _serialize_style_attr(x: JsxTagAttrArg) -> str:
+def _serialize_style_attr(x: object) -> str:
     styles: Dict[str, str] = {}
     vals = x if isinstance(x, list) else [x]
     for v in vals:
@@ -205,6 +174,12 @@ def _serialize_style_attr(x: JsxTagAttrArg) -> str:
                 "Invalid value for style attribute (must be a string or dictionary)"
             )
     return _serialize_attr(x)
+
+
+def _normalize_jsx_attr_name(x: str) -> str:
+    if x.endswith("_"):
+        x = x[:-1]
+    return x.replace("_", "-")
 
 
 def jsx_tag(

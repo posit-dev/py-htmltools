@@ -1,16 +1,14 @@
 import textwrap
 from htmltools import *
 
-"""name = "Eric"
-age = 74
-'{} is {}.'.format(name, age)'"""
-
 
 def test_jsx_tags():
     Foo = jsx_tag("Foo")
+    Bar = jsx_tag("Bar")
     deps = Foo().tagify().get_dependencies()
     react_ver = [str(d.version) for d in deps if d.name == "react"][0]
     react_dom_ver = [str(d.version) for d in deps if d.name == "react-dom"][0]
+
     assert HTMLDocument(Foo()).render()["html"] == textwrap.dedent(
         """\
         <!DOCTYPE html>
@@ -35,7 +33,6 @@ def test_jsx_tags():
         % (react_ver, react_dom_ver)
     )
 
-    Bar = jsx_tag("Bar")
     # Only the "top-level" tag gets wrapped in <script> tags
     assert HTMLDocument(Foo(Bar())).render()["html"] == textwrap.dedent(
         """\
@@ -71,16 +68,90 @@ def test_jsx_tags():
         Foo(),
         [Foo(), Bar()],
         TagList(Foo(), Bar()),
-        # span(Foo(span()), Bar()),
+        span(Foo(span()), Bar()),
         int=1,
         float=2.0,
         bool=True,
         None_=None,
         string="string",
         list=[1, 2, 3],
+    )
+    assert str(x) == textwrap.dedent(
+        """\
+        <script type="text/javascript">
+        (function() {
+          var container = new DocumentFragment();
+          ReactDOM.render(
+            React.createElement(
+              Foo, {"int": 1, "float": 2.0, "bool": true, "None": null, "string": "string", "list": [1, 2, 3]},
+              React.createElement('span'),
+              "childtext",
+              "`childexpression`",
+              React.createElement(Foo),
+              React.createElement(Foo),
+              React.createElement(Bar),
+              React.createElement(Foo),
+              React.createElement(Bar),
+              React.createElement(
+                'span', {},
+                React.createElement(
+                  Foo, {},
+                  React.createElement('span')
+                ),
+                React.createElement(Bar)
+              )
+            )
+          , container);
+          document.currentScript.after(container);
+        })();
+        </script>"""
+    )
+
+    x = Foo(
+        "Hello",
+        span("world"),
         dict={"a": 1, "b": 2},
         jsxTag=Bar(),
+    )
+    assert str(x) == textwrap.dedent(
+        """\
+        <script type="text/javascript">
+        (function() {
+          var container = new DocumentFragment();
+          ReactDOM.render(
+            React.createElement(
+              Foo, {"dict": {a: 1, b: 2}, "jsxTag": React.createElement(Bar)},
+              "Hello",
+              React.createElement(
+                'span', {},
+                "world"
+              )
+            )
+          , container);
+          document.currentScript.after(container);
+        })();
+        </script>"""
+    )
+
+    x = Foo(
         htmlTag=[div(), div(foo=1)],
+    )
+    assert str(x) == textwrap.dedent(
+        """\
+        <script type="text/javascript">
+        (function() {
+          var container = new DocumentFragment();
+          ReactDOM.render(
+            React.createElement(
+              Foo, {"htmlTag": [React.createElement('div'), React.createElement(
+          'div', {"foo": "1"})]})
+          , container);
+          document.currentScript.after(container);
+        })();
+        </script>"""
+    )
+
+    x = Foo(
         func=jsx("() => console.log('foo')"),
         style={"margin": "1rem"},
     )
@@ -91,15 +162,44 @@ def test_jsx_tags():
           var container = new DocumentFragment();
           ReactDOM.render(
             React.createElement(
-              Foo, {"int": 1, "float": 2.0, "bool": true, "none": null, "string": "string", "list": [1, 2, 3], "dict": {a: 1, b: 2}, "jsxtag": React.createElement(Bar), "htmltag": [React.createElement('div'), React.createElement(  'div', {"foo": "1"})], "func": () => console.log('foo'), "style": {margin: "1rem"}},
-              React.createElement('span'),
-              "childtext",
-              "`childexpression`",
-              React.createElement(Foo),
-              React.createElement(Foo),
-              React.createElement(Bar),
-              React.createElement(Foo),
-              React.createElement(Bar)
+              Foo, {"func": () => console.log('foo'), "style": {margin: "1rem"}})
+          , container);
+          document.currentScript.after(container);
+        })();
+        </script>"""
+    )
+
+
+def test_jsx_tagifiable_children():
+    # Test case where children are Tagifiable but not Tag or JsxTag objects.
+    Foo = jsx_tag("Foo")
+
+    class MyTag:
+        def tagify(self):
+            return span("Hello", Foo("world"))
+
+    x = Foo(div(MyTag()))
+    print(str(x))
+
+    str(x) == textwrap.dedent(
+        """\
+        <script type="text/javascript">
+        (function() {
+          var container = new DocumentFragment();
+          ReactDOM.render(
+            React.createElement(
+              Foo, {},
+              React.createElement(
+                'div', {},
+                React.createElement(
+                  'span', {},
+                  "Hello",
+                  React.createElement(
+                    Foo, {},
+                    "world"
+                  )
+                )
+              )
             )
           , container);
           document.currentScript.after(container);
