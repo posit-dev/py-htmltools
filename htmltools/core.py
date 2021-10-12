@@ -419,20 +419,34 @@ class HTMLDocument:
 
         body = body.tagify()
         head_content = HTMLDocument._extract_head_content(body)
-
         head = Tag("head", head_content)
         self.html = Tag("html", head, body, **kwargs)
 
-    def render(self, libdir: str = "lib") -> RenderedHTML:
+    def __copy__(self) -> "HTMLDocument":
+        cls = self.__class__
+        cp = cls.__new__(cls)
+        # Any instance fields (like .children, and _attrs for the tag subclass) are
+        # shallow-copied.
+        new_dict = {key: copy(value) for key, value in self.__dict__.items()}
+        cp.__dict__.update(new_dict)
+        return cp
+
+    def tagify(self) -> "HTMLDocument":
+        cp = copy(self)
+        cp.html = cp.html.tagify()
+        return cp
+
+    def render(self, libdir: Optional[str] = "lib") -> RenderedHTML:
         res = HTMLDocument._insert_head_content(self.html, libdir)
         rendered = res.render()
         rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
         return rendered
 
-    def save_html(self, file: str, libdir: str = "lib") -> str:
+    def save_html(self, file: str, libdir: Optional[str] = "lib") -> str:
         # Copy dependencies to libdir (relative to the file)
-        dir = str(Path(file).resolve().parent)
-        dest_libdir = os.path.join(dir, libdir)
+        dest_libdir = str(Path(file).resolve().parent)
+        if libdir:
+            dest_libdir = os.path.join(dest_libdir, libdir)
 
         res = self.html.tagify()
         for dep in res.get_dependencies():
@@ -448,7 +462,7 @@ class HTMLDocument:
     # the tree, and inserts the content from those dependencies into the <head>, such as
     # <link> and <script> tags.
     @staticmethod
-    def _insert_head_content(x: Tag, libdir: str) -> Tag:
+    def _insert_head_content(x: Tag, libdir: Optional[str]) -> Tag:
         deps: List[HTMLDependency] = x.get_dependencies()
         res = copy(x)
         res.children[0] = copy(res.children[0])
