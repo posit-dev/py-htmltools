@@ -24,8 +24,8 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import TypedDict, SupportsIndex, Protocol, runtime_checkable
 
-from packaging.version import parse as version_parse
 from packaging.version import Version
+
 
 from .util import (
     unique,
@@ -417,11 +417,14 @@ class HTMLDocument:
         else:
             body = Tag("body", *args)
 
-        head = Tag("head", _extract_head_content(body))
+        body = body.tagify()
+        head_content = HTMLDocument._extract_head_content(body)
+
+        head = Tag("head", head_content)
         self.html = Tag("html", head, body, **kwargs)
 
-    def render(self) -> RenderedHTML:
-        res = HTMLDocument._insert_head_content(self.html)
+    def render(self, libdir: str = "lib") -> RenderedHTML:
+        res = HTMLDocument._insert_head_content(self.html, libdir)
         rendered = res.render()
         rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
         return rendered
@@ -429,51 +432,53 @@ class HTMLDocument:
     def save_html(self, file: str, libdir: str = "lib") -> str:
         # Copy dependencies to libdir (relative to the file)
         dir = str(Path(file).resolve().parent)
-        libdir = os.path.join(dir, libdir)
-
-        def copy_dep(d: TagChild) -> TagChild:
-            if isinstance(d, HTMLDependency):
-                d = d.copy_to(libdir, False)
-                d = d.make_relative(dir, False)
-            return d
+        dest_libdir = os.path.join(dir, libdir)
 
         res = self.html.tagify()
-        res.walk(copy_dep)
-        res = HTMLDocument._insert_head_content(res)
+        for dep in res.get_dependencies():
+            dep.copy_to(dest_libdir)
+        res = HTMLDocument._insert_head_content(res, libdir)
         rendered = res.render()
         rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
         with open(file, "w") as f:
             f.write(rendered["html"])
         return file
 
+    # Given an <html> tag object, copies the top node, then extracts dependencies from
+    # the tree, and inserts the content from those dependencies into the <head>, such as
+    # <link> and <script> tags.
     @staticmethod
-    def _insert_head_content(x: Tag) -> Tag:
+    def _insert_head_content(x: Tag, libdir: str) -> Tag:
         deps: List[HTMLDependency] = x.get_dependencies()
         res = copy(x)
         res.children[0] = copy(res.children[0])
         head = cast(Tag, res.children[0])
         head.insert(
-            0, [Tag("meta", charset="utf-8"), *[d.as_html_tags() for d in deps]]
+            0,
+            [
+                Tag("meta", charset="utf-8"),
+                *[d.as_html_tags(libdir=libdir) for d in deps],
+            ],
         )
         return res
 
+    # Given a Tag object, extract content that is inside of <head> tags, and return it
+    # in a TagList. As a side effect, this will also remove the <head> tags from the
+    # original Tag object.
+    @staticmethod
+    def _extract_head_content(x: Tag) -> TagList:
+        head_content: TagList = TagList()
 
-# Given a Tag object, extract content that is inside of <head> tags, and return it in a
-# TagList.
-def _extract_head_content(x: Tag) -> TagList:
-    head_content: TagList = TagList()
+        def remove_head_content(item: TagChild) -> TagChild:
+            if isinstance(item, Tag):
+                for i, child in enumerate(item.children):
+                    if isinstance(child, Tag) and child.name == "head":
+                        head_content.extend(child.children)
+                        item.children.pop(i)
+            return item
 
-    # Given a TagChild, remove all <head> tags, recursively.
-    def remove_head_content(item: TagChild) -> TagChild:
-        if isinstance(item, Tag):
-            for i, child in enumerate(item.children):
-                if isinstance(child, Tag) and child.name == "head":
-                    head_content.append(child)
-                    item.children.pop(i)
-        return item
-
-    x.walk(remove_head_content)
-    return head_content
+        x.walk(remove_head_content)
+        return head_content
 
 
 # =============================================================================
@@ -514,13 +519,17 @@ class HTMLDependency:
     >>> x.render()
     """
 
+    ScriptArg = Union[str, List[str], Dict[str, str], List[Dict[str, str]]]
+
     def __init__(
         self,
         name: str,
         version: Union[str, Version],
         src: Union[str, Dict[str, str]],
-        script: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
-        stylesheet: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
+        *,
+        script: Optional[ScriptArg] = None,
+        stylesheet: Optional[Union[str, List[str]]] = None,
+        # stylesheet: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
         package: Optional[str] = None,
         all_files: bool = False,
         meta: Optional[List[Dict[str, str]]] = None,
@@ -528,131 +537,154 @@ class HTMLDependency:
     ) -> None:
         self.name: str = name
         self.version: Version = (
-            version if isinstance(version, Version) else version_parse(version)
+            Version(version) if isinstance(version, str) else version
         )
         self.src: Dict[str, str] = src if isinstance(src, dict) else {"file": src}
-        self.script: List[Dict[str, str]] = self._as_dicts(script, "src")
-        self.stylesheet: List[Dict[str, str]] = self._as_dicts(stylesheet, "href")
+        self.script: List[Dict[str, str]] = self._as_dicts(script, default_attr="src")
+        self.stylesheet: List[Dict[str, str]] = self._as_dicts(
+            stylesheet, default_attr="href"
+        )
         # Ensures a rel='stylesheet' default
-        for i, s in enumerate(self.stylesheet):
+        for s in self.stylesheet:
             if "rel" not in s:
-                self.stylesheet[i].update({"rel": "stylesheet"})
+                s.update({"rel": "stylesheet"})
         self.package: Optional[str] = package
         self.all_files: bool = all_files
         self.meta: List[Dict[str, str]] = meta if meta else []
         self.head: Optional[str] = head
 
-    # I don't think we need hrefFilter (seems rmarkdown was the only one that needed
-    # it)?
-    # https://github.com/search?l=r&q=%22hrefFilter%22+user%3Acran+language%3AR&ref=searchresults&type=Code&utf8=%E2%9C%93
-    #
-    # This method is used to get an HTML tag representation of the HTMLDependency
-    # object. It is _not_ used by `tagify()`; instead, it's used when generating HEAD
-    # content for HTML.
     def as_html_tags(
-        self, src_type: Optional[str] = None, encode_path: Callable[[str], str] = quote
+        self,
+        src_type: Optional[str] = None,
+        libdir: Optional[str] = None,
+        encode_path: Callable[[str], str] = quote,
     ) -> TagList:
-        # Prefer the first listed src type if not specified
+        # Prefer the first listed src type if not specified. Should be "href" or "src".
         if not src_type:
-            src_type = list(self.src.keys())[0]
+            src_type = list(self.src)[0]
 
-        src = self.src.get(src_type, None)
-        if not src:
+        url_dir = self.src.get(src_type, None)
+        if not url_dir:
             raise Exception(
                 f"HTML dependency {self.name}@{self.version} has no '{src_type}' definition"
             )
 
-        # Assume href is already URL encoded
-        src = encode_path(src) if src_type == "file" else src
+        # URL-encode file attribute. (If using href, assume it's already URL encoded.)
+        if src_type == "file":
+            url_dir = encode_path(url_dir)
+
+        href_prefix = os.path.join(self.name + "-" + str(self.version))
+        if libdir:
+            href_prefix = os.path.join(libdir, href_prefix)
 
         sheets = deepcopy(self.stylesheet)
         for s in sheets:
-            s.update({"href": os.path.join(src, encode_path(s["href"]))})
+            s.update({"href": os.path.join(href_prefix, encode_path(s["href"]))})
 
-        script: List[Dict[str, str]] = deepcopy(self.script)
+        script = deepcopy(self.script)
         for s in script:
-            s.update({"src": os.path.join(src, encode_path(s["src"]))})
+            s.update({"src": os.path.join(href_prefix, encode_path(s["src"]))})
 
-        metas: List[Tag] = [Tag("meta", **m) for m in self.meta]
-        links: List[Tag] = [Tag("link", **s) for s in sheets]
-        scripts: List[Tag] = [Tag("script", **s) for s in script]
+        metas = [Tag("meta", **m) for m in self.meta]
+        links = [Tag("link", **s) for s in sheets]
+        scripts = [Tag("script", **s) for s in script]
         head = html(self.head) if self.head else None
         return TagList(*metas, *links, *scripts, head)
 
-    def copy_to(self, path: str, must_work: bool = True) -> "HTMLDependency":
-        src = self.src["file"]
-        version = str(self.version)
-        if not src:
-            if must_work:
+    def copy_to(self, path: str) -> None:
+        src_file_infos = self._find_src_files()
+
+        # Set up the target directory.
+        # TODO: add option to exclude version
+        target_dir = os.path.join(path, self.name + "-" + str(self.version))
+        if os.path.exists(target_dir):
+            shutil.rmtree(target_dir)
+        Path(target_dir).mkdir(parents=True, exist_ok=True)
+
+        # Copy all the files
+        for file_info in src_file_infos:
+            src_file = file_info["filepath"]
+            if not os.path.isfile(src_file):
                 raise Exception(
-                    f"Failed to copy HTML dependency {self.name}@{version} to {path} because its local source directory doesn't exist"
+                    f"Failed to copy HTML dependency {self.name}@{str(self.version)} "
+                    + f"to {path} because {src_file} doesn't exist."
                 )
-            else:
-                return self
-        if not path or path == "/":
-            raise Exception("path cannot be empty or '/'")
+            target_file = os.path.join(target_dir, path, file_info["href"])
+            os.makedirs(os.path.dirname(target_file), exist_ok=True)
+            shutil.copy2(src_file, target_file)
+
+    # Returns an object like:
+    # [
+    #   {
+    #     "local_path": "/xyz/htmltools/lib/testdep/testdep.js",
+    #     "href": "test-0.0.1/testdep.js"
+    #   },
+    #   {
+    #     "local_path": "/xyz/htmltools/lib/testdep/testdep.css",
+    #     "href": "test-0.0.1/testdep.css"
+    #   }
+    # ]
+    def _find_src_files(self) -> List[Dict[str, str]]:
+        src_dir: str = self.src["file"]
+        version = str(self.version)
+
+        if not src_dir:
+            raise RuntimeError(
+                f"Failed to find HTML dependency {self.name}@{version} to {src_dir} "
+                + "because its local source directory doesn't exist"
+            )
 
         if self.package:
-            src = os.path.join(package_dir(self.package), src)
+            src_dir = os.path.join(package_dir(self.package), src_dir)
+        else:
+            src_dir = os.path.realpath(src_dir)
 
         # Collect all the source files
         if self.all_files:
-            src_files = list(Path(src).glob("*"))
+            src_files = list(Path(src_dir).glob("*"))
+            src_files = [str(x) for x in src_files]
         else:
-            src_files = _flatten(
-                [[s["src"] for s in self.script], [s["href"] for s in self.stylesheet]]
-            )
+            src_files = [
+                *[s["src"] for s in self.script],
+                *[s["href"] for s in self.stylesheet],
+            ]
 
-        # setup the target directory
-        # TODO: add option to exclude version
-        target = os.path.join(path, self.name + "@" + version)
-        if os.path.exists(target):
-            shutil.rmtree(target)
-        Path(target).mkdir(parents=True, exist_ok=True)
+        # For example: "htmltools-0.0.1"
+        dest_href_prefix = os.path.join(self.name + "@" + version)
 
-        # copy all the files
+        result: List[Dict[str, str]] = []
         for f in src_files:
-            src_f = os.path.join(src, f)
-            if not os.path.isfile(src_f):
-                raise Exception(
-                    f"Failed to copy HTML dependency {self.name}@{version} to {path} because {src_f} doesn't exist"
+            src_file_path = os.path.join(src_dir, f)
+            if not os.path.isfile(src_file_path):
+                raise RuntimeError(
+                    f"Failed to find HTML dependency {self.name}@{str(self.version)} "
+                    + f"because {src_file_path} doesn't exist."
                 )
-            tgt_f = os.path.join(target, f)
-            os.makedirs(os.path.dirname(tgt_f), exist_ok=True)
-            shutil.copy2(src_f, tgt_f)
 
-        # return a new instance of this class with the new path
-        kwargs = deepcopy(self.__dict__)
-        kwargs["src"]["file"] = str(Path(target).resolve())
-        return HTMLDependency(**kwargs)
-
-    def make_relative(self, path: str, must_work: bool = True) -> "HTMLDependency":
-        src = self.src["file"]
-        if not src:
-            if must_work:
-                raise Exception(
-                    f"Failed to make HTML dependency {self.name}@{self.version} files relative to {path} since a local source directory doesn't exist"
-                )
-            else:
-                return self
-
-        src = Path(src)
-        if not src.is_absolute():
-            raise Exception(
-                "Failed to make HTML dependency {self.name}@{self.version} relative because its local source directory is not already absolute (call .copy_to() before .make_relative())"
+            result.append(
+                {
+                    "filepath": src_file_path,
+                    "href": os.path.join(dest_href_prefix, f),
+                }
             )
 
-        kwargs = deepcopy(self.__dict__)
-        kwargs["src"]["file"] = str(src.relative_to(Path(path).resolve()))
-        return HTMLDependency(**kwargs)
+        return result
 
-    def _as_dicts(self, val: Any, attr: str) -> List[Dict[str, str]]:
+    def _as_dicts(
+        self, val: Optional[ScriptArg], default_attr: str
+    ) -> List[Dict[str, str]]:
+        def as_dict(x: Union[str, Dict[str, str]]) -> Dict[str, str]:
+            if isinstance(x, str):
+                return {default_attr: x}
+            else:
+                return x
+
         if val is None:
             return []
         if isinstance(val, str):
-            return [{attr: val}]
+            return [as_dict(val)]
         if isinstance(val, list):
-            return [{attr: i} if isinstance(i, str) else i for i in val]
+            return [as_dict(i) for i in val]
         raise Exception(
             f"Invalid type for {repr(val)} in HTML dependency {self.name}@{self.version}"
         )

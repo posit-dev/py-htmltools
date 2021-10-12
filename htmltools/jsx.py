@@ -46,8 +46,7 @@ class JsxTag:
         if children:
             self.children.extend(children)
 
-        # self.set_attr(**kwargs)
-        self.attrs.update(kwargs)
+        self.set_attr(**kwargs)
 
     def extend(self, x: Iterable[TagChildArg]) -> None:
         self.children.extend(x)
@@ -104,6 +103,9 @@ class JsxTag:
                 _lib_dependency("react-dom", script="react-dom.production.min.js"),
             ],
         )
+
+    def __str__(self) -> str:
+        return str(self.tagify())
 
 
 def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:

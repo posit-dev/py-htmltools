@@ -1,5 +1,16 @@
+import os
+from tempfile import TemporaryDirectory
+from typing import Union
+import textwrap
+
 from htmltools import *
-import json
+
+
+def saved_html(x: Union[Tag, HTMLDocument], libdir: str = "lib") -> str:
+    with TemporaryDirectory() as tmpdir:
+        f = os.path.join(tmpdir, "index.html")
+        x.save_html(f, libdir=libdir)
+        return open(f, "r").read()
 
 
 def test_dep_resolution(snapshot):
@@ -10,7 +21,33 @@ def test_dep_resolution(snapshot):
     b1_0_1 = HTMLDependency("b", "1.0.1", {"href": "/"}, script="b2.js")
     c1_0 = HTMLDependency("c", "1.0", {"href": "/"}, script="c1.js")
     test = TagList(*[a1_1, b1_0_0, b1_0_1, a1_2, a1_2_1, b1_0_0, b1_0_1, c1_0])
-    snapshot.assert_match(HTMLDocument(test).render()["html"], "dep_resolution.txt")
+    assert HTMLDocument(test).render()["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8"/>
+            <script src="lib/a-1.2.1/a3.js"></script>
+            <script src="lib/b-1.0.1/b2.js"></script>
+            <script src="lib/c-1.0/c1.js"></script>
+          </head>
+          <body></body>
+        </html>"""
+    )
+
+    assert HTMLDocument(test).render(libdir="libfoo")["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8"/>
+            <script src="libfoo/a-1.2.1/a3.js"></script>
+            <script src="libfoo/b-1.0.1/b2.js"></script>
+            <script src="libfoo/c-1.0/c1.js"></script>
+          </head>
+          <body></body>
+        </html>"""
+    )
 
 
 # Test out renderTags and findDependencies when tags are inline
@@ -46,7 +83,7 @@ def test_append_deps(snapshot):
 
 def test_script_input(snapshot):
     def fake_dep(**kwargs):
-        return HTMLDependency("a", "1.0", "srcpath", **kwargs)
+        return HTMLDependency("a", "1.0", src={"file": "srcpath"}, **kwargs)
 
     dep1 = fake_dep(script="js/foo bar.js", stylesheet="css/bar foo.css")
     dep2 = fake_dep(script=["js/foo bar.js"], stylesheet=["css/bar foo.css"])
@@ -57,4 +94,83 @@ def test_script_input(snapshot):
     # Make sure repeated calls to as_html() repeatedly encode
     test = TagList([dep1, dep2, dep3])
     for i in range(2):
-        snapshot.assert_match(HTMLDocument(test).render()["html"], "script_input.txt")
+        assert HTMLDocument(test).render()["html"] == textwrap.dedent(
+            """\
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <meta charset="utf-8"/>
+                <link href="lib/a-1.0/css/bar%20foo.css" rel="stylesheet"/>
+                <script src="lib/a-1.0/js/foo%20bar.js"></script>
+              </head>
+              <body></body>
+            </html>"""
+        )
+        print(HTMLDocument(test).render()["html"])
+
+
+def test_src_and_href():
+    td = HTMLDependency(
+        name="test",
+        version="0.0.1",
+        src="libtest/testdep",  # Equivalent to {"file": "libtest/testdep"}
+        package="htmltools",
+        script="testdep.js",
+        stylesheet="testdep.css",
+    )
+
+    td2 = HTMLDependency(
+        name="testdep2",
+        version="0.2.1",
+        src={"href": "libtest/dep2"},
+        package="htmltools",
+        script="td2.js",
+        stylesheet="td2.css",
+    )
+
+    doc = HTMLDocument(TagList(td))
+    assert doc.render()["html"] == saved_html(doc)
+    assert doc.render()["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8"/>
+            <link href="lib/test-0.0.1/testdep.css" rel="stylesheet"/>
+            <script src="lib/test-0.0.1/testdep.js"></script>
+          </head>
+          <body></body>
+        </html>"""
+    )
+
+    doc = HTMLDocument(TagList(td2))
+    # assert doc.render()["html"] == saved_html(doc)  # Currently errors out
+    assert doc.render()["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8"/>
+            <link href="lib/testdep2-0.2.1/td2.css" rel="stylesheet"/>
+            <script src="lib/testdep2-0.2.1/td2.js"></script>
+          </head>
+          <body></body>
+        </html>"""
+    )
+
+    doc = HTMLDocument(TagList(td, td2))
+    # assert doc.render()["html"] == saved_html(doc)  # Currently errors out
+    assert doc.render()["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8"/>
+            <link href="lib/test-0.0.1/testdep.css" rel="stylesheet"/>
+            <script src="lib/test-0.0.1/testdep.js"></script>
+            <link href="lib/testdep2-0.2.1/td2.css" rel="stylesheet"/>
+            <script src="lib/testdep2-0.2.1/td2.js"></script>
+          </head>
+          <body></body>
+        </html>"""
+    )
