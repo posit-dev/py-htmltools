@@ -523,8 +523,6 @@ class html(str):
 # =============================================================================
 # HTML dependencies
 # =============================================================================
-
-
 class PackageHTMLDependencySource(TypedDict):
     package: Optional[str]
     subdir: str
@@ -590,6 +588,15 @@ class HTMLDependency:
         self.meta: List[Dict[str, str]] = meta
         self.head: Optional[str] = head
 
+    def get_source_dir(self) -> str:
+        """Return the directory on disk where the dependency's files reside."""
+        if self.source["package"] is not None:
+            return os.path.join(
+                _package_dir(self.source["package"]), self.source["subdir"]
+            )
+        else:
+            return os.path.realpath(self.source["subdir"])
+
     def as_html_tags(
         self,
         prefix_dir: Optional[str] = None,
@@ -650,13 +657,7 @@ class HTMLDependency:
     #   }
     # ]
     def _find_src_files(self) -> List[Dict[str, str]]:
-        src_dir: str = self.source["subdir"]
-        version = str(self.version)
-
-        if self.source["package"] is not None:
-            src_dir = os.path.join(_package_dir(self.source["package"]), src_dir)
-        else:
-            src_dir = os.path.realpath(src_dir)
+        src_dir: str = self.get_source_dir()
 
         # Collect all the source files
         if self.all_files:
@@ -669,14 +670,14 @@ class HTMLDependency:
             ]
 
         # For example: "htmltools-0.0.1"
-        dest_href_prefix = os.path.join(self.name + "@" + version)
+        dest_href_prefix = os.path.join(self.name + "@" + str(self.version))
 
         result: List[Dict[str, str]] = []
         for f in src_files:
             src_file_path = os.path.join(src_dir, f)
             if not os.path.isfile(src_file_path):
                 raise RuntimeError(
-                    f"Failed to find HTML dependency {self.name}@{str(self.version)} "
+                    f"Failed to find HTML dependency {self.name}@{self.version} "
                     + f"because {src_file_path} doesn't exist."
                 )
 
