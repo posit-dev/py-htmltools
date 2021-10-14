@@ -436,13 +436,13 @@ class HTMLDocument:
         cp.html = cp.html.tagify()
         return cp
 
-    def render(self, libdir: Optional[str] = "lib") -> RenderedHTML:
+    def render(self, libdir: Optional[str] = None) -> RenderedHTML:
         res = HTMLDocument._insert_head_content(self.html, libdir)
         rendered = res.render()
         rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
         return rendered
 
-    def save_html(self, file: str, libdir: Optional[str] = "lib") -> str:
+    def save_html(self, file: str, libdir: Optional[str] = None) -> str:
         # Copy dependencies to libdir (relative to the file)
         dest_libdir = str(Path(file).resolve().parent)
         if libdir:

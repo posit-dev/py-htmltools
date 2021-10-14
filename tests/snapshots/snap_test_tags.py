@@ -44,8 +44,8 @@ snapshots['test_html_save html_save_doc'] = '''<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <link href="lib/foo-1.0/css/my-styles.css" rel="stylesheet"/>
-    <script src="lib/foo-1.0/js/my-js.js"></script>
+    <link href="foo-1.0/css/my-styles.css" rel="stylesheet"/>
+    <script src="foo-1.0/js/my-js.js"></script>
   </head>
   <body>
     <div>foo</div>

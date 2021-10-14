@@ -39,9 +39,9 @@ def test_dep_resolution(snapshot):
         <html>
           <head>
             <meta charset="utf-8"/>
-            <script src="lib/a-1.2.1/a3.js"></script>
-            <script src="lib/b-1.0.1/b2.js"></script>
-            <script src="lib/c-1.0/c1.js"></script>
+            <script src="a-1.2.1/a3.js"></script>
+            <script src="b-1.0.1/b2.js"></script>
+            <script src="c-1.0/c1.js"></script>
           </head>
           <body></body>
         </html>"""
@@ -78,7 +78,7 @@ def test_inline_deps(snapshot):
         div([a1_1, div("foo")], "bar"),
     ]
     html_ = "\n\n".join([HTMLDocument(t).render()["html"] for t in tests])
-    snapshot.assert_match(html_, "inline_deps.txt")
+    snapshot.assert_match(html_, "inline_deps")
 
 
 def test_append_deps(snapshot):
@@ -100,7 +100,7 @@ def test_append_deps(snapshot):
     z.append(a1_2)
     tests = [x, y, z]
     html_ = "\n\n".join([HTMLDocument(t).render()["html"] for t in tests])
-    snapshot.assert_match(html_, "append_deps.txt")
+    snapshot.assert_match(html_, "append_deps")
 
 
 def test_script_input(snapshot):
@@ -125,8 +125,8 @@ def test_script_input(snapshot):
             <html>
               <head>
                 <meta charset="utf-8"/>
-                <link href="lib/a-1.0/css/bar%20foo.css" rel="stylesheet"/>
-                <script src="lib/a-1.0/js/foo%20bar.js"></script>
+                <link href="a-1.0/css/bar%20foo.css" rel="stylesheet"/>
+                <script src="a-1.0/js/foo%20bar.js"></script>
               </head>
               <body></body>
             </html>"""
