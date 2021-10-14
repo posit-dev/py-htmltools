@@ -1,7 +1,7 @@
 import os
 import copy
 from tempfile import TemporaryDirectory
-from typing import Any
+from typing import Any, Union
 
 from htmltools import *
 from htmltools.util import cwd
@@ -9,6 +9,13 @@ from htmltools.util import cwd
 
 def expect_html(x: Any, expected: str):
     assert str(x) == expected
+
+
+def saved_html(x: Union[Tag, HTMLDocument]) -> str:
+    with TemporaryDirectory() as tmpdir:
+        f = os.path.join(tmpdir, "index.html")
+        x.save_html(f)
+        return open(f, "r").read()
 
 
 def test_basic_tag_api(snapshot):
@@ -35,7 +42,9 @@ def test_basic_tag_api(snapshot):
 
 
 def test_tag_shallow_copy():
-    dep = HTMLDependency("a", "1.1", {"href": "/"}, script="a1.js")
+    dep = HTMLDependency(
+        "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
+    )
     x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
     y = copy.copy(x)
     y.children[0].children[0] = "HELLO"
@@ -65,7 +74,9 @@ def test_tag_shallow_copy():
 def test_tagify_deep_copy():
     # Each call to .tagify() should do a shallow copy, but since it recurses, the result
     # is a deep copy.
-    dep = HTMLDependency("a", "1.1", {"href": "/"}, script="a1.js")
+    dep = HTMLDependency(
+        "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
+    )
     x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
 
     y = x.tagify()
@@ -124,19 +135,16 @@ def test_tag_escaping():
     expect_html(div("text", class_=html("<a&b>")), '<div class="<a&b>">text</div>')
 
 
-def saved_html(tag: Tag):
-    with TemporaryDirectory() as tmpdir:
-        f = os.path.join(tmpdir, "index.html")
-        tag.save_html(f)
-        return open(f, "r").read()
-
-
 def test_html_save(snapshot):
     snapshot.assert_match(saved_html(div()), "html_save_div")
     test_dir = os.path.dirname(__file__)
     with cwd(test_dir):
         dep = HTMLDependency(
-            "foo", "1.0", "assets", stylesheet="css/my-styles.css", script="js/my-js.js"
+            "foo",
+            "1.0",
+            source={"package": None, "subdir": "assets"},
+            stylesheet={"href": "css/my-styles.css"},
+            script={"src": "js/my-js.js"},
         )
         snapshot.assert_match(saved_html(div("foo", dep)), "html_save_dep")
         desc = tags.meta(name="description", content="test")

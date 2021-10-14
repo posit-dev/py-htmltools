@@ -1,6 +1,7 @@
 from typing import Callable, Iterable, List, Dict, Union, Optional, Any
 
 from .core import (
+    PackageHTMLDependencySource,
     TagList,
     TagAttrArg,
     Tag,
@@ -82,8 +83,10 @@ class JsxTag:
             type="text/javascript",
             children=[
                 html("\n" + js + "\n"),
-                _lib_dependency("react", script="react.production.min.js"),
-                _lib_dependency("react-dom", script="react-dom.production.min.js"),
+                _lib_dependency("react", script={"src": "react.production.min.js"}),
+                _lib_dependency(
+                    "react-dom", script={"src": "react-dom.production.min.js"}
+                ),
             ],
         )
 
@@ -226,7 +229,13 @@ class jsx(str):
         return jsx(res) if isinstance(other, jsx) else res
 
 
-def _lib_dependency(pkg: str, **kwargs: object) -> HTMLDependency:
+def _lib_dependency(
+    pkg: str, script: Dict[str, str], **kwargs: object
+) -> HTMLDependency:
     return HTMLDependency(
-        name=pkg, version=versions[pkg], package="htmltools", src="lib/" + pkg, **kwargs
+        name=pkg,
+        version=versions[pkg],
+        source={"package": "htmltools", "subdir": "lib/" + pkg},
+        script=script,
+        **kwargs,
     )

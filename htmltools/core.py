@@ -4,7 +4,7 @@ import shutil
 import tempfile
 from pathlib import Path
 from copy import copy, deepcopy
-from urllib.parse import quote
+import urllib.parse
 import webbrowser
 from datetime import date, datetime
 from typing import (
@@ -30,7 +30,7 @@ from packaging.version import Version
 from .util import (
     unique,
     ensure_http_server,
-    package_dir,
+    _package_dir,  # type: ignore
     _normalize_attr_name,  # type: ignore
     _html_escape,  # type: ignore
     _flatten,  # type: ignore
@@ -471,7 +471,7 @@ class HTMLDocument:
             0,
             [
                 Tag("meta", charset="utf-8"),
-                *[d.as_html_tags(libdir=libdir) for d in deps],
+                *[d.as_html_tags(prefix_dir=libdir) for d in deps],
             ],
         )
         return res
@@ -523,81 +523,93 @@ class html(str):
 # =============================================================================
 # HTML dependencies
 # =============================================================================
+
+
+class PackageHTMLDependencySource(TypedDict):
+    package: Optional[str]
+    subdir: str
+
+
 class HTMLDependency:
     """
     Create an HTML dependency.
 
     Example:
     -------
-    >>> x = div("foo", HTMLDependency(name = "bar", version = "1.0", src = ".", script = "lib/bar.js"))
+    >>> dep = HTMLDependency(
+            name="mypackage",
+            version="1.0",
+            source={
+                "package": "mypackage",
+                "subdir": "lib/",
+            },
+            script={"src": "foo.js"},
+            stylesheet={"href": "css/foo.css"},
+        )
+
+    >>> x = div("Hello", dep)
     >>> x.render()
     """
-
-    ScriptArg = Union[str, List[str], Dict[str, str], List[Dict[str, str]]]
 
     def __init__(
         self,
         name: str,
         version: Union[str, Version],
-        src: Union[str, Dict[str, str]],
         *,
-        script: Optional[ScriptArg] = None,
-        stylesheet: Optional[Union[str, List[str]]] = None,
-        # stylesheet: Optional[Union[str, List[str], List[Dict[str, str]]]] = None,
-        package: Optional[str] = None,
+        source: PackageHTMLDependencySource,
+        script: Union[Dict[str, str], List[Dict[str, str]]] = [],
+        stylesheet: Union[Dict[str, str], List[Dict[str, str]]] = [],
         all_files: bool = False,
-        meta: Optional[List[Dict[str, str]]] = None,
+        meta: List[Dict[str, str]] = [],
         head: Optional[str] = None,
     ) -> None:
         self.name: str = name
         self.version: Version = (
             Version(version) if isinstance(version, str) else version
         )
-        self.src: Dict[str, str] = src if isinstance(src, dict) else {"file": src}
-        self.script: List[Dict[str, str]] = self._as_dicts(script, default_attr="src")
-        self.stylesheet: List[Dict[str, str]] = self._as_dicts(
-            stylesheet, default_attr="href"
-        )
+        self.source: PackageHTMLDependencySource = source
+        # self.package: str = package
+        # self.subdir: str = subdir
+
+        if isinstance(script, dict):
+            script = [script]
+        self._validate_dicts(script, ["src"])
+        self.script: List[Dict[str, str]] = script
+
+        if isinstance(stylesheet, dict):
+            stylesheet = [stylesheet]
+        self._validate_dicts(stylesheet, ["href"])
+        self.stylesheet: List[Dict[str, str]] = stylesheet
+
         # Ensures a rel='stylesheet' default
         for s in self.stylesheet:
             if "rel" not in s:
                 s.update({"rel": "stylesheet"})
-        self.package: Optional[str] = package
+
         self.all_files: bool = all_files
-        self.meta: List[Dict[str, str]] = meta if meta else []
+        self.meta: List[Dict[str, str]] = meta
         self.head: Optional[str] = head
 
     def as_html_tags(
         self,
-        src_type: Optional[str] = None,
-        libdir: Optional[str] = None,
-        encode_path: Callable[[str], str] = quote,
+        prefix_dir: Optional[str] = None,
     ) -> TagList:
-        # Prefer the first listed src type if not specified. Should be "href" or "src".
-        if not src_type:
-            src_type = list(self.src)[0]
-
-        url_dir = self.src.get(src_type, None)
-        if not url_dir:
-            raise Exception(
-                f"HTML dependency {self.name}@{self.version} has no '{src_type}' definition"
-            )
-
-        # URL-encode file attribute. (If using href, assume it's already URL encoded.)
-        if src_type == "file":
-            url_dir = encode_path(url_dir)
-
         href_prefix = os.path.join(self.name + "-" + str(self.version))
-        if libdir:
-            href_prefix = os.path.join(libdir, href_prefix)
+        if prefix_dir:
+            href_prefix = os.path.join(prefix_dir, href_prefix)
 
         sheets = deepcopy(self.stylesheet)
         for s in sheets:
-            s.update({"href": os.path.join(href_prefix, encode_path(s["href"]))})
+            s.update(
+                {
+                    "href": os.path.join(href_prefix, urllib.parse.quote(s["href"])),
+                    "rel": "stylesheet",
+                }
+            )
 
         script = deepcopy(self.script)
         for s in script:
-            s.update({"src": os.path.join(href_prefix, encode_path(s["src"]))})
+            s.update({"src": os.path.join(href_prefix, urllib.parse.quote(s["src"]))})
 
         metas = [Tag("meta", **m) for m in self.meta]
         links = [Tag("link", **s) for s in sheets]
@@ -609,7 +621,6 @@ class HTMLDependency:
         src_file_infos = self._find_src_files()
 
         # Set up the target directory.
-        # TODO: add option to exclude version
         target_dir = os.path.join(path, self.name + "-" + str(self.version))
         if os.path.exists(target_dir):
             shutil.rmtree(target_dir)
@@ -639,17 +650,11 @@ class HTMLDependency:
     #   }
     # ]
     def _find_src_files(self) -> List[Dict[str, str]]:
-        src_dir: str = self.src["file"]
+        src_dir: str = self.source["subdir"]
         version = str(self.version)
 
-        if not src_dir:
-            raise RuntimeError(
-                f"Failed to find HTML dependency {self.name}@{version} to {src_dir} "
-                + "because its local source directory doesn't exist"
-            )
-
-        if self.package:
-            src_dir = os.path.join(package_dir(self.package), src_dir)
+        if self.source["package"] is not None:
+            src_dir = os.path.join(_package_dir(self.source["package"]), src_dir)
         else:
             src_dir = os.path.realpath(src_dir)
 
@@ -684,24 +689,24 @@ class HTMLDependency:
 
         return result
 
-    def _as_dicts(
-        self, val: Optional[ScriptArg], default_attr: str
-    ) -> List[Dict[str, str]]:
-        def as_dict(x: Union[str, Dict[str, str]]) -> Dict[str, str]:
-            if isinstance(x, str):
-                return {default_attr: x}
-            else:
-                return x
+    def _validate_dicts(
+        self, ld: List[Dict[str, str]], req_attr: List[str] = []
+    ) -> None:
+        for d in ld:
+            self._validate_dict(d, req_attr)
 
-        if val is None:
-            return []
-        if isinstance(val, str):
-            return [as_dict(val)]
-        if isinstance(val, list):
-            return [as_dict(i) for i in val]
-        raise Exception(
-            f"Invalid type for {repr(val)} in HTML dependency {self.name}@{self.version}"
-        )
+    def _validate_dict(self, d: object, req_attr: List[str] = []) -> None:
+        if not isinstance(d, dict):
+            raise TypeError(
+                f"Expected dict, got {type(d)} for {d} in HTMLDependency "
+                + f"{self.name}@{self.version}"
+            )
+        for a in req_attr:
+            if a not in d:
+                raise KeyError(
+                    f"Missing required attribute '{a}' for {d} in HTMLDependency "
+                    + f"{self.name}@{self.version}"
+                )
 
     def __repr__(self):
         return f'<HTMLDependency "{self.name}@{self.version}">'

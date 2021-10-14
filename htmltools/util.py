@@ -98,7 +98,7 @@ def _html_escape(text: str, attr: bool = False) -> str:
 
 
 # similar to base::system.file()
-def package_dir(package: str) -> str:
+def _package_dir(package: str) -> str:
     with tempfile.TemporaryDirectory():
         pkg_file = importlib.import_module(".", package=package).__file__
         return os.path.dirname(pkg_file)
