@@ -40,7 +40,7 @@ __all__ = (
     "Tag",
     "HTMLDocument",
     "html",
-    "MetaNode",
+    "MetadataNode",
     "HTMLDependency",
     "RenderedHTML",
     "TagAttrArg",
@@ -55,14 +55,14 @@ class RenderedHTML(TypedDict):
     html: str
 
 
-# MetaNode objects are not shown when a Tag tree is rendered to HTML text. They can be
-# used to carry information that doesn't fit into the normal HTML tree structure, such
-# as `HTMLDependency` objects.
+# MetadataNode objects are not shown when a Tag tree is rendered to HTML text. They can
+# be used to carry information that doesn't fit into the normal HTML tree structure,
+# such as `HTMLDependency` objects.
 #
-# Note that when `x.tagify()` is called on the parent of a MetaNode, it calls copy() on
-# MetaNode; when copied, the resulting object should be completely independent of the
-# original. This may require implementing a custom `__copy__` method.
-class MetaNode:
+# Note that when `x.tagify()` is called on the parent of a MetadataNode, it calls copy()
+# on MetadataNode; when copied, the resulting object should be completely independent of
+# the original. This may require implementing a custom `__copy__` method.
+class MetadataNode:
     pass
 
 
@@ -71,7 +71,7 @@ T = TypeVar("T")
 TagT = TypeVar("TagT", bound="Tag")
 
 # Types of objects that can be a child of a tag.
-TagChild = Union["Tagifiable", "Tag", MetaNode, str]
+TagChild = Union["Tagifiable", "Tag", MetadataNode, str]
 
 # Types that can be passed as args to TagList() and tag functions.
 TagChildArg = Union[TagChild, "TagList", int, float, None, Iterable["TagChildArg"]]
@@ -83,7 +83,7 @@ TagAttrArg = Union[str, int, float, date, datetime, bool, None]
 # Objects with tagify() methods are considered Tagifiable.
 @runtime_checkable
 class Tagifiable(Protocol):
-    def tagify(self) -> Union["Tag", MetaNode, str]:
+    def tagify(self) -> Union["Tag", MetadataNode, str]:
         ...
 
 
@@ -123,7 +123,7 @@ class TagList(List[TagChild]):
         for i, child in enumerate(cp):
             if isinstance(child, Tagifiable):
                 cp[i] = child.tagify()
-            elif isinstance(child, MetaNode):
+            elif isinstance(child, MetadataNode):
                 cp[i] = copy(child)
         return cp
 
@@ -156,7 +156,7 @@ class TagList(List[TagChild]):
         for i, x in enumerate(self):
             if isinstance(x, Tag):
                 html_ += x.get_html_string(indent, eol)  # type: ignore
-            elif isinstance(x, MetaNode):
+            elif isinstance(x, MetadataNode):
                 continue
             elif isinstance(x, Tagifiable):
                 raise RuntimeError(
@@ -348,7 +348,7 @@ class Tag:
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output
-        children = [x for x in self.children if not isinstance(x, MetaNode)]
+        children = [x for x in self.children if not isinstance(x, MetadataNode)]
 
         # Don't enclose JSX/void elements if there are no children
         if len(children) == 0 and self._is_void:
@@ -552,7 +552,7 @@ class PackageHTMLDependencySource(TypedDict):
     subdir: str
 
 
-class HTMLDependency(MetaNode):
+class HTMLDependency(MetadataNode):
     """
     Create an HTML dependency.
 
