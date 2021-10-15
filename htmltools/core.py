@@ -131,7 +131,7 @@ class TagList(List[TagChild]):
             cp[i] = _walk(child, pre, post)
         return cp
 
-    def save_html(self, file: str, libdir: str = "lib") -> str:
+    def save_html(self, file: str, libdir: Optional[str] = None) -> str:
         return HTMLDocument(self).save_html(file, libdir)
 
     def render(self) -> RenderedHTML:
@@ -366,11 +366,11 @@ class Tag:
         html_ += self.children.get_html_string(indent + 1, eol)
         return html(html_ + eol + indent_str + close)
 
-    def render(self, libdir: str = "lib") -> RenderedHTML:
+    def render(self) -> RenderedHTML:
         deps = self.get_dependencies()
         return {"dependencies": deps, "html": self.get_html_string()}
 
-    def save_html(self, file: str, libdir: str = "lib") -> str:
+    def save_html(self, file: str, libdir: Optional[str] = None) -> str:
         return HTMLDocument(self).save_html(file, libdir)
 
     def get_dependencies(self, dedup: bool = True) -> List["HTMLDependency"]:
@@ -406,21 +406,8 @@ class HTMLDocument:
         *args: TagChildArg,
         **kwargs: TagAttrArg,
     ) -> None:
-        self.html: Tag
-
-        if len(args) == 1 and isinstance(args[0], Tag) and args[0].name == "html":
-            self.html = args[0]
-            return
-
-        if len(args) == 1 and isinstance(args[0], Tag) and args[0].name == "body":
-            body = args[0]
-        else:
-            body = Tag("body", *args)
-
-        body = body.tagify()
-        head_content = HTMLDocument._extract_head_content(body)
-        head = Tag("head", head_content)
-        self.html = Tag("html", head, body, **kwargs)
+        self._content: TagList = TagList(*args)
+        self._html_attr_args: Dict[str, TagAttrArg] = {**kwargs}
 
     def __copy__(self) -> "HTMLDocument":
         cls = self.__class__
@@ -431,14 +418,9 @@ class HTMLDocument:
         cp.__dict__.update(new_dict)
         return cp
 
-    def tagify(self) -> "HTMLDocument":
-        cp = copy(self)
-        cp.html = cp.html.tagify()
-        return cp
-
-    def render(self, libdir: Optional[str] = None) -> RenderedHTML:
-        res = HTMLDocument._insert_head_content(self.html, libdir)
-        rendered = res.render()
+    def render(self, *, libdir: Optional[str] = None) -> RenderedHTML:
+        html_ = self._gen_html_tag_tree(libdir)
+        rendered = html_.render()
         rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
         return rendered
 
@@ -448,15 +430,50 @@ class HTMLDocument:
         if libdir:
             dest_libdir = os.path.join(dest_libdir, libdir)
 
-        res = self.html.tagify()
-        for dep in res.get_dependencies():
+        rendered = self.render(libdir=libdir)
+
+        for dep in rendered["dependencies"]:
             dep.copy_to(dest_libdir)
-        res = HTMLDocument._insert_head_content(res, libdir)
-        rendered = res.render()
-        rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
+
         with open(file, "w") as f:
             f.write(rendered["html"])
         return file
+
+    # Take the stored content, and generate an <html> tag which contains the correct
+    # <head> and <body> content. HTMLDependency items will be extract out of the body and
+    # inserted into the <head>.
+    # - libdir: A directoy prefix to add to <script src="[libdir]/script.js"> and
+    #   <link rel="[libdir]/style.css"> tags.
+    def _gen_html_tag_tree(self, libdir: Optional[str]) -> Tag:
+        content: TagList = self._content
+        html_: Tag
+        body: Tag
+
+        if (
+            len(content) == 1
+            and isinstance(content[0], Tag)
+            and cast(Tag, content[0]).name == "html"
+        ):
+            html_ = cast(Tag, content[0])
+
+        if (
+            len(content) == 1
+            and isinstance(content[0], Tag)
+            and cast(Tag, content[0]).name == "body"
+        ):
+            body = cast(Tag, content[0])
+        else:
+            body = Tag("body", content)
+
+        body = body.tagify()
+
+        head_content = HTMLDocument._extract_head_content(body)
+        head = Tag("head", head_content)
+
+        html_ = Tag("html", head, body, **self._html_attr_args)
+        html_ = HTMLDocument._insert_head_content(html_, libdir)
+
+        return html_
 
     # Given an <html> tag object, copies the top node, then extracts dependencies from
     # the tree, and inserts the content from those dependencies into the <head>, such as
@@ -638,7 +655,7 @@ class HTMLDependency:
             src_file = file_info["filepath"]
             if not os.path.isfile(src_file):
                 raise Exception(
-                    f"Failed to copy HTML dependency {self.name}@{str(self.version)} "
+                    f"Failed to copy HTML dependency {self.name}-{str(self.version)} "
                     + f"to {path} because {src_file} doesn't exist."
                 )
             target_file = os.path.join(target_dir, path, file_info["href"])
@@ -670,14 +687,14 @@ class HTMLDependency:
             ]
 
         # For example: "htmltools-0.0.1"
-        dest_href_prefix = os.path.join(self.name + "@" + str(self.version))
+        dest_href_prefix = os.path.join(self.name + "-" + str(self.version))
 
         result: List[Dict[str, str]] = []
         for f in src_files:
             src_file_path = os.path.join(src_dir, f)
             if not os.path.isfile(src_file_path):
                 raise RuntimeError(
-                    f"Failed to find HTML dependency {self.name}@{self.version} "
+                    f"Failed to find HTML dependency {self.name}-{self.version} "
                     + f"because {src_file_path} doesn't exist."
                 )
 
@@ -700,17 +717,17 @@ class HTMLDependency:
         if not isinstance(d, dict):
             raise TypeError(
                 f"Expected dict, got {type(d)} for {d} in HTMLDependency "
-                + f"{self.name}@{self.version}"
+                + f"{self.name}-{self.version}"
             )
         for a in req_attr:
             if a not in d:
                 raise KeyError(
                     f"Missing required attribute '{a}' for {d} in HTMLDependency "
-                    + f"{self.name}@{self.version}"
+                    + f"{self.name}-{self.version}"
                 )
 
     def __repr__(self):
-        return f'<HTMLDependency "{self.name}@{self.version}">'
+        return f'<HTMLDependency "{self.name}-{self.version}">'
 
     def __str__(self):
         return str(self.as_html_tags())
