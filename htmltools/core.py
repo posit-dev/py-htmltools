@@ -409,6 +409,9 @@ class HTMLDocument:
         cp.__dict__.update(new_dict)
         return cp
 
+    def append(self, *args: TagChildArg) -> None:
+        self._content.append(*args)
+
     def render(self, *, libdir: Optional[str] = None) -> RenderedHTML:
         html_ = self._gen_html_tag_tree(libdir)
         rendered = html_.render()
