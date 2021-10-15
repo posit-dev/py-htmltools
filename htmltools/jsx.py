@@ -8,6 +8,7 @@ from .core import (
     TagChildArg,
     Tagifiable,
     html,
+    MetaNode,
     HTMLDependency,
 )
 from .versions import versions
@@ -97,7 +98,7 @@ class JSXTag:
 def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
     indent_str = "  " * indent
 
-    if isinstance(x, HTMLDependency):
+    if isinstance(x, MetaNode):
         raise RuntimeError("Shouldn't get here")
     elif isinstance(x, str):
         return indent_str + '"' + x.replace('"', '\\"') + '"'
@@ -112,7 +113,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
         raise TypeError("x must be a tag or JsxTag object. Did you run tagify()?")
 
     attrs = x.attrs
-    children = [child for child in x.children if not isinstance(child, HTMLDependency)]
+    children = [child for child in x.children if not isinstance(child, MetaNode)]
 
     if len(attrs) == 0 and len(children) == 0:
         return res + nm + ")"
