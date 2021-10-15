@@ -42,6 +42,7 @@ __all__ = (
     "html",
     "MetaNode",
     "HTMLDependency",
+    "RenderedHTML",
     "TagAttrArg",
     "TagChildArg",
     "TagChild",
