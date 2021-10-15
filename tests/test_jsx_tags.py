@@ -3,8 +3,8 @@ from htmltools import *
 
 
 def test_jsx_tags():
-    Foo = jsx_tag("Foo")
-    Bar = jsx_tag("Bar")
+    Foo = jsx_tag_create("Foo")
+    Bar = jsx_tag_create("Bar")
     deps = Foo().tagify().get_dependencies()
     react_ver = [str(d.version) for d in deps if d.name == "react"][0]
     react_dom_ver = [str(d.version) for d in deps if d.name == "react-dom"][0]
@@ -172,7 +172,7 @@ def test_jsx_tags():
 
 def test_jsx_tagifiable_children():
     # Test case where children are Tagifiable but not Tag or JsxTag objects.
-    Foo = jsx_tag("Foo")
+    Foo = jsx_tag_create("Foo")
 
     class MyTag:
         def tagify(self):

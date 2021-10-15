@@ -1,7 +1,7 @@
 from shiny import *
 from htmltools import *
 
-MyComponent = jsx_tag("MyComponent")
+MyComponent = jsx_tag_create("MyComponent")
 print(MyComponent())
 
 ui = TagList(

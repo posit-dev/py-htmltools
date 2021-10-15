@@ -14,7 +14,7 @@ from .versions import versions
 
 __all__ = (
     "jsx",
-    "jsx_tag",
+    "jsx_tag_create",
     "JSXTag",
 )
 
@@ -185,14 +185,14 @@ def _normalize_jsx_attr_name(x: str) -> str:
     return x.replace("_", "-")
 
 
-def jsx_tag(
+def jsx_tag_create(
     _name: str, allowedProps: Optional[List[str]] = None
 ) -> Callable[..., JSXTag]:
     pieces = _name.split(".")
     if pieces[-1][:1] != pieces[-1][:1].upper():
         raise NotImplementedError("JSX tags must be lowercase")
 
-    def jsx_tag_create(
+    def jsx_tag_instantiate(
         *args: TagChildArg,
         children: Optional[List[TagChildArg]] = None,
         **kwargs: TagAttrArg,
@@ -201,9 +201,9 @@ def jsx_tag(
             _name, *args, allowedProps=allowedProps, children=children, **kwargs
         )
 
-    jsx_tag_create.__name__ = _name
+    jsx_tag_instantiate.__name__ = _name
 
-    return jsx_tag_create
+    return jsx_tag_instantiate
 
 
 # --------------------------------------------------------
