@@ -1,7 +1,6 @@
 from typing import Callable, Iterable, List, Dict, Union, Optional, Any
 
 from .core import (
-    PackageHTMLDependencySource,
     TagList,
     TagAttrArg,
     Tag,
@@ -16,10 +15,11 @@ from .versions import versions
 __all__ = (
     "jsx",
     "jsx_tag",
+    "JSXTag",
 )
 
 
-class JsxTag:
+class JSXTag:
     def __init__(
         self,
         _name: str,
@@ -104,7 +104,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
 
     res = indent_str + "React.createElement("
 
-    if isinstance(x, JsxTag):
+    if isinstance(x, JSXTag):
         nm = x.name
     elif isinstance(x, Tag):
         nm = "'" + x.name + "'"
@@ -133,7 +133,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
         return res + ")"
 
     for child in children:
-        if not (isinstance(child, Tag) or isinstance(child, JsxTag)) and isinstance(
+        if not (isinstance(child, Tag) or isinstance(child, JSXTag)) and isinstance(
             child, Tagifiable
         ):
             # This is for unknown Tagifiable objects (not Tag or JsxTag). One potential
@@ -150,7 +150,7 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
 def _serialize_attr(x: object) -> str:
     if x is None:
         return "null"
-    if isinstance(x, Tag) or isinstance(x, JsxTag):
+    if isinstance(x, Tag) or isinstance(x, JSXTag):
         return _get_react_js(x)
     if isinstance(x, (list, tuple)):
         return "[" + ", ".join([_serialize_attr(y) for y in x]) + "]"
@@ -187,7 +187,7 @@ def _normalize_jsx_attr_name(x: str) -> str:
 
 def jsx_tag(
     _name: str, allowedProps: Optional[List[str]] = None
-) -> Callable[..., JsxTag]:
+) -> Callable[..., JSXTag]:
     pieces = _name.split(".")
     if pieces[-1][:1] != pieces[-1][:1].upper():
         raise NotImplementedError("JSX tags must be lowercase")
@@ -196,8 +196,8 @@ def jsx_tag(
         *args: TagChildArg,
         children: Optional[List[TagChildArg]] = None,
         **kwargs: TagAttrArg,
-    ) -> JsxTag:
-        return JsxTag(
+    ) -> JSXTag:
+        return JSXTag(
             _name, *args, allowedProps=allowedProps, children=children, **kwargs
         )
 
