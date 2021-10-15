@@ -28,7 +28,6 @@ from packaging.version import Version
 
 
 from .util import (
-    unique,
     ensure_http_server,
     _package_dir,  # type: ignore
     _normalize_attr_name,  # type: ignore
@@ -168,15 +167,7 @@ class TagList(List[TagChild]):
                 deps.extend(x.get_dependencies(dedup=False))
 
         if dedup:
-            unames = unique([d.name for d in deps])
-            resolved: List[HTMLDependency] = []
-            for nm in unames:
-                latest = max([d.version for d in deps if d.name == nm])
-                deps_ = [d for d in deps if d.name == nm]
-                for d in deps_:
-                    if d.version == latest and d not in resolved:
-                        resolved.append(d)
-            return resolved
+            return _resolve_dependencies(deps)
         else:
             return deps
 
@@ -734,6 +725,18 @@ class HTMLDependency:
 
     def __eq__(self, other: Any) -> bool:
         return equals_impl(self, other)
+
+
+def _resolve_dependencies(deps: List[HTMLDependency]) -> List[HTMLDependency]:
+    map: Dict[str, HTMLDependency] = {}
+    for dep in deps:
+        if dep.name not in map:
+            map[dep.name] = dep
+        else:
+            if dep.version > map[dep.name].version:
+                map[dep.name] = dep
+
+    return list(map.values())
 
 
 # =============================================================================

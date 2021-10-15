@@ -23,16 +23,16 @@ def test_dep_resolution(snapshot):
     a1_2_1 = HTMLDependency(
         "a", "1.2.1", source={"package": None, "subdir": "foo"}, script={"src": "a3.js"}
     )
-    b1_0_0 = HTMLDependency(
-        "b", "1.0.0", source={"package": None, "subdir": "foo"}, script={"src": "b1.js"}
+    b1_9 = HTMLDependency(
+        "b", "1.9", source={"package": None, "subdir": "foo"}, script={"src": "b1.js"}
     )
-    b1_0_1 = HTMLDependency(
-        "b", "1.0.1", source={"package": None, "subdir": "foo"}, script={"src": "b2.js"}
+    b1_10 = HTMLDependency(
+        "b", "1.10", source={"package": None, "subdir": "foo"}, script={"src": "b2.js"}
     )
     c1_0 = HTMLDependency(
         "c", "1.0", source={"package": None, "subdir": "foo"}, script={"src": "c1.js"}
     )
-    test = TagList(*[a1_1, b1_0_0, b1_0_1, a1_2, a1_2_1, b1_0_0, b1_0_1, c1_0])
+    test = TagList(*[a1_1, b1_9, b1_10, a1_2, a1_2_1, b1_9, b1_10, c1_0])
     assert HTMLDocument(test).render()["html"] == textwrap.dedent(
         """\
         <!DOCTYPE html>
@@ -40,7 +40,7 @@ def test_dep_resolution(snapshot):
           <head>
             <meta charset="utf-8"/>
             <script src="a-1.2.1/a3.js"></script>
-            <script src="b-1.0.1/b2.js"></script>
+            <script src="b-1.10/b2.js"></script>
             <script src="c-1.0/c1.js"></script>
           </head>
           <body></body>
@@ -54,7 +54,7 @@ def test_dep_resolution(snapshot):
           <head>
             <meta charset="utf-8"/>
             <script src="libfoo/a-1.2.1/a3.js"></script>
-            <script src="libfoo/b-1.0.1/b2.js"></script>
+            <script src="libfoo/b-1.10/b2.js"></script>
             <script src="libfoo/c-1.0/c1.js"></script>
           </head>
           <body></body>
