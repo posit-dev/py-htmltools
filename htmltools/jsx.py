@@ -63,16 +63,18 @@ class JSXTag:
         return _normalize_jsx_attr_name(key) in self.attrs
 
     def tagify(self) -> Tag:
-        # When ._get_html_string()  is called on a JsxTag object, we'll recurse, but
+        # When ._get_html_string()  is called on a JSXTag object, we'll recurse, but
         # instead of calling the standard tag._get_html_string() method to format the
         # object, we'll recurse using _get_react_html_string(), which descends into the
         # tree and formats objects appropriately for inside of a JSX element.
+        metadata_nodes: List[MetadataNode] = []
+        rendered_text = _render_react_js(self, 2, "\n", metadata_nodes)
         js = "\n".join(
             [
                 "(function() {",
                 "  var container = new DocumentFragment();",
                 "  ReactDOM.render(",
-                _get_react_js(self, 2, "\n"),
+                rendered_text,
                 "  , container);",
                 "  document.currentScript.after(container);",
                 "})();",
@@ -88,6 +90,7 @@ class JSXTag:
                 _lib_dependency(
                     "react-dom", script={"src": "react-dom.production.min.js"}
                 ),
+                *metadata_nodes,
             ],
         )
 
@@ -95,7 +98,12 @@ class JSXTag:
         return str(self.tagify())
 
 
-def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
+# Return a string representing the rendered HTML for the given JSXTag object. The
+# metadata_nodes object collects MetadataNode objects in the tree, and is altered by
+# reference as a side-effect of this function.
+def _render_react_js(
+    x: TagChild, indent: int, eol: str, metadata_nodes: List[MetadataNode]
+) -> str:
     indent_str = "  " * indent
 
     if isinstance(x, MetadataNode):
@@ -103,60 +111,64 @@ def _get_react_js(x: TagChild, indent: int = 0, eol: str = "\n") -> str:
     elif isinstance(x, str):
         return indent_str + '"' + x.replace('"', '\\"') + '"'
 
-    res = indent_str + "React.createElement("
+    res: str = indent_str + "React.createElement("
 
     if isinstance(x, JSXTag):
         nm = x.name
     elif isinstance(x, Tag):
         nm = "'" + x.name + "'"
     else:
-        raise TypeError("x must be a tag or JsxTag object. Did you run tagify()?")
+        raise TypeError("x must be a tag or JSXTag object. Did you run tagify()?")
 
-    attrs = x.attrs
-    children = [child for child in x.children if not isinstance(child, MetadataNode)]
-
-    if len(attrs) == 0 and len(children) == 0:
+    if len(x.attrs) == 0 and len(x.children) == 0:
         return res + nm + ")"
 
     res += f"{eol}{indent_str}  {nm}, "
 
     res += "{"
     is_first_attr = True
-    for k, v in attrs.items():
+    for k, v in x.attrs.items():
         if not is_first_attr:
             res += ", "
         is_first_attr = False
-        v = _serialize_attr(v)
+        v = _serialize_attr(v, metadata_nodes)
         res += f'"{k}": {v}'
     res += "}"
 
-    if len(children) == 0:
+    if len(x.children) == 0:
         return res + ")"
 
-    for child in children:
+    for child in x.children:
         if not (isinstance(child, Tag) or isinstance(child, JSXTag)) and isinstance(
             child, Tagifiable
         ):
-            # This is for unknown Tagifiable objects (not Tag or JsxTag). One potential
+            # This is for unknown Tagifiable objects (not Tag or JSXTag). One potential
             # issue is that if `child` becomes a
             child = child.tagify()
+        if isinstance(child, MetadataNode):
+            metadata_nodes.append(child)
+            continue
         res += "," + eol
-        res += _get_react_js(child, indent + 1, eol)
+        res += _render_react_js(child, indent + 1, eol, metadata_nodes)
 
     return res + eol + indent_str + ")"
 
 
 # Unfortunately we can't use json.dumps() here because I don't know how to
 # avoid quoting jsx(), jsx_tag(), tag(), etc.
-def _serialize_attr(x: object) -> str:
+def _serialize_attr(x: object, metadata_nodes: List[MetadataNode]) -> str:
     if x is None:
         return "null"
     if isinstance(x, Tag) or isinstance(x, JSXTag):
-        return _get_react_js(x)
+        return _render_react_js(x, 0, "\n", metadata_nodes)
     if isinstance(x, (list, tuple)):
-        return "[" + ", ".join([_serialize_attr(y) for y in x]) + "]"
+        return "[" + ", ".join([_serialize_attr(y, metadata_nodes) for y in x]) + "]"
     if isinstance(x, dict):
-        return "{" + ", ".join([y + ": " + _serialize_attr(x[y]) for y in x]) + "}"
+        return (
+            "{"
+            + ", ".join([y + ": " + _serialize_attr(x[y], metadata_nodes) for y in x])
+            + "}"
+        )
     if isinstance(x, bool):
         return str(x).lower()
     if isinstance(x, (jsx, int, float)):

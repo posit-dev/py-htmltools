@@ -173,15 +173,23 @@ def test_jsx_tags():
 def test_jsx_tagifiable_children():
     # Test case where children are Tagifiable but not Tag or JsxTag objects.
     Foo = jsx_tag_create("Foo")
+    dep = HTMLDependency(
+        "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
+    )
 
     class MyTag:
         def tagify(self):
-            return span("Hello", Foo("world"))
+            return span("Hello", Foo("world"), dep)
 
     x = Foo(div(MyTag()))
-    print(str(x))
 
-    str(x) == textwrap.dedent(
+    # Make sure that the dependency (which is added to the tree when MyTag.tagify() is
+    # called) is properly registered. This makes sure that the JSX tag is getting the
+    # dynamically-generated dependencies.
+    assert dep in HTMLDocument(x).render()["dependencies"]
+    assert HTMLDocument(x).render()["html"].find('<script src="a-1.1/a1.js"></script>')
+
+    assert str(x) == textwrap.dedent(
         """\
         <script type="text/javascript">
         (function() {
