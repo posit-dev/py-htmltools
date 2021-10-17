@@ -76,7 +76,7 @@ def test_tagify_first():
         != -1
     )
 
-    result = HTMLDocument(x).render(libdir="mylib")
+    result = HTMLDocument(x).render(lib_prefix="mylib")
     assert result["dependencies"] == [DelayedDep.dep]
     assert result["html"].find('<script src="mylib/testdep-1.0/testdep.js">') != -1
     assert (

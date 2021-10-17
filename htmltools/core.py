@@ -374,8 +374,8 @@ class Tag:
         deps = self.get_dependencies()
         return {"dependencies": deps, "html": self.get_html_string()}
 
-    def save_html(self, file: str, libdir: Optional[str] = None) -> str:
-        return HTMLDocument(self).save_html(file, libdir)
+    def save_html(self, file: str, lib_prefix: Optional[str] = None) -> str:
+        return HTMLDocument(self).save_html(file, lib_prefix)
 
     def get_dependencies(self, dedup: bool = True) -> List["HTMLDependency"]:
         return self.children.get_dependencies(dedup=dedup)
@@ -425,19 +425,19 @@ class HTMLDocument:
     def append(self, *args: TagChildArg) -> None:
         self._content.append(*args)
 
-    def render(self, *, libdir: Optional[str] = None) -> RenderedHTML:
-        html_ = self._gen_html_tag_tree(libdir)
+    def render(self, *, lib_prefix: Optional[str] = None) -> RenderedHTML:
+        html_ = self._gen_html_tag_tree(lib_prefix)
         rendered = html_.render()
         rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
         return rendered
 
-    def save_html(self, file: str, libdir: Optional[str] = None) -> str:
-        # Copy dependencies to libdir (relative to the file)
+    def save_html(self, file: str, lib_prefix: Optional[str] = None) -> str:
+        # Directory where dependencies are copied to.
         dest_libdir = str(Path(file).resolve().parent)
-        if libdir:
-            dest_libdir = os.path.join(dest_libdir, libdir)
+        if lib_prefix:
+            dest_libdir = os.path.join(dest_libdir, lib_prefix)
 
-        rendered = self.render(libdir=libdir)
+        rendered = self.render(lib_prefix=lib_prefix)
 
         for dep in rendered["dependencies"]:
             dep.copy_to(dest_libdir)
@@ -449,9 +449,9 @@ class HTMLDocument:
     # Take the stored content, and generate an <html> tag which contains the correct
     # <head> and <body> content. HTMLDependency items will be extracted out of the body
     # and inserted into the <head>.
-    # - libdir: A directoy prefix to add to <script src="[libdir]/script.js"> and
-    #   <link rel="[libdir]/style.css"> tags.
-    def _gen_html_tag_tree(self, libdir: Optional[str]) -> Tag:
+    # - lib_prefix: A directoy prefix to add to <script src="[lib_prefix]/script.js">
+    #   and <link rel="[lib_prefix]/style.css"> tags.
+    def _gen_html_tag_tree(self, lib_prefix: Optional[str]) -> Tag:
         content: TagList = self._content
         html_: Tag
         body: Tag
@@ -478,7 +478,7 @@ class HTMLDocument:
         head = Tag("head", head_content)
 
         html_ = Tag("html", head, body, **self._html_attr_args)
-        html_ = HTMLDocument._insert_head_content(html_, libdir)
+        html_ = HTMLDocument._insert_head_content(html_, lib_prefix)
 
         return html_
 
@@ -486,7 +486,7 @@ class HTMLDocument:
     # the tree, and inserts the content from those dependencies into the <head>, such as
     # <link> and <script> tags.
     @staticmethod
-    def _insert_head_content(x: Tag, libdir: Optional[str]) -> Tag:
+    def _insert_head_content(x: Tag, lib_prefix: Optional[str]) -> Tag:
         deps: List[HTMLDependency] = x.get_dependencies()
         res = copy(x)
         res.children[0] = copy(res.children[0])
@@ -495,7 +495,7 @@ class HTMLDocument:
             0,
             [
                 Tag("meta", charset="utf-8"),
-                *[d.as_html_tags(prefix_dir=libdir) for d in deps],
+                *[d.as_html_tags(prefix_dir=lib_prefix) for d in deps],
             ],
         )
         return res

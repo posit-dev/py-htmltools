@@ -6,10 +6,10 @@ import textwrap
 from htmltools import *
 
 
-def saved_html(x: Union[Tag, HTMLDocument], libdir: str = "lib") -> str:
+def saved_html(x: Union[Tag, HTMLDocument], lib_prefix: str = "lib") -> str:
     with TemporaryDirectory() as tmpdir:
         f = os.path.join(tmpdir, "index.html")
-        x.save_html(f, libdir=libdir)
+        x.save_html(f, lib_prefix=lib_prefix)
         return open(f, "r").read()
 
 
@@ -47,7 +47,7 @@ def test_dep_resolution(snapshot):
         </html>"""
     )
 
-    assert HTMLDocument(test).render(libdir="libfoo")["html"] == textwrap.dedent(
+    assert HTMLDocument(test).render(lib_prefix="libfoo")["html"] == textwrap.dedent(
         """\
         <!DOCTYPE html>
         <html>
