@@ -176,18 +176,31 @@ def test_jsx_tagifiable_children():
     dep = HTMLDependency(
         "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
     )
+    dep2 = HTMLDependency(
+        "b", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "b1.js"}
+    )
 
-    class MyTag:
+    class TagifiableDep:
         def tagify(self):
-            return span("Hello", Foo("world"), dep)
+            return dep
 
-    x = Foo(div(MyTag()))
+    class TagifiableDep2:
+        def tagify(self):
+            return span("Hello", Foo("world"), dep2)
+
+    x = Foo(div(TagifiableDep(), TagifiableDep2()))
+    # Make sure that calling render() doesn't alter the object in place and result in
+    # output that changes from run to run.
+    assert x.tagify() == x.tagify()
+    assert HTMLDocument(x).render() == HTMLDocument(x).render()
 
     # Make sure that the dependency (which is added to the tree when MyTag.tagify() is
     # called) is properly registered. This makes sure that the JSX tag is getting the
     # dynamically-generated dependencies.
     assert dep in HTMLDocument(x).render()["dependencies"]
+    assert dep2 in HTMLDocument(x).render()["dependencies"]
     assert HTMLDocument(x).render()["html"].find('<script src="a-1.1/a1.js"></script>')
+    assert HTMLDocument(x).render()["html"].find('<script src="b-1.1/b1.js"></script>')
 
     assert str(x) == textwrap.dedent(
         """\
