@@ -147,8 +147,9 @@ class TagList(List[TagChild]):
         return HTMLDocument(self).save_html(file, libdir)
 
     def render(self) -> RenderedHTML:
-        deps = self.get_dependencies()
-        return {"dependencies": deps, "html": self.get_html_string()}
+        cp = self.tagify()
+        deps = cp.get_dependencies()
+        return {"dependencies": deps, "html": cp.get_html_string()}
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
         n = len(self)
@@ -371,8 +372,9 @@ class Tag:
         return html(html_ + eol + indent_str + close)
 
     def render(self) -> RenderedHTML:
-        deps = self.get_dependencies()
-        return {"dependencies": deps, "html": self.get_html_string()}
+        cp = self.tagify()
+        deps = cp.get_dependencies()
+        return {"dependencies": deps, "html": cp.get_html_string()}
 
     def save_html(self, file: str, lib_prefix: Optional[str] = None) -> str:
         return HTMLDocument(self).save_html(file, lib_prefix)
