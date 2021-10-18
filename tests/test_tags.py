@@ -1,5 +1,6 @@
 import os
 import copy
+from datetime import date
 from tempfile import TemporaryDirectory
 from typing import Any, Union
 import textwrap
@@ -21,7 +22,16 @@ def saved_html(x: Union[Tag, HTMLDocument]) -> str:
 
 
 def test_basic_tag_api(snapshot):
-    children = [h1("hello"), h2("world"), "text", None, ["list", ["here"]]]
+    children = [
+        h1("hello"),
+        h2("world"),
+        "text",
+        1,
+        2.1,
+        date(1999, 9, 9),
+        None,
+        ["list", ["here"]],
+    ]
     props = dict(class_="foo", for_="bar", id="baz", bool="")
     x1 = div(*children, **props)
     x2 = div(**props, children=children)

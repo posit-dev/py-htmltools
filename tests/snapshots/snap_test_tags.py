@@ -14,6 +14,9 @@ snapshots['test_basic_tag_api basic_tag_api'] = '''<div class="foo" for="bar" id
   <h1>hello</h1>
   <h2>world</h2>
   text
+  1
+  2.1
+  1999-09-09
   list
   here
 </div>'''

@@ -75,7 +75,9 @@ TagT = TypeVar("TagT", bound="Tag")
 TagChild = Union["Tagifiable", "Tag", MetadataNode, str]
 
 # Types that can be passed as args to TagList() and tag functions.
-TagChildArg = Union[TagChild, "TagList", int, float, None, Iterable["TagChildArg"]]
+TagChildArg = Union[
+    TagChild, "TagList", int, float, date, datetime, None, Iterable["TagChildArg"]
+]
 
 # Types that can be passed in as attributes to tag functions.
 TagAttrArg = Union[str, int, float, date, datetime, bool, None]
@@ -735,7 +737,7 @@ def head_content(*args: TagChildArg) -> HTMLDependency:
 def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
     result = _flatten(x)
     for i, child in enumerate(result):
-        if isinstance(child, (int, float)):
+        if isinstance(child, (int, float, date, datetime)):
             result[i] = str(child)
 
     # At this point, we know that all items in new_children must be valid TagChild
