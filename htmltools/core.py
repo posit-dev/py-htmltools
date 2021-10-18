@@ -127,22 +127,6 @@ class TagList(List[TagChild]):
                 cp[i] = copy(child)
         return cp
 
-    def walk(
-        self,
-        pre: Optional[Callable[[TagChild], TagChild]] = None,
-        post: Optional[Callable[[TagChild], TagChild]] = None,
-    ) -> "TagList":
-        """
-        Walk a TagContainer tree, and apply a function to each node. The node in the
-        tree will be replaced with the value returned from `pre()` or `post()`. If the
-        function alters a node, then it will be reflected in the original object that
-        `.walk()` was called on.
-        """
-        cp = copy(self)
-        for i, child in enumerate(cp):
-            cp[i] = _walk(child, pre, post)
-        return cp
-
     def save_html(self, file: str, libdir: Optional[str] = None) -> str:
         return HTMLDocument(self).save_html(file, libdir)
 
@@ -318,19 +302,6 @@ class Tag:
         if attr is None:
             return False
         return class_ in attr.split(" ")
-
-    def walk(
-        self: TagChild,
-        pre: Optional[Callable[[TagChild], TagChild]] = None,
-        post: Optional[Callable[[TagChild], TagChild]] = None,
-    ) -> TagChild:
-        """
-        Walk a TagContainer tree, and apply a function to each node. The node in the
-        tree will be replaced with the value returned from `pre()` or `post()`. If the
-        function alters a node, then it will be reflected in the original object that
-        `.walk()` was called on.
-        """
-        return _walk(self, pre, post)
 
     def tagify(self: TagT) -> TagT:
         # TODO: Does this result in extra copies of the NodeList?
@@ -517,7 +488,7 @@ class HTMLDocument:
                         item.children.pop(i)
             return item
 
-        x.walk(remove_head_content)
+        _walk_mutate(x, remove_head_content)
         return head_content
 
 
@@ -774,21 +745,23 @@ def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
     return cast(List[TagChild], result)
 
 
-def _walk(
-    x: TagChild,
-    pre: Optional[Callable[[TagChild], TagChild]] = None,
-    post: Optional[Callable[[TagChild], TagChild]] = None,
-) -> TagChild:
-    if pre:
-        x = pre(x)
-
+# Walk a Tag tree, and apply a function to each node. The node in the tree will be
+# replaced with the value returned from `fn()`. If the function alters a node, then it
+# will be reflected in the original object that `.walk_mutate()` was called on.
+#
+# Note that if we were to export this function (perhaps in a class method), some other
+# possible variants are:
+# * Instead of one `fn`, take `pre` and `post` functions.
+# * Allow functions that return `TagChildArg`, and then flatten/convert those to
+#   `TagChild`.
+# * Provide a `_walk` function that doesn't mutate the tree. It would return `None`, and
+#   `fn` should return `None`. This could be useful when `fn` just collects things from
+#   the tree.
+def _walk_mutate(x: TagChild, fn: Callable[[TagChild], TagChild]) -> TagChild:
+    x = fn(x)
     if isinstance(x, Tag):
         for i, child in enumerate(x.children):
-            x.children[i] = _walk(child, pre, post)
-
-    if post:
-        x = post(x)
-
+            x.children[i] = _walk_mutate(child, fn)
     return x
 
 

@@ -5,6 +5,7 @@ from typing import Any, Union
 
 from htmltools import *
 from htmltools.util import cwd
+import htmltools.core
 
 
 def expect_html(x: Any, expected: str):
@@ -167,7 +168,7 @@ def test_tag_walk():
 
         return x
 
-    res = x.walk(alter)
+    res = htmltools.core._walk_mutate(x, alter)
 
     assert y.children[1] is x
     assert x is res
