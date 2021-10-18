@@ -1,5 +1,6 @@
-from typing import Callable, Iterable, List, Dict, Union, Optional, Any
+from typing import Callable, Iterable, List, Dict, Union, Optional, Any, cast, Tuple
 import copy
+import re
 
 from .core import (
     TagList,
@@ -58,6 +59,13 @@ class JSXTag:
     def set_attr(self, **kwargs: object) -> None:
         for key, val in kwargs.items():
             key = _normalize_jsx_attr_name(key)
+            # Parse CSS strings into a dict (because React requires it)
+            if key == "style" and isinstance(val, str):
+                val = cast(
+                    List[Tuple[str, str]],
+                    [tuple(x.split(":")) for x in val.split(";") if re.search(":", x)],
+                )
+                val = dict(val)
             self.attrs[key] = val
 
     def has_attr(self, key: str) -> bool:
@@ -196,22 +204,6 @@ def _serialize_attr(x: object) -> str:
     if isinstance(x, (jsx, int, float)):
         return str(x)
     return '"' + str(x).replace('"', '\\"') + '"'
-
-
-def _serialize_style_attr(x: object) -> str:
-    styles: Dict[str, str] = {}
-    vals = x if isinstance(x, list) else [x]
-    for v in vals:
-        if isinstance(v, dict):
-            styles.update(v)
-        elif isinstance(v, str):
-            rules = [tuple(x.split(":")) for x in v.split(";")]
-            styles.update(dict(rules))
-        else:
-            raise RuntimeError(
-                "Invalid value for style attribute (must be a string or dictionary)"
-            )
-    return _serialize_attr(x)
 
 
 def _normalize_jsx_attr_name(x: str) -> str:
