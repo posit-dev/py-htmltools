@@ -203,3 +203,15 @@ def test_attr_vals(snapshot):
     test = TagList(div(**attrs), div(class_="foo").add_class("bar"))
 
     snapshot.assert_match(str(test), "attr_vals.txt")
+
+
+def test_tag_normalize_attr():
+    # Note that x_ maps to x, and it gets replaced by the latter.
+    x = div(class_="class_", x__="x__", x_="x_", x="x")
+    assert x.attrs == {"class": "class_", "x-": "x__", "x": "x"}
+
+    x = div(clAsS_="clAsS_", X__="X__")
+    assert x.attrs == {"class": "clAsS_", "x-": "X__"}
+
+    x = div(clAsS_2="clAsS_2")
+    assert x.attrs == {"class-2": "clAsS_2"}

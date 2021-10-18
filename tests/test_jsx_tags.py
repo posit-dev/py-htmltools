@@ -227,3 +227,15 @@ def test_jsx_tagifiable_children():
         })();
         </script>"""
     )
+
+
+def test_jsx_tag_normalize_attr():
+    Foo = jsx_tag_create("Foo")
+    x = Foo(class_="class_", x__="x__", x_="x_", x="x")
+    assert x.attrs == {"class": "class_", "x-": "x__", "x": "x"}
+
+    x = Foo(clAsS_="clAsS_", X__="X__")
+    assert x.attrs == {"clAsS": "clAsS_", "X-": "X__"}
+
+    x = Foo(clAsS_2="clAsS_2")
+    assert x.attrs == {"clAsS-2": "clAsS_2"}
