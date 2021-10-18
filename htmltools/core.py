@@ -299,7 +299,7 @@ class Tag:
         # Write attributes
         for key, val in self.attrs.items():
             if not isinstance(val, html):
-                val = _html_escape(val)
+                val = _html_escape(val, attr=True)
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output

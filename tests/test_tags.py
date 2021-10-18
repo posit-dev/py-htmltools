@@ -131,9 +131,10 @@ def test_tag_escaping():
     expect_html(div("<a&b>"), "<div>&lt;a&amp;b&gt;</div>")
     # Children wrapped in html() isn't escaped
     expect_html(div(html("<a&b>")), "<div><a&b></div>")
-    # Text in a property is escaped
+    # Attributes are HTML escaped
     expect_html(div("text", class_="<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
-    # Attributes wrapped in html() isn't escaped
+    expect_html(div("text", class_="'ab'"), '<div class="&apos;ab&apos;">text</div>')
+    # Unless they are wrapped in html()
     expect_html(div("text", class_=html("<a&b>")), '<div class="<a&b>">text</div>')
 
 
