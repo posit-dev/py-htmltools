@@ -198,7 +198,7 @@ def _serialize_attr(x: object) -> str:
     if isinstance(x, (list, tuple)):
         return "[" + ", ".join([_serialize_attr(y) for y in x]) + "]"
     if isinstance(x, dict):
-        return "{" + ", ".join([y + ": " + _serialize_attr(x[y]) for y in x]) + "}"
+        return "{" + ", ".join([f'"{y}": ' + _serialize_attr(x[y]) for y in x]) + "}"
     if isinstance(x, bool):
         return str(x).lower()
     if isinstance(x, (jsx, int, float)):
