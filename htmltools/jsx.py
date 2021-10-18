@@ -250,9 +250,8 @@ class jsx(str):
 
     Example:
     -------
-    >>> Foo = jsx_tag("Foo")
-    >>> print(Foo(myProp = "<p>Hello</p>"))
-    >>> print(Foo(myProp = jsx("<p>Hello</p>")))
+    >>> Foo = jsx_tag_create("Foo")
+    >>> print(Foo(prop = "A string", jsxProp = jsx("() => console.log('here')")))
     """
 
     def __new__(cls, *args: str) -> "jsx":
