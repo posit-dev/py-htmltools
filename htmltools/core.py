@@ -592,8 +592,6 @@ class HTMLDependency(MetadataNode):
             Version(version) if isinstance(version, str) else version
         )
         self.source: PackageHTMLDependencySource = source
-        # self.package: str = package
-        # self.subdir: str = subdir
 
         if isinstance(script, dict):
             script = [script]
@@ -674,11 +672,11 @@ class HTMLDependency(MetadataNode):
     # Returns an object like:
     # [
     #   {
-    #     "local_path": "/xyz/htmltools/lib/testdep/testdep.js",
+    #     "filepath": "/xyz/htmltools/lib/testdep/testdep.js",
     #     "href": "test-0.0.1/testdep.js"
     #   },
     #   {
-    #     "local_path": "/xyz/htmltools/lib/testdep/testdep.css",
+    #     "filepath": "/xyz/htmltools/lib/testdep/testdep.css",
     #     "href": "test-0.0.1/testdep.css"
     #   }
     # ]
