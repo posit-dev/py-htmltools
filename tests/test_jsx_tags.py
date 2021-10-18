@@ -153,6 +153,7 @@ def test_jsx_tags():
     )
 
     x = Foo(
+        div(style=css(color="red")),
         func=jsx("() => console.log('foo')"),
         style={"margin": "1rem"},
     )
@@ -163,7 +164,10 @@ def test_jsx_tags():
           var container = new DocumentFragment();
           ReactDOM.render(
             React.createElement(
-              Foo, {"func": () => console.log('foo'), "style": {"margin": "1rem"}})
+              Foo, {"func": () => console.log('foo'), "style": {"margin": "1rem"}},
+              React.createElement(
+                'div', {"style": {"color": "red"}})
+            )
           , container);
           document.currentScript.after(container);
         })();

@@ -59,13 +59,6 @@ class JSXTag:
     def set_attr(self, **kwargs: object) -> None:
         for key, val in kwargs.items():
             key = _normalize_jsx_attr_name(key)
-            # Parse CSS strings into a dict (because React requires it)
-            if key == "style" and isinstance(val, str):
-                val = cast(
-                    List[Tuple[str, str]],
-                    [tuple(x.split(":")) for x in val.split(";") if re.search(":", x)],
-                )
-                val = dict(val)
             self.attrs[key] = val
 
     def has_attr(self, key: str) -> bool:
@@ -173,7 +166,10 @@ def _render_react_js(x: TagChild, indent: int, eol: str) -> str:
         if not is_first_attr:
             res += ", "
         is_first_attr = False
-        v = _serialize_attr(v)
+        if k == "style":
+            v = _serialize_style_attr(v)
+        else:
+            v = _serialize_attr(v)
         res += f'"{k}": {v}'
     res += "}"
 
@@ -204,6 +200,22 @@ def _serialize_attr(x: object) -> str:
     if isinstance(x, (jsx, int, float)):
         return str(x)
     return '"' + str(x).replace('"', '\\"') + '"'
+
+
+def _serialize_style_attr(x: object) -> str:
+    if x is None:
+        return "{}"
+    # Parse CSS strings into a dict (because React requires it)
+    if isinstance(x, str):
+        x = cast(
+            List[Tuple[str, str]],
+            [tuple(y.split(":")) for y in x.split(";") if re.search(":", y)],
+        )
+        x = dict(x)
+    if isinstance(x, dict):
+        return _serialize_attr(x)
+    else:
+        raise TypeError("The style attribute must be a dict() or string.")
 
 
 def _normalize_jsx_attr_name(x: str) -> str:
