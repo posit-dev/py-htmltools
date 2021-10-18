@@ -72,9 +72,7 @@ class JSXTag:
         # metadata nodes. This could be done in two separate passes, but it's more
         # efficient to do it in one pass.
         def tagify_tagifiable_and_get_metadata(x: Any) -> Any:
-            if not (isinstance(x, Tag) or isinstance(x, JSXTag)) and isinstance(
-                x, Tagifiable
-            ):
+            if isinstance(x, Tagifiable) and not isinstance(x, (Tag, JSXTag)):
                 x = x.tagify()
             else:
                 x = copy.copy(x)
