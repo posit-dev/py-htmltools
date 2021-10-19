@@ -288,7 +288,7 @@ class Tag:
                 continue
             elif val is True:
                 val = ""
-            elif isinstance(val, HTML):
+            elif isinstance(val, (HTML, str)):
                 # If it's HTML, make sure not to call str() on it, because we want to
                 # preserve the HTML class wrapper.
                 pass

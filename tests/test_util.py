@@ -37,5 +37,5 @@ def test_flatten():
     # strings, so 1 and 2 become "1" and "2".
     assert list(
         _flatten([0, TagList(1, 2, div(), TagList(span(div()), span())), (3, 4)])
-    ) == [0, 1, 2, div(), span(div()), span(), 3, 4]
+    ) == [0, "1", "2", div(), span(div()), span(), 3, 4]
     assert _flatten([1, [TagList("2"), 3], 4]) == [1, "2", 3, 4]

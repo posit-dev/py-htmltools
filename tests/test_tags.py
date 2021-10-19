@@ -1,6 +1,5 @@
 import os
 import copy
-from datetime import date
 from tempfile import TemporaryDirectory
 from typing import Any, Union
 import textwrap
@@ -28,7 +27,6 @@ def test_basic_tag_api(snapshot):
         "text",
         1,
         2.1,
-        date(1999, 9, 9),
         None,
         ["list", ["here"]],
     ]
@@ -194,10 +192,10 @@ def test_tag_walk():
 
 def test_tag_list_flatten():
     x = div(1, TagList(2, TagList(span(3), 4)))
-    assert list(x.children) == [1, 2, span(3), 4]
+    assert list(x.children) == ["1", "2", span(3), "4"]
 
     x = TagList(1, TagList(2, TagList(span(3), 4)))
-    assert list(x) == [1, 2, span(3), 4]
+    assert list(x) == ["1", "2", span(3), "4"]
 
 
 def test_attr_vals(snapshot):
@@ -210,7 +208,6 @@ def test_attr_vals(snapshot):
         "str": "a",
         "int": 1,
         "float": 1.2,
-        "date": datetime.date(1999, 1, 2),
     }
     test = TagList(div(**attrs), div(class_="foo").add_class("bar"))
 
