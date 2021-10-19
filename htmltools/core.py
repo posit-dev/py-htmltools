@@ -71,10 +71,10 @@ T = TypeVar("T")
 TagT = TypeVar("TagT", bound="Tag")
 
 # Types of objects that can be a child of a tag.
-TagChild = Union["Tagifiable", "Tag", MetadataNode, str]
+TagChild = Union["Tagifiable", "Tag", MetadataNode, str, int, float]
 
 # Types that can be passed as args to TagList() and tag functions.
-TagChildArg = Union[TagChild, "TagList", int, float, None, Iterable["TagChildArg"]]
+TagChildArg = Union[TagChild, "TagList", None, Iterable["TagChildArg"]]
 
 # Types that can be passed in as attributes to tag functions.
 TagAttrArg = Union[str, int, float, bool, None]
@@ -747,16 +747,9 @@ def head_content(*args: TagChildArg) -> HTMLDependency:
 # Convert a list of TagChildArg objects to a list of TagChild objects. Does not alter
 # input object.
 def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
-    result = _flatten(x)
-    for i, child in enumerate(result):
-        if isinstance(child, (int, float)):
-            result[i] = str(child)
-
-    # At this point, we know that all items in new_children must be valid TagChild
-    # objects, because None, int, float, and TagList objects have been removed. (Note
-    # that the TagList objects that have been flattened are TagList which are NOT
-    # tags.)
-    return cast(List[TagChild], result)
+    # Since _flatten removes None and TagList objects, it should be safe to
+    # cast from TagChildArg to TagChild
+    return cast(List[TagChild], _flatten(x))
 
 
 # Walk a Tag tree, and apply a function to each node. The node in the tree will be

@@ -194,10 +194,10 @@ def test_tag_walk():
 
 def test_tag_list_flatten():
     x = div(1, TagList(2, TagList(span(3), 4)))
-    assert list(x.children) == ["1", "2", span("3"), "4"]
+    assert list(x.children) == [1, 2, span(3), 4]
 
     x = TagList(1, TagList(2, TagList(span(3), 4)))
-    assert list(x) == ["1", "2", span("3"), "4"]
+    assert list(x) == [1, 2, span(3), 4]
 
 
 def test_attr_vals(snapshot):
