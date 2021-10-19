@@ -345,7 +345,22 @@ class Tag:
         return self.get_html_string()
 
     def __repr__(self) -> str:
-        return tag_repr_impl(self.name, self.attrs, self.children)
+        x = "<" + self.name
+        n_attrs = len(self.attrs)
+        id = self.get_attr("id")
+        if id:
+            x += "#" + id
+            n_attrs -= 1
+        cls = self.get_attr("class")
+        if cls:
+            x += "." + cls.replace(" ", ".")
+            n_attrs -= 1
+        x += " with "
+        if n_attrs > 0:
+            x += f"{n_attrs} other attributes and "
+        n = len(self.children)
+        x += "1 child>" if n == 1 else f"{n} children>"
+        return x
 
     def __eq__(self, other: Any) -> bool:
         return equals_impl(self, other)
@@ -798,23 +813,6 @@ def _tag_show(self: Union[TagList, "Tag"], renderer: str = "auto") -> Any:
         return file
 
     raise Exception(f"Unknown renderer {renderer}")
-
-
-def tag_repr_impl(name: str, attrs: Dict[str, str], children: TagList) -> str:
-    x = "<" + name
-    n_attrs = len(attrs)
-    if attrs.get("id"):
-        x += "#" + attrs["id"]
-        n_attrs -= 1
-    if attrs.get("class"):
-        x += "." + attrs["class"].replace(" ", ".")
-        n_attrs -= 1
-    x += " with "
-    if n_attrs > 0:
-        x += f"{n_attrs} other attributes and "
-    n = len(children)
-    x += "1 child>" if n == 1 else f"{n} children>"
-    return x
 
 
 def normalize_text(txt: str) -> str:
