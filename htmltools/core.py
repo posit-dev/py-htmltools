@@ -152,7 +152,7 @@ class TagList(List[TagChild]):
                 )
             else:
                 # If we get here, x must be a string.
-                html_ += line_prefix + ("  " * indent) + normalize_text(child)
+                html_ += line_prefix + ("  " * indent) + _normalize_text(child)
 
             if line_prefix == "":
                 line_prefix = eol
@@ -180,7 +180,7 @@ class TagList(List[TagChild]):
         return self.get_html_string()
 
     def __eq__(self, other: Any) -> bool:
-        return equals_impl(self, other)
+        return _equals_impl(self, other)
 
 
 # =============================================================================
@@ -319,7 +319,7 @@ class Tag:
 
         # Inline a single/empty child text node
         if len(children) == 1 and isinstance(children[0], str):
-            return html(html_ + normalize_text(children[0]) + close)
+            return html(html_ + _normalize_text(children[0]) + close)
 
         # Write children
         # TODO: inline elements should eat ws?
@@ -363,7 +363,7 @@ class Tag:
         return x
 
     def __eq__(self, other: Any) -> bool:
-        return equals_impl(self, other)
+        return _equals_impl(self, other)
 
 
 # Tags that have the form <tagname />
@@ -720,7 +720,7 @@ class HTMLDependency(MetadataNode):
         return str(self.as_html_tags())
 
     def __eq__(self, other: Any) -> bool:
-        return equals_impl(self, other)
+        return _equals_impl(self, other)
 
 
 def _resolve_dependencies(deps: List[HTMLDependency]) -> List[HTMLDependency]:
@@ -815,14 +815,14 @@ def _tag_show(self: Union[TagList, "Tag"], renderer: str = "auto") -> Any:
     raise Exception(f"Unknown renderer {renderer}")
 
 
-def normalize_text(txt: str) -> str:
+def _normalize_text(txt: str) -> str:
     if isinstance(txt, html):
         return txt
     else:
         return _html_escape(txt, attr=False)
 
 
-def equals_impl(x: Any, y: Any) -> bool:
+def _equals_impl(x: Any, y: Any) -> bool:
     if not isinstance(y, type(x)):
         return False
     for key in x.__dict__.keys():
