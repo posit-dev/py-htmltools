@@ -812,11 +812,11 @@ def _tag_show(self: Union[TagList, "Tag"], renderer: str = "auto") -> Any:
     raise Exception(f"Unknown renderer {renderer}")
 
 
-def _normalize_text(txt: str) -> str:
+def _normalize_text(txt: object) -> str:
     if isinstance(txt, html):
         return txt
     else:
-        return _html_escape(txt, attr=False)
+        return _html_escape(str(txt), attr=False)
 
 
 def _equals_impl(x: Any, y: Any) -> bool:
