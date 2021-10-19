@@ -103,6 +103,30 @@ class TagFunction(Protocol):
 # TagList
 # =============================================================================
 class TagList(List[TagChild]):
+    """
+    Create an HTML tag list (i.e., a fragment of HTML)
+
+    Methods:
+    --------
+        show: Preview as a complete HTML document.
+        save_html: Save to a HTML file.
+        append: Append children to existing children.
+        extend: Append an iterable child to existing children.
+        insert: Add children into a specific child index.
+        walk: Apply a function to each node in the tag tree.
+        render: Returns the HTML string and list of dependencies.
+        get_html_string: the HTML string.
+        get_dependencies: the HTMLDependency()s.
+        tagify: Converts any tagifiable children to Tag/TagList objects.
+
+     Examples:
+    ---------
+        >>> from htmltools import *
+        >>> x = TagList("hello", div(id="foo", class_="bar"))
+        >>> x
+        >>> print(x)
+    """
+
     def __init__(self, *args: TagChildArg) -> None:
         super().__init__(_tagchildargs_to_tagchilds(args))
 
@@ -189,25 +213,33 @@ class Tag:
 
     Methods:
     --------
-        show: Render and preview as HTML.
-        save_html: Save the HTML to a file.
-        append: Add children (or attributes) _after_ any existing children (or attributes).
-        insert: Add children (or attributes) into a specific child (or attribute) index.
-        get_attrs: Get a dictionary of attributes.
-        get_attr: Get the value of an attribute.
-        has_attr: Check if an attribute is present.
+        show: Preview as a complete HTML document.
+        save_html: Save to a HTML file.
+        append: Append children to existing children.
+        extend: Append an iterable child to existing children.
+        insert: Add children into a specific child index.
+        set_attr: Set the value of attribute(s).
+        add_class: Add a class to the tag.
         has_class: Check if the class attribte contains a particular class.
-        render: Render the tag as HTML.
+        walk: Apply a function to each node in the tag tree.
+        render: Returns the HTML string and list of dependencies.
+        get_html_string: the HTML string.
+        get_dependencies: the HTMLDependency()s.
+        tagify: Converts any tagifiable children to Tag/TagList objects.
 
     Attributes:
     -----------
-        name: The name of the tag
-        children: A list of children
+        name: The name of the tag as a string
+        attrs: A dictionary of attributes.
+        children: A list of children.
 
      Examples:
     ---------
-        >>> print(div(h1('Hello htmltools'), tags.p('for python'), class_ = 'mydiv'))
-        >>> print(tag("MyJSXComponent"))
+        >>> from htmltools import *
+        >>> x = div("hello", id="foo", class_="bar")
+        >>> x
+        >>> print(x)
+        >>> x.show()
     """
 
     def __init__(
@@ -250,9 +282,6 @@ class Tag:
     def append(self, *args: TagChildArg) -> None:
         self.children.append(*args)
 
-    def get_attr(self, key: str) -> Optional[str]:
-        return self.attrs.get(key)
-
     def set_attr(self, **kwargs: TagAttrArg) -> None:
         for key, val in kwargs.items():
             if val is None or val is False:
@@ -268,9 +297,6 @@ class Tag:
 
             key = _normalize_attr_name(key)
             self.attrs[key] = val
-
-    def has_attr(self, key: str) -> bool:
-        return _normalize_attr_name(key) in self.attrs
 
     def add_class(self, x: str) -> "Tag":
         if "class" in self.attrs:
@@ -344,11 +370,11 @@ class Tag:
     def __repr__(self) -> str:
         x = "<" + self.name
         n_attrs = len(self.attrs)
-        id = self.get_attr("id")
+        id = self.attrs.get("id")
         if id:
             x += "#" + id
             n_attrs -= 1
-        cls = self.get_attr("class")
+        cls = self.attrs.get("class")
         if cls:
             x += "." + cls.replace(" ", ".")
             n_attrs -= 1

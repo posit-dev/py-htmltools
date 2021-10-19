@@ -53,16 +53,10 @@ class JSXTag:
     def append(self, *args: TagChildArg) -> None:
         self.children.append(*args)
 
-    def get_attr(self, key: str) -> Any:
-        return self.attrs.get(key)
-
     def set_attr(self, **kwargs: object) -> None:
         for key, val in kwargs.items():
             key = _normalize_jsx_attr_name(key)
             self.attrs[key] = val
-
-    def has_attr(self, key: str) -> bool:
-        return _normalize_jsx_attr_name(key) in self.attrs
 
     def tagify(self) -> Tag:
         metadata_nodes: List[MetadataNode] = []
