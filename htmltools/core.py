@@ -119,7 +119,7 @@ class TagList(List[TagChild]):
         get_dependencies: the HTMLDependency()s.
         tagify: Converts any tagifiable children to Tag/TagList objects.
 
-     Examples:
+    Examples:
     ---------
         >>> from htmltools import *
         >>> x = TagList("hello", div(id="foo", class_="bar"))
@@ -233,7 +233,7 @@ class Tag:
         attrs: A dictionary of attributes.
         children: A list of children.
 
-     Examples:
+    Examples:
     ---------
         >>> from htmltools import *
         >>> x = div("hello", id="foo", class_="bar")
@@ -292,9 +292,13 @@ class Tag:
                 # If it's HTML, make sure not to call str() on it, because we want to
                 # preserve the HTML class wrapper.
                 pass
-            else:
+            elif isinstance(val, (int, float)):
                 val = str(val)
-
+            else:
+                raise TypeError(
+                    f"Invalid type for attribute {key}: {type(val)}."
+                    + "Consider calling str() on this value before treating it as a tag attribute."
+                )
             key = _normalize_attr_name(key)
             self.attrs[key] = val
 
@@ -773,9 +777,21 @@ def head_content(*args: TagChildArg) -> HTMLDependency:
 # Convert a list of TagChildArg objects to a list of TagChild objects. Does not alter
 # input object.
 def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
-    # Since _flatten removes None and TagList objects, it should be safe to
-    # cast from TagChildArg to TagChild
-    return cast(List[TagChild], _flatten(x))
+    result = _flatten(x)
+    for i, child in enumerate(result):
+        if isinstance(child, (int, float)):
+            result[i] = str(child)
+        elif not isinstance(child, (Tagifiable, Tag, MetadataNode, str)):
+            raise TypeError(
+                f"Invalid tag child type: {type(child)}. "
+                + "Consider calling str() on this value before treating it as a tag child."
+            )
+
+    # At this point, we know that all items in new_children must be valid TagChild
+    # objects, because None, int, float, and TagList objects have been removed. (Note
+    # that the TagList objects that have been flattened are TagList which are NOT
+    # tags.)
+    return cast(List[TagChild], result)
 
 
 # Walk a Tag tree, and apply a function to each node. The node in the tree will be

@@ -31,6 +31,6 @@ jobs:
       - name: Install
         run: |
           make install
-      - name: Test with pytest
+      - name: Run unit tests
         run: |
-          pytest
+          make test
