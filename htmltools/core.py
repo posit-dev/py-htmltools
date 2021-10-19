@@ -38,7 +38,7 @@ __all__ = (
     "TagList",
     "Tag",
     "HTMLDocument",
-    "html",
+    "HTML",
     "MetadataNode",
     "HTMLDependency",
     "RenderedHTML",
@@ -135,7 +135,7 @@ class TagList(List[TagChild]):
         deps = cp.get_dependencies()
         return {"dependencies": deps, "html": cp.get_html_string()}
 
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "HTML":
         html_ = ""
         line_prefix = ""
         for child in self:
@@ -153,7 +153,7 @@ class TagList(List[TagChild]):
 
             if line_prefix == "":
                 line_prefix = eol
-        return html(html_)
+        return HTML(html_)
 
     def get_dependencies(self, *, dedup: bool = True) -> List["HTMLDependency"]:
         deps: List[HTMLDependency] = []
@@ -259,9 +259,9 @@ class Tag:
                 continue
             elif val is True:
                 val = ""
-            elif isinstance(val, html):
-                # If it's html, make sure not to call str() on it, because we want to
-                # preserve the html class wrapper.
+            elif isinstance(val, HTML):
+                # If it's HTML, make sure not to call str() on it, because we want to
+                # preserve the HTML class wrapper.
                 pass
             else:
                 val = str(val)
@@ -291,13 +291,13 @@ class Tag:
         cp.children = cp.children.tagify()
         return cp
 
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "HTML":
         indent_str = "  " * indent
         html_ = indent_str + "<" + self.name
 
         # Write attributes
         for key, val in self.attrs.items():
-            if not isinstance(val, html):
+            if not isinstance(val, HTML):
                 val = _html_escape(val, attr=True)
             html_ += f' {key}="{val}"'
 
@@ -306,23 +306,23 @@ class Tag:
 
         # Don't enclose JSX/void elements if there are no children
         if len(children) == 0 and self.name in _VOID_TAG_NAMES:
-            return html(html_ + "/>")
+            return HTML(html_ + "/>")
 
         # Other empty tags are enclosed
         html_ += ">"
         close = "</" + self.name + ">"
         if len(children) == 0:
-            return html(html_ + close)
+            return HTML(html_ + close)
 
         # Inline a single/empty child text node
         if len(children) == 1 and isinstance(children[0], str):
-            return html(html_ + _normalize_text(children[0]) + close)
+            return HTML(html_ + _normalize_text(children[0]) + close)
 
         # Write children
         # TODO: inline elements should eat ws?
         html_ += eol
         html_ += self.children.get_html_string(indent + 1, eol)
-        return html(html_ + eol + indent_str + close)
+        return HTML(html_ + eol + indent_str + close)
 
     def render(self) -> RenderedHTML:
         cp = self.tagify()
@@ -494,26 +494,26 @@ class HTMLDocument:
 # =============================================================================
 # HTML strings
 # =============================================================================
-class html(str):
+class HTML(str):
     """
     Mark a string as raw HTML.
 
     Example:
     -------
     >>> print(div("<p>Hello</p>"))
-    >>> print(div(html("<p>Hello</p>")))
+    >>> print(div(HTML("<p>Hello</p>")))
     """
 
-    def __new__(cls, *args: str) -> "html":
+    def __new__(cls, *args: str) -> "HTML":
         return super().__new__(cls, "\n".join(args))
 
-    def __str__(self) -> "html":
-        return html(self)
+    def __str__(self) -> "HTML":
+        return HTML(self)
 
-    # html() + html() should return html()
-    def __add__(self, other: Union[str, "html"]) -> str:
+    # HTML() + HTML() should return HTML()
+    def __add__(self, other: Union[str, "HTML"]) -> str:
         res = str.__add__(self, other)
-        return html(res) if isinstance(other, html) else res
+        return HTML(res) if isinstance(other, HTML) else res
 
 
 # =============================================================================
@@ -806,7 +806,7 @@ def _tag_show(self: Union[TagList, "Tag"], renderer: str = "auto") -> Any:
 
 
 def _normalize_text(txt: object) -> str:
-    if isinstance(txt, html):
+    if isinstance(txt, HTML):
         return txt
     else:
         return _html_escape(str(txt), attr=False)

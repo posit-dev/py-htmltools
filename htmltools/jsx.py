@@ -9,7 +9,7 @@ from .core import (
     TagChild,
     TagChildArg,
     Tagifiable,
-    html,
+    HTML,
     MetadataNode,
     HTMLDependency,
 )
@@ -104,7 +104,7 @@ class JSXTag:
             "script",
             type="text/javascript",
             children=[
-                html("\n" + js + "\n"),
+                HTML("\n" + js + "\n"),
                 _lib_dependency("react", script={"src": "react.production.min.js"}),
                 _lib_dependency(
                     "react-dom", script={"src": "react-dom.production.min.js"}
@@ -261,7 +261,7 @@ class jsx(str):
     def __new__(cls, *args: str) -> "jsx":
         return super().__new__(cls, "\n".join(args))
 
-    # html() + html() should return html()
+    # jsx() + jsx() should return jsx()
     def __add__(self, other: Union[str, "jsx"]) -> str:
         res = str.__add__(self, other)
         return jsx(res) if isinstance(other, jsx) else res

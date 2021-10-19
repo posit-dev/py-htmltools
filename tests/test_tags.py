@@ -139,13 +139,13 @@ def test_tag_repr():
 def test_tag_escaping():
     # Regular text is escaped
     expect_html(div("<a&b>"), "<div>&lt;a&amp;b&gt;</div>")
-    # Children wrapped in html() isn't escaped
-    expect_html(div(html("<a&b>")), "<div><a&b></div>")
+    # Children wrapped in HTML() isn't escaped
+    expect_html(div(HTML("<a&b>")), "<div><a&b></div>")
     # Attributes are HTML escaped
     expect_html(div("text", class_="<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
     expect_html(div("text", class_="'ab'"), '<div class="&apos;ab&apos;">text</div>')
-    # Unless they are wrapped in html()
-    expect_html(div("text", class_=html("<a&b>")), '<div class="<a&b>">text</div>')
+    # Unless they are wrapped in HTML()
+    expect_html(div("text", class_=HTML("<a&b>")), '<div class="<a&b>">text</div>')
 
 
 def test_html_save(snapshot):
