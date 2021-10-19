@@ -225,25 +225,6 @@ class Tag:
             self.children.extend(children)
 
         self.set_attr(**kwargs)
-        # http://dev.w3.org/html5/spec/single-page.html#void-elements
-        self._is_void = _name in [
-            "area",
-            "base",
-            "br",
-            "col",
-            "command",
-            "embed",
-            "hr",
-            "img",
-            "input",
-            "keygen",
-            "link",
-            "meta",
-            "param",
-            "source",
-            "track",
-            "wbr",
-        ]
 
     def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "Tag":
         self.children.extend(args)
@@ -323,7 +304,7 @@ class Tag:
         children = [x for x in self.children if not isinstance(x, MetadataNode)]
 
         # Don't enclose JSX/void elements if there are no children
-        if len(children) == 0 and self._is_void:
+        if len(children) == 0 and self.name in _VOID_TAG_NAMES:
             return html(html_ + "/>")
 
         # Other empty tags are enclosed
@@ -364,6 +345,27 @@ class Tag:
 
     def __eq__(self, other: Any) -> bool:
         return equals_impl(self, other)
+
+
+# Tags that have the form <tagname />
+_VOID_TAG_NAMES = {
+    "area",
+    "base",
+    "br",
+    "col",
+    "command",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "keygen",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
+}
 
 
 # =============================================================================
