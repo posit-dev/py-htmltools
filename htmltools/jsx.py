@@ -22,6 +22,28 @@ __all__ = (
 )
 
 
+class JSXTagAttrs(Dict[str, object]):
+    def __init__(self, **kwargs: object) -> None:
+        super().__init__()
+        self.update(**kwargs)
+
+    def __setitem__(self, name: str, value: object) -> None:
+        nm = self._normalize_attr_name(name)
+        super().__setitem__(nm, value)
+
+    def update(self, **kwargs: object) -> None:
+        attrs: Dict[str, object] = {}
+        for key, val in kwargs.items():
+            attrs[self._normalize_attr_name(key)] = val
+        super().update(**attrs)
+
+    @staticmethod
+    def _normalize_attr_name(x: str) -> str:
+        if x.endswith("_"):
+            x = x[:-1]
+        return x.replace("_", "-")
+
+
 class JSXTag:
     def __init__(
         self,
@@ -36,27 +58,20 @@ class JSXTag:
                 if k not in allowedProps:
                     raise NotImplementedError(f"{k} is not a valid prop for {_name}")
 
-        self.children: TagList = TagList()
         self.name: str = _name
         # Unlike HTML tags, JSX tag attributes can be anything.
-        self.attrs: Dict[str, object] = {}
+        self.attrs: JSXTagAttrs = JSXTagAttrs(**kwargs)
+        self.children: TagList = TagList()
 
         self.children.extend(args)
         if children:
             self.children.extend(children)
-
-        self.set_attr(**kwargs)
 
     def extend(self, x: Iterable[TagChildArg]) -> None:
         self.children.extend(x)
 
     def append(self, *args: TagChildArg) -> None:
         self.children.append(*args)
-
-    def set_attr(self, **kwargs: object) -> None:
-        for key, val in kwargs.items():
-            key = _normalize_jsx_attr_name(key)
-            self.attrs[key] = val
 
     def tagify(self) -> Tag:
         metadata_nodes: List[MetadataNode] = []
@@ -210,12 +225,6 @@ def _serialize_style_attr(x: object) -> str:
         return _serialize_attr(x)
     else:
         raise TypeError("The style attribute must be a dict() or string.")
-
-
-def _normalize_jsx_attr_name(x: str) -> str:
-    if x.endswith("_"):
-        x = x[:-1]
-    return x.replace("_", "-")
 
 
 def jsx_tag_create(

@@ -36,7 +36,7 @@ def test_basic_tag_api(snapshot):
     x3 = div(**props)(*children)
     x4 = div()
     x4.append(*children)
-    x4.set_attr(**props)
+    x4.attrs.update(**props)
     assert x1 == x2 == x3 == x4
     assert x1.attrs["id"] == "baz"
     assert x1.attrs["bool"] == ""

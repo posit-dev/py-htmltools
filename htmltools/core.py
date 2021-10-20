@@ -29,7 +29,6 @@ from packaging.version import Version
 from .util import (
     ensure_http_server,
     _package_dir,  # type: ignore
-    _normalize_attr_name,  # type: ignore
     _html_escape,  # type: ignore
     _flatten,  # type: ignore
 )
@@ -204,6 +203,54 @@ class TagList(List[TagChild]):
 
 
 # =============================================================================
+# TagAttrs class
+# =============================================================================
+
+
+class TagAttrs(Dict[str, str]):
+    def __init__(self, **kwargs: TagAttrArg) -> None:
+        super().__init__()
+        self.update(**kwargs)
+
+    def __setitem__(self, name: str, value: TagAttrArg) -> None:
+        val = self._normalize_attr_value(value)
+        if val is not None:
+            nm = self._normalize_attr_name(name)
+            super().__setitem__(nm, val)
+
+    def update(self, **kwargs: TagAttrArg) -> None:
+        attrs: Dict[str, str] = {}
+        for key, val in kwargs.items():
+            val_ = self._normalize_attr_value(val)
+            if val_ is None:
+                continue
+            attrs[self._normalize_attr_name(key)] = val_
+        super().update(**attrs)
+
+    @staticmethod
+    def _normalize_attr_name(x: str) -> str:
+        # e.g., foo_Bar_ -> foo-bar
+        if x.endswith("_"):
+            x = x[:-1]
+        return x.replace("_", "-").lower()
+
+    @staticmethod
+    def _normalize_attr_value(x: TagAttrArg) -> Optional[str]:
+        if x is None or x is False:
+            return None
+        if x is True:
+            return ""
+        if isinstance(x, (int, float)):
+            return str(x)
+        if isinstance(x, (HTML, str)):
+            return x
+        raise TypeError(
+            f"Invalid type for attribute: {type(x)}."
+            + "Consider calling str() on this value before treating it as a tag attribute."
+        )
+
+
+# =============================================================================
 # Tag class
 # =============================================================================
 class Tag:
@@ -217,7 +264,6 @@ class Tag:
         append: Append children to existing children.
         extend: Append an iterable child to existing children.
         insert: Add children into a specific child index.
-        set_attr: Set the value of attribute(s).
         add_class: Add a class to the tag.
         has_class: Check if the class attribte contains a particular class.
         render: Returns the HTML string and list of dependencies.
@@ -247,19 +293,17 @@ class Tag:
         children: Optional[List[TagChildArg]] = None,
         **kwargs: TagAttrArg,
     ) -> None:
-        self.children: TagList = TagList()
         self.name: str = _name
-        self.attrs: Dict[str, str] = {}
+        self.attrs: TagAttrs = TagAttrs(**kwargs)
+        self.children: TagList = TagList()
 
         self.children.extend(args)
         if children:
             self.children.extend(children)
 
-        self.set_attr(**kwargs)
-
     def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "Tag":
         self.children.extend(args)
-        self.set_attr(**kwargs)
+        self.attrs.update(**kwargs)
         return self
 
     def __copy__(self: TagT) -> TagT:
@@ -280,38 +324,35 @@ class Tag:
     def append(self, *args: TagChildArg) -> None:
         self.children.append(*args)
 
-    def set_attr(self, **kwargs: TagAttrArg) -> None:
-        for key, val in kwargs.items():
-            if val is None or val is False:
-                continue
-            elif val is True:
-                val = ""
-            elif isinstance(val, (HTML, str)):
-                # If it's HTML, make sure not to call str() on it, because we want to
-                # preserve the HTML class wrapper.
-                pass
-            elif isinstance(val, (int, float)):
-                val = str(val)
-            else:
-                raise TypeError(
-                    f"Invalid type for attribute {key}: {type(val)}."
-                    + "Consider calling str() on this value before treating it as a tag attribute."
-                )
-            key = _normalize_attr_name(key)
-            self.attrs[key] = val
-
     def add_class(self, x: str) -> "Tag":
-        if "class" in self.attrs:
-            self.attrs["class"] += " " + x
-        else:
-            self.attrs["class"] = x
+        """
+        Add an HTML class attribute.
+
+        Args:
+            x: The class name to add.
+
+        Returns: The modified tag.
+        """
+        cls = self.attrs.get("class")
+        if cls:
+            x = cls + " " + x
+        self.attrs["class"] = x
         return self
 
     def has_class(self, class_: str) -> bool:
-        attr = self.attrs.get("class", None)
-        if attr is None:
+        """
+        Check if the tag has a particular class.
+
+        Args:
+            class_: The class name to check for.
+
+        Returns: `True` if the tag has the class, `False` otherwise.
+        """
+        cls = self.attrs.get("class")
+        if cls:
+            return class_ in cls.split(" ")
+        else:
             return False
-        return class_ in attr.split(" ")
 
     def tagify(self: TagT) -> TagT:
         # TODO: Does this result in extra copies of the NodeList?
@@ -481,7 +522,7 @@ class HTMLDocument:
             and cast(Tag, content[0]).name == "html"
         ):
             html = cast(Tag, content[0])
-            html.set_attr(**self._html_attr_args)
+            html.attrs.update(**self._html_attr_args)
             html = html.tagify()
             html = HTMLDocument._hoist_head_content(html, lib_prefix)
             return html

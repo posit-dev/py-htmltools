@@ -83,13 +83,6 @@ def unique(x: List[HashableT]) -> List[HashableT]:
     return list(dict.fromkeys(x))
 
 
-# e.g., foo_Bar_ -> foo-bar
-def _normalize_attr_name(x: str) -> str:
-    if x.endswith("_"):
-        x = x[:-1]
-    return x.replace("_", "-").lower()
-
-
 HTML_ESCAPE_TABLE = {
     "&": "&amp;",
     ">": "&gt;",
