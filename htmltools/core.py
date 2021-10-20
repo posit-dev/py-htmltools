@@ -113,7 +113,6 @@ class TagList(List[TagChild]):
         append: Append children to existing children.
         extend: Append an iterable child to existing children.
         insert: Add children into a specific child index.
-        walk: Apply a function to each node in the tag tree.
         render: Returns the HTML string and list of dependencies.
         get_html_string: the HTML string.
         get_dependencies: the HTMLDependency()s.
@@ -221,7 +220,6 @@ class Tag:
         set_attr: Set the value of attribute(s).
         add_class: Add a class to the tag.
         has_class: Check if the class attribte contains a particular class.
-        walk: Apply a function to each node in the tag tree.
         render: Returns the HTML string and list of dependencies.
         get_html_string: the HTML string.
         get_dependencies: the HTMLDependency()s.
