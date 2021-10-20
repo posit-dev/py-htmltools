@@ -2,6 +2,7 @@ import os
 import copy
 from tempfile import TemporaryDirectory
 from typing import Any, Union
+import textwrap
 
 from htmltools import *
 from htmltools.util import cwd
@@ -215,3 +216,18 @@ def test_tag_normalize_attr():
 
     x = div(clAsS_2="clAsS_2")
     assert x.attrs == {"class-2": "clAsS_2"}
+
+
+def test_metadata_nodes_gone():
+    # Make sure MetadataNodes don't result in a blank line.
+    assert str(div(span("Body content"), head_content("abc"))) == textwrap.dedent(
+        """\
+        <div>
+          <span>Body content</span>
+        </div>"""
+    )
+
+    assert (
+        str(TagList(span("Body content"), MetadataNode()))
+        == "<span>Body content</span>"
+    )

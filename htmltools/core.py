@@ -137,22 +137,23 @@ class TagList(List[TagChild]):
         return {"dependencies": deps, "html": cp.get_html_string()}
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
-        n = len(self)
         html_ = ""
-        for i, x in enumerate(self):
-            if isinstance(x, Tag):
-                html_ += x.get_html_string(indent, eol)  # type: ignore
-            elif isinstance(x, MetadataNode):
+        line_prefix = ""
+        for child in self:
+            if isinstance(child, Tag):
+                html_ += line_prefix + child.get_html_string(indent, eol)
+            elif isinstance(child, MetadataNode):
                 continue
-            elif isinstance(x, Tagifiable):
+            elif isinstance(child, Tagifiable):
                 raise RuntimeError(
                     "Encountered a non-tagified object. x.tagify() must be called before x.render()"
                 )
             else:
                 # If we get here, x must be a string.
-                html_ += ("  " * indent) + normalize_text(x)
-            if i < n - 1:
-                html_ += eol
+                html_ += line_prefix + ("  " * indent) + normalize_text(child)
+
+            if line_prefix == "":
+                line_prefix = eol
         return html(html_)
 
     def get_dependencies(self, *, dedup: bool = True) -> List["HTMLDependency"]:
@@ -387,7 +388,7 @@ class HTMLDocument:
         **kwargs: TagAttrArg,
     ) -> None:
         self._content: TagList = TagList(*args)
-        self._html_attr_args: Dict[str, TagAttrArg] = {**kwargs}
+        self._html_attr_args: Dict[str, TagAttrArg] = kwargs
 
     def __copy__(self) -> "HTMLDocument":
         cls = self.__class__
@@ -429,7 +430,7 @@ class HTMLDocument:
     #   and <link rel="[lib_prefix]/style.css"> tags.
     def _gen_html_tag_tree(self, lib_prefix: Optional[str]) -> Tag:
         content: TagList = self._content
-        html_: Tag
+        html: Tag
         body: Tag
 
         if (
@@ -437,7 +438,11 @@ class HTMLDocument:
             and isinstance(content[0], Tag)
             and cast(Tag, content[0]).name == "html"
         ):
-            html_ = cast(Tag, content[0])
+            html = cast(Tag, content[0])
+            html.set_attr(**self._html_attr_args)
+            html = html.tagify()
+            html = HTMLDocument._hoist_head_content(html, lib_prefix)
+            return html
 
         if (
             len(content) == 1
@@ -450,27 +455,25 @@ class HTMLDocument:
 
         body = body.tagify()
 
-        html_ = Tag("html", Tag("head"), body, **self._html_attr_args)
-        html_ = HTMLDocument._insert_head_content(html_, lib_prefix)
-
-        return html_
+        html = Tag("html", Tag("head"), body, **self._html_attr_args)
+        html = HTMLDocument._hoist_head_content(html, lib_prefix)
+        return html
 
     # Given an <html> tag object, copies the top node, then extracts dependencies from
     # the tree, and inserts the content from those dependencies into the <head>, such as
     # <link> and <script> tags.
     @staticmethod
-    def _insert_head_content(x: Tag, lib_prefix: Optional[str]) -> Tag:
+    def _hoist_head_content(x: Tag, lib_prefix: Optional[str]) -> Tag:
+        if x.name != "html":
+            raise ValueError(f"Expected <html> tag, got <{x.name}>.")
         deps: List[HTMLDependency] = x.get_dependencies()
         res = copy(x)
         res.children[0] = copy(res.children[0])
         head = cast(Tag, res.children[0])
-        head.insert(
-            0,
-            [
-                Tag("meta", charset="utf-8"),
-                *[d.as_html_tags(prefix_dir=lib_prefix) for d in deps],
-            ],
-        )
+        # Put <meta charset="utf-8"> at beginning of head, and other hoisted tags at the
+        # end. This matters only if the <head> tag starts out with some children.
+        head.insert(0, Tag("meta", charset="utf-8"))
+        head.extend([d.as_html_tags(prefix_dir=lib_prefix) for d in deps])
         return res
 
 

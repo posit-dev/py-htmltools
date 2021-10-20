@@ -13,6 +13,70 @@ def saved_html(x: Union[Tag, HTMLDocument]) -> str:
         return open(f, "r").read()
 
 
+def test_html_document_html_input():
+    # HTMLDocument with an <html> tag.
+    doc = HTMLDocument(
+        tags.html(
+            tags.head(tags.title("Title")),
+            tags.body(div("Body content"), head_content("abcd")),
+            myattr="value",
+        ),
+        lang="en",
+    )
+    assert doc.render()["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html myattr="value" lang="en">
+          <head>
+            <meta charset="utf-8"/>
+            <title>Title</title>
+            abcd
+          </head>
+          <body>
+            <div>Body content</div>
+          </body>
+        </html>"""
+    )
+
+    # HTMLDocument with a <body> tag.
+    doc = HTMLDocument(
+        tags.body(div("Body content"), head_content("abcd")),
+        lang="en",
+    )
+    assert doc.render()["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8"/>
+            abcd
+          </head>
+          <body>
+            <div>Body content</div>
+          </body>
+        </html>"""
+    )
+
+    # HTMLDocument with a TagList.
+    doc = HTMLDocument(
+        TagList(div("Body content"), head_content("abcd")),
+        lang="en",
+    )
+    assert doc.render()["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8"/>
+            abcd
+          </head>
+          <body>
+            <div>Body content</div>
+          </body>
+        </html>"""
+    )
+
+
 def test_html_document_head_hoisting():
     doc = HTMLDocument(
         div(
