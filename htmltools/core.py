@@ -47,6 +47,7 @@ __all__ = (
     "TagChildArg",
     "TagChild",
     "TagFunction",
+    "head_content",
 )
 
 
@@ -449,10 +450,7 @@ class HTMLDocument:
 
         body = body.tagify()
 
-        head_content = HTMLDocument._extract_head_content(body)
-        head = Tag("head", head_content)
-
-        html_ = Tag("html", head, body, **self._html_attr_args)
+        html_ = Tag("html", Tag("head"), body, **self._html_attr_args)
         html_ = HTMLDocument._insert_head_content(html_, lib_prefix)
 
         return html_
@@ -474,24 +472,6 @@ class HTMLDocument:
             ],
         )
         return res
-
-    # Given a Tag object, extract content that is inside of <head> tags, and return it
-    # in a TagList. As a side effect, this will also remove the <head> tags from the
-    # original Tag object.
-    @staticmethod
-    def _extract_head_content(x: Tag) -> TagList:
-        head_content: TagList = TagList()
-
-        def remove_head_content(item: TagChild) -> TagChild:
-            if isinstance(item, Tag):
-                for i, child in enumerate(item.children):
-                    if isinstance(child, Tag) and child.name == "head":
-                        head_content.extend(child.children)
-                        item.children.pop(i)
-            return item
-
-        _walk_mutate(x, remove_head_content)
-        return head_content
 
 
 # =============================================================================
@@ -553,18 +533,18 @@ class HTMLDependency(MetadataNode):
         name: str,
         version: Union[str, Version],
         *,
-        source: PackageHTMLDependencySource,
+        source: Optional[PackageHTMLDependencySource] = None,
         script: Union[Dict[str, str], List[Dict[str, str]]] = [],
         stylesheet: Union[Dict[str, str], List[Dict[str, str]]] = [],
         all_files: bool = False,
         meta: List[Dict[str, str]] = [],
-        head: Optional[str] = None,
+        head: TagChildArg = None,
     ) -> None:
         self.name: str = name
         self.version: Version = (
             Version(version) if isinstance(version, str) else version
         )
-        self.source: PackageHTMLDependencySource = source
+        self.source: Optional[PackageHTMLDependencySource] = source
 
         if isinstance(script, dict):
             script = [script]
@@ -583,10 +563,16 @@ class HTMLDependency(MetadataNode):
 
         self.all_files: bool = all_files
         self.meta: List[Dict[str, str]] = meta
-        self.head: Optional[str] = head
+        self.head: Optional[TagChildArg]
+        if head is None:
+            self.head = None
+        else:
+            self.head = TagList(head)
 
     def get_source_dir(self) -> str:
         """Return the directory on disk where the dependency's files reside."""
+        if self.source is None:
+            return ""
         if self.source["package"] is not None:
             return os.path.join(
                 _package_dir(self.source["package"]), self.source["subdir"]
@@ -618,8 +604,7 @@ class HTMLDependency(MetadataNode):
         metas = [Tag("meta", **m) for m in self.meta]
         links = [Tag("link", **s) for s in sheets]
         scripts = [Tag("script", **s) for s in script]
-        head = html(self.head) if self.head else None
-        return TagList(*metas, *links, *scripts, head)
+        return TagList(*metas, *links, *scripts, self.head)
 
     def copy_to(self, path: str) -> None:
         src_file_infos = self._find_src_files()
@@ -655,6 +640,8 @@ class HTMLDependency(MetadataNode):
     # ]
     def _find_src_files(self) -> List[Dict[str, str]]:
         src_dir: str = self.get_source_dir()
+        if src_dir == "":
+            return []
 
         # Collect all the source files
         if self.all_files:
@@ -726,6 +713,14 @@ def _resolve_dependencies(deps: List[HTMLDependency]) -> List[HTMLDependency]:
                 map[dep.name] = dep
 
     return list(map.values())
+
+
+def head_content(*args: TagChildArg) -> HTMLDependency:
+    head = TagList(*args)
+    head_str = head.get_html_string()
+    # Create unique ID to use as name
+    name = "headcontent_{:x}".format(abs(hash(head_str)))
+    return HTMLDependency(name=name, version="0.0", head=head)
 
 
 # =============================================================================

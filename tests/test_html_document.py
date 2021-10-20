@@ -17,11 +17,14 @@ def test_html_document_head_hoisting():
     doc = HTMLDocument(
         div(
             "Hello,",
-            tags.head(tags.script("alert('1')"), tags.style("span {color: red;}")),
-            span("world", tags.head(tags.script("alert('2')"))),
+            head_content(
+                tags.script("alert('1')"),
+                tags.style("span {color: red;}"),
+            ),
+            span("world", head_content(tags.script("alert('2')"))),
         )
     )
-    print(doc.render()["html"])
+
     assert doc.render()["html"] == textwrap.dedent(
         """\
         <!DOCTYPE html>
