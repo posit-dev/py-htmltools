@@ -86,6 +86,7 @@ def test_html_document_head_hoisting():
                 tags.style("span {color: red;}"),
             ),
             span("world", head_content(tags.script("alert('2')"))),
+            head_content(tags.script("alert('2')")),
         )
     )
 
