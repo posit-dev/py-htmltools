@@ -1,5 +1,6 @@
-from typing import Callable, Iterable, List, Dict, Union, Optional, Any
+from typing import Callable, Iterable, List, Dict, Union, Optional, Any, cast, Tuple
 import copy
+import re
 
 from .core import (
     TagList,
@@ -8,7 +9,7 @@ from .core import (
     TagChild,
     TagChildArg,
     Tagifiable,
-    html,
+    HTML,
     MetadataNode,
     HTMLDependency,
 )
@@ -19,6 +20,28 @@ __all__ = (
     "jsx_tag_create",
     "JSXTag",
 )
+
+
+class JSXTagAttrs(Dict[str, object]):
+    def __init__(self, **kwargs: object) -> None:
+        super().__init__()
+        self.update(**kwargs)
+
+    def __setitem__(self, name: str, value: object) -> None:
+        nm = self._normalize_attr_name(name)
+        super().__setitem__(nm, value)
+
+    def update(self, **kwargs: object) -> None:
+        attrs: Dict[str, object] = {}
+        for key, val in kwargs.items():
+            attrs[self._normalize_attr_name(key)] = val
+        super().update(**attrs)
+
+    @staticmethod
+    def _normalize_attr_name(x: str) -> str:
+        if x.endswith("_"):
+            x = x[:-1]
+        return x.replace("_", "-")
 
 
 class JSXTag:
@@ -35,33 +58,20 @@ class JSXTag:
                 if k not in allowedProps:
                     raise NotImplementedError(f"{k} is not a valid prop for {_name}")
 
-        self.children: TagList = TagList()
         self.name: str = _name
         # Unlike HTML tags, JSX tag attributes can be anything.
-        self.attrs: Dict[str, object] = {}
+        self.attrs: JSXTagAttrs = JSXTagAttrs(**kwargs)
+        self.children: TagList = TagList()
 
         self.children.extend(args)
         if children:
             self.children.extend(children)
-
-        self.set_attr(**kwargs)
 
     def extend(self, x: Iterable[TagChildArg]) -> None:
         self.children.extend(x)
 
     def append(self, *args: TagChildArg) -> None:
         self.children.append(*args)
-
-    def get_attr(self, key: str) -> Any:
-        return self.attrs.get(key)
-
-    def set_attr(self, **kwargs: object) -> None:
-        for key, val in kwargs.items():
-            key = _normalize_jsx_attr_name(key)
-            self.attrs[key] = val
-
-    def has_attr(self, key: str) -> bool:
-        return _normalize_jsx_attr_name(key) in self.attrs
 
     def tagify(self) -> Tag:
         metadata_nodes: List[MetadataNode] = []
@@ -72,9 +82,7 @@ class JSXTag:
         # metadata nodes. This could be done in two separate passes, but it's more
         # efficient to do it in one pass.
         def tagify_tagifiable_and_get_metadata(x: Any) -> Any:
-            if not (isinstance(x, Tag) or isinstance(x, JSXTag)) and isinstance(
-                x, Tagifiable
-            ):
+            if isinstance(x, Tagifiable) and not isinstance(x, (Tag, JSXTag)):
                 x = x.tagify()
             else:
                 x = copy.copy(x)
@@ -105,7 +113,7 @@ class JSXTag:
             "script",
             type="text/javascript",
             children=[
-                html("\n" + js + "\n"),
+                HTML("\n" + js + "\n"),
                 _lib_dependency("react", script={"src": "react.production.min.js"}),
                 _lib_dependency(
                     "react-dom", script={"src": "react-dom.production.min.js"}
@@ -167,7 +175,10 @@ def _render_react_js(x: TagChild, indent: int, eol: str) -> str:
         if not is_first_attr:
             res += ", "
         is_first_attr = False
-        v = _serialize_attr(v)
+        if k == "style":
+            v = _serialize_style_attr(v)
+        else:
+            v = _serialize_attr(v)
         res += f'"{k}": {v}'
     res += "}"
 
@@ -192,7 +203,7 @@ def _serialize_attr(x: object) -> str:
     if isinstance(x, (list, tuple)):
         return "[" + ", ".join([_serialize_attr(y) for y in x]) + "]"
     if isinstance(x, dict):
-        return "{" + ", ".join([y + ": " + _serialize_attr(x[y]) for y in x]) + "}"
+        return "{" + ", ".join([f'"{y}": ' + _serialize_attr(x[y]) for y in x]) + "}"
     if isinstance(x, bool):
         return str(x).lower()
     if isinstance(x, (jsx, int, float)):
@@ -201,25 +212,19 @@ def _serialize_attr(x: object) -> str:
 
 
 def _serialize_style_attr(x: object) -> str:
-    styles: Dict[str, str] = {}
-    vals = x if isinstance(x, list) else [x]
-    for v in vals:
-        if isinstance(v, dict):
-            styles.update(v)
-        elif isinstance(v, str):
-            rules = [tuple(x.split(":")) for x in v.split(";")]
-            styles.update(dict(rules))
-        else:
-            raise RuntimeError(
-                "Invalid value for style attribute (must be a string or dictionary)"
-            )
-    return _serialize_attr(x)
-
-
-def _normalize_jsx_attr_name(x: str) -> str:
-    if x.endswith("_"):
-        x = x[:-1]
-    return x.replace("_", "-")
+    if x is None:
+        return "{}"
+    # Parse CSS strings into a dict (because React requires it)
+    if isinstance(x, str):
+        x = cast(
+            List[Tuple[str, str]],
+            [tuple(y.split(":")) for y in x.split(";") if re.search(":", y)],
+        )
+        x = dict(x)
+    if isinstance(x, dict):
+        return _serialize_attr(x)
+    else:
+        raise TypeError("The style attribute must be a dict() or string.")
 
 
 def jsx_tag_create(
@@ -252,15 +257,14 @@ class jsx(str):
 
     Example:
     -------
-    >>> Foo = jsx_tag("Foo")
-    >>> print(Foo(myProp = "<p>Hello</p>"))
-    >>> print(Foo(myProp = jsx("<p>Hello</p>")))
+    >>> Foo = jsx_tag_create("Foo")
+    >>> print(Foo(prop = "A string", jsxProp = jsx("() => console.log('here')")))
     """
 
     def __new__(cls, *args: str) -> "jsx":
         return super().__new__(cls, "\n".join(args))
 
-    # html() + html() should return html()
+    # jsx() + jsx() should return jsx()
     def __add__(self, other: Union[str, "jsx"]) -> str:
         res = str.__add__(self, other)
         return jsx(res) if isinstance(other, jsx) else res

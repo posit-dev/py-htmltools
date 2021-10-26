@@ -112,6 +112,7 @@ def test_jsx_tags():
         span("world"),
         dict={"a": 1, "b": 2},
         jsxTag=Bar(),
+        style=css(color="red"),
     )
     assert str(x) == textwrap.dedent(
         """\
@@ -120,7 +121,7 @@ def test_jsx_tags():
           var container = new DocumentFragment();
           ReactDOM.render(
             React.createElement(
-              Foo, {"dict": {a: 1, b: 2}, "jsxTag": React.createElement(Bar)},
+              Foo, {"dict": {"a": 1, "b": 2}, "jsxTag": React.createElement(Bar), "style": {"color": "red"}},
               "Hello",
               React.createElement(
                 'span', {},
@@ -152,6 +153,7 @@ def test_jsx_tags():
     )
 
     x = Foo(
+        div(style=css(color="red")),
         func=jsx("() => console.log('foo')"),
         style={"margin": "1rem"},
     )
@@ -162,7 +164,10 @@ def test_jsx_tags():
           var container = new DocumentFragment();
           ReactDOM.render(
             React.createElement(
-              Foo, {"func": () => console.log('foo'), "style": {margin: "1rem"}})
+              Foo, {"func": () => console.log('foo'), "style": {"margin": "1rem"}},
+              React.createElement(
+                'div', {"style": {"color": "red"}})
+            )
           , container);
           document.currentScript.after(container);
         })();

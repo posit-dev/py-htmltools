@@ -28,14 +28,31 @@ __all__ = ["css"]
 
 
 def css(collapse_: str = "", **kwargs: Union[str, float, None]) -> Optional[str]:
+    """
+    CSS string helper
+
+    Convenience function for building CSS style declarations (i.e. the string that goes into a style attribute, or the parts that go inside curly braces in a full stylesheet).
+
+    Args:
+        collapse_: Character to use to collapse properties into a single string; likely "" (the default) for style attributes, and either "\n" or None for style blocks.
+        **kwargs: Named style properties, where the name is the property name and the argument is the property value.
+
+    Returns:
+        A string of CSS style declarations, or None if no properties were given.
+
+    Examples:
+        >>> css(font_size = "12px", backgroundColor = "red")
+
+    Details:
+        CSS uses '-' (minus) as a separator character in property names, which isn't allowed in Python's keyword arguments.
+        This function allows you to use '_' (underscore) as a separator and/or camelCase notation instead.
+    """
     res = ""
     for k, v in kwargs.items():
         if v is None:
             continue
         v = " ".join(v) if isinstance(v, list) else str(v)
-        k = re.sub("[._]", "-", re.sub("([A-Z])", "-\\1", k).lower())
-        if re.search("!$", k):
-            v += " !important"
+        k = re.sub("_", "-", re.sub("([A-Z])", "-\\1", k).lower())
         res += k + ":" + v + ";" + collapse_
     return None if res == "" else res
 
@@ -64,13 +81,6 @@ def unique(x: List[HashableT]) -> List[HashableT]:
     # This implementation requires Python 3.7+. Starting with that version, dict
     # order is guaranteed to be the same as insertion order.
     return list(dict.fromkeys(x))
-
-
-# e.g., foo_Bar_ -> foo-bar
-def _normalize_attr_name(x: str) -> str:
-    if x.endswith("_"):
-        x = x[:-1]
-    return x.replace("_", "-").lower()
 
 
 HTML_ESCAPE_TABLE = {

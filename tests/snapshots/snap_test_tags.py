@@ -7,13 +7,15 @@ from snapshottest import Snapshot
 
 snapshots = Snapshot()
 
-snapshots['test_attr_vals attr_vals.txt'] = '''<div true="" str="a" int="1" float="1.2" date="1999-01-02"></div>
+snapshots['test_attr_vals attr_vals.txt'] = '''<div true="" str="a" int="1" float="1.2"></div>
 <div class="foo bar"></div>'''
 
 snapshots['test_basic_tag_api basic_tag_api'] = '''<div class="foo" for="bar" id="baz" bool="">
   <h1>hello</h1>
   <h2>world</h2>
   text
+  1
+  2.1
   list
   here
 </div>'''

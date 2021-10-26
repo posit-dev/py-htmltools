@@ -6,7 +6,6 @@ from pathlib import Path
 from copy import copy, deepcopy
 import urllib.parse
 import webbrowser
-from datetime import date, datetime
 from typing import (
     Iterable,
     Optional,
@@ -30,7 +29,6 @@ from packaging.version import Version
 from .util import (
     ensure_http_server,
     _package_dir,  # type: ignore
-    _normalize_attr_name,  # type: ignore
     _html_escape,  # type: ignore
     _flatten,  # type: ignore
 )
@@ -39,7 +37,7 @@ __all__ = (
     "TagList",
     "Tag",
     "HTMLDocument",
-    "html",
+    "HTML",
     "MetadataNode",
     "HTMLDependency",
     "RenderedHTML",
@@ -78,7 +76,7 @@ TagChild = Union["Tagifiable", "Tag", MetadataNode, str]
 TagChildArg = Union[TagChild, "TagList", int, float, None, Iterable["TagChildArg"]]
 
 # Types that can be passed in as attributes to tag functions.
-TagAttrArg = Union[str, int, float, date, datetime, bool, None]
+TagAttrArg = Union[str, int, float, bool, None]
 
 
 # Objects with tagify() methods are considered Tagifiable.
@@ -104,6 +102,29 @@ class TagFunction(Protocol):
 # TagList
 # =============================================================================
 class TagList(List[TagChild]):
+    """
+    Create an HTML tag list (i.e., a fragment of HTML)
+
+    Methods:
+    --------
+        show: Preview as a complete HTML document.
+        save_html: Save to a HTML file.
+        append: Append children to existing children.
+        extend: Append an iterable child to existing children.
+        insert: Add children into a specific child index.
+        render: Returns the HTML string and list of dependencies.
+        get_html_string: the HTML string.
+        get_dependencies: the HTMLDependency()s.
+        tagify: Converts any tagifiable children to Tag/TagList objects.
+
+    Examples:
+    ---------
+        >>> from htmltools import *
+        >>> x = TagList("hello", div(id="foo", class_="bar"))
+        >>> x
+        >>> print(x)
+    """
+
     def __init__(self, *args: TagChildArg) -> None:
         super().__init__(_tagchildargs_to_tagchilds(args))
 
@@ -136,7 +157,7 @@ class TagList(List[TagChild]):
         deps = cp.get_dependencies()
         return {"dependencies": deps, "html": cp.get_html_string()}
 
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "HTML":
         html_ = ""
         line_prefix = ""
         for child in self:
@@ -150,11 +171,11 @@ class TagList(List[TagChild]):
                 )
             else:
                 # If we get here, x must be a string.
-                html_ += line_prefix + ("  " * indent) + normalize_text(child)
+                html_ += line_prefix + ("  " * indent) + _normalize_text(child)
 
             if line_prefix == "":
                 line_prefix = eol
-        return html(html_)
+        return HTML(html_)
 
     def get_dependencies(self, *, dedup: bool = True) -> List["HTMLDependency"]:
         deps: List[HTMLDependency] = []
@@ -178,7 +199,55 @@ class TagList(List[TagChild]):
         return self.get_html_string()
 
     def __eq__(self, other: Any) -> bool:
-        return equals_impl(self, other)
+        return _equals_impl(self, other)
+
+
+# =============================================================================
+# TagAttrs class
+# =============================================================================
+
+
+class TagAttrs(Dict[str, str]):
+    def __init__(self, **kwargs: TagAttrArg) -> None:
+        super().__init__()
+        self.update(**kwargs)
+
+    def __setitem__(self, name: str, value: TagAttrArg) -> None:
+        val = self._normalize_attr_value(value)
+        if val is not None:
+            nm = self._normalize_attr_name(name)
+            super().__setitem__(nm, val)
+
+    def update(self, **kwargs: TagAttrArg) -> None:
+        attrs: Dict[str, str] = {}
+        for key, val in kwargs.items():
+            val_ = self._normalize_attr_value(val)
+            if val_ is None:
+                continue
+            attrs[self._normalize_attr_name(key)] = val_
+        super().update(**attrs)
+
+    @staticmethod
+    def _normalize_attr_name(x: str) -> str:
+        # e.g., foo_Bar_ -> foo-bar
+        if x.endswith("_"):
+            x = x[:-1]
+        return x.replace("_", "-").lower()
+
+    @staticmethod
+    def _normalize_attr_value(x: TagAttrArg) -> Optional[str]:
+        if x is None or x is False:
+            return None
+        if x is True:
+            return ""
+        if isinstance(x, (int, float)):
+            return str(x)
+        if isinstance(x, (HTML, str)):
+            return x
+        raise TypeError(
+            f"Invalid type for attribute: {type(x)}."
+            + "Consider calling str() on this value before treating it as a tag attribute."
+        )
 
 
 # =============================================================================
@@ -190,25 +259,31 @@ class Tag:
 
     Methods:
     --------
-        show: Render and preview as HTML.
-        save_html: Save the HTML to a file.
-        append: Add children (or attributes) _after_ any existing children (or attributes).
-        insert: Add children (or attributes) into a specific child (or attribute) index.
-        get_attrs: Get a dictionary of attributes.
-        get_attr: Get the value of an attribute.
-        has_attr: Check if an attribute is present.
+        show: Preview as a complete HTML document.
+        save_html: Save to a HTML file.
+        append: Append children to existing children.
+        extend: Append an iterable child to existing children.
+        insert: Add children into a specific child index.
+        add_class: Add a class to the tag.
         has_class: Check if the class attribte contains a particular class.
-        render: Render the tag as HTML.
+        render: Returns the HTML string and list of dependencies.
+        get_html_string: the HTML string.
+        get_dependencies: the HTMLDependency()s.
+        tagify: Converts any tagifiable children to Tag/TagList objects.
 
     Attributes:
     -----------
-        name: The name of the tag
-        children: A list of children
+        name: The name of the tag as a string
+        attrs: A dictionary of attributes.
+        children: A list of children.
 
-     Examples:
+    Examples:
     ---------
-        >>> print(div(h1('Hello htmltools'), tags.p('for python'), class_ = 'mydiv'))
-        >>> print(tag("MyJSXComponent"))
+        >>> from htmltools import *
+        >>> x = div("hello", id="foo", class_="bar")
+        >>> x
+        >>> print(x)
+        >>> x.show()
     """
 
     def __init__(
@@ -218,19 +293,17 @@ class Tag:
         children: Optional[List[TagChildArg]] = None,
         **kwargs: TagAttrArg,
     ) -> None:
-        self.children: TagList = TagList()
         self.name: str = _name
-        self.attrs: Dict[str, str] = {}
+        self.attrs: TagAttrs = TagAttrs(**kwargs)
+        self.children: TagList = TagList()
 
         self.children.extend(args)
         if children:
             self.children.extend(children)
 
-        self.set_attr(**kwargs)
-
     def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "Tag":
         self.children.extend(args)
-        self.set_attr(**kwargs)
+        self.attrs.update(**kwargs)
         return self
 
     def __copy__(self: TagT) -> TagT:
@@ -251,40 +324,35 @@ class Tag:
     def append(self, *args: TagChildArg) -> None:
         self.children.append(*args)
 
-    def get_attr(self, key: str) -> Optional[str]:
-        return self.attrs.get(key)
-
-    def set_attr(self, **kwargs: TagAttrArg) -> None:
-        for key, val in kwargs.items():
-            if val is None or val is False:
-                continue
-            elif val is True:
-                val = ""
-            elif isinstance(val, html):
-                # If it's html, make sure not to call str() on it, because we want to
-                # preserve the html class wrapper.
-                pass
-            else:
-                val = str(val)
-
-            key = _normalize_attr_name(key)
-            self.attrs[key] = val
-
-    def has_attr(self, key: str) -> bool:
-        return _normalize_attr_name(key) in self.attrs
-
     def add_class(self, x: str) -> "Tag":
-        if "class" in self.attrs:
-            self.attrs["class"] += " " + x
-        else:
-            self.attrs["class"] = x
+        """
+        Add an HTML class attribute.
+
+        Args:
+            x: The class name to add.
+
+        Returns: The modified tag.
+        """
+        cls = self.attrs.get("class")
+        if cls:
+            x = cls + " " + x
+        self.attrs["class"] = x
         return self
 
     def has_class(self, class_: str) -> bool:
-        attr = self.attrs.get("class", None)
-        if attr is None:
+        """
+        Check if the tag has a particular class.
+
+        Args:
+            class_: The class name to check for.
+
+        Returns: `True` if the tag has the class, `False` otherwise.
+        """
+        cls = self.attrs.get("class")
+        if cls:
+            return class_ in cls.split(" ")
+        else:
             return False
-        return class_ in attr.split(" ")
 
     def tagify(self: TagT) -> TagT:
         # TODO: Does this result in extra copies of the NodeList?
@@ -292,14 +360,14 @@ class Tag:
         cp.children = cp.children.tagify()
         return cp
 
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "html":
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "HTML":
         indent_str = "  " * indent
         html_ = indent_str + "<" + self.name
 
         # Write attributes
         for key, val in self.attrs.items():
-            if not isinstance(val, html):
-                val = _html_escape(val)
+            if not isinstance(val, HTML):
+                val = _html_escape(val, attr=True)
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output
@@ -307,23 +375,23 @@ class Tag:
 
         # Don't enclose JSX/void elements if there are no children
         if len(children) == 0 and self.name in _VOID_TAG_NAMES:
-            return html(html_ + "/>")
+            return HTML(html_ + "/>")
 
         # Other empty tags are enclosed
         html_ += ">"
         close = "</" + self.name + ">"
         if len(children) == 0:
-            return html(html_ + close)
+            return HTML(html_ + close)
 
         # Inline a single/empty child text node
         if len(children) == 1 and isinstance(children[0], str):
-            return html(html_ + normalize_text(children[0]) + close)
+            return HTML(html_ + _normalize_text(children[0]) + close)
 
         # Write children
         # TODO: inline elements should eat ws?
         html_ += eol
         html_ += self.children.get_html_string(indent + 1, eol)
-        return html(html_ + eol + indent_str + close)
+        return HTML(html_ + eol + indent_str + close)
 
     def render(self) -> RenderedHTML:
         cp = self.tagify()
@@ -343,10 +411,25 @@ class Tag:
         return self.get_html_string()
 
     def __repr__(self) -> str:
-        return tag_repr_impl(self.name, self.attrs, self.children)
+        x = "<" + self.name
+        n_attrs = len(self.attrs)
+        id = self.attrs.get("id")
+        if id:
+            x += "#" + id
+            n_attrs -= 1
+        cls = self.attrs.get("class")
+        if cls:
+            x += "." + cls.replace(" ", ".")
+            n_attrs -= 1
+        x += " with "
+        if n_attrs > 0:
+            x += f"{n_attrs} other attributes and "
+        n = len(self.children)
+        x += "1 child>" if n == 1 else f"{n} children>"
+        return x
 
     def __eq__(self, other: Any) -> bool:
-        return equals_impl(self, other)
+        return _equals_impl(self, other)
 
 
 # Tags that have the form <tagname />
@@ -439,7 +522,7 @@ class HTMLDocument:
             and cast(Tag, content[0]).name == "html"
         ):
             html = cast(Tag, content[0])
-            html.set_attr(**self._html_attr_args)
+            html.attrs.update(**self._html_attr_args)
             html = html.tagify()
             html = HTMLDocument._hoist_head_content(html, lib_prefix)
             return html
@@ -480,26 +563,26 @@ class HTMLDocument:
 # =============================================================================
 # HTML strings
 # =============================================================================
-class html(str):
+class HTML(str):
     """
     Mark a string as raw HTML.
 
     Example:
     -------
     >>> print(div("<p>Hello</p>"))
-    >>> print(div(html("<p>Hello</p>")))
+    >>> print(div(HTML("<p>Hello</p>")))
     """
 
-    def __new__(cls, *args: str) -> "html":
+    def __new__(cls, *args: str) -> "HTML":
         return super().__new__(cls, "\n".join(args))
 
-    def __str__(self) -> "html":
-        return html(self)
+    def __str__(self) -> "HTML":
+        return HTML(self)
 
-    # html() + html() should return html()
-    def __add__(self, other: Union[str, "html"]) -> str:
+    # HTML() + HTML() should return HTML()
+    def __add__(self, other: Union[str, "HTML"]) -> str:
         res = str.__add__(self, other)
-        return html(res) if isinstance(other, html) else res
+        return HTML(res) if isinstance(other, HTML) else res
 
 
 # =============================================================================
@@ -703,7 +786,7 @@ class HTMLDependency(MetadataNode):
         return str(self.as_html_tags())
 
     def __eq__(self, other: Any) -> bool:
-        return equals_impl(self, other)
+        return _equals_impl(self, other)
 
 
 def _resolve_dependencies(deps: List[HTMLDependency]) -> List[HTMLDependency]:
@@ -737,6 +820,11 @@ def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
     for i, child in enumerate(result):
         if isinstance(child, (int, float)):
             result[i] = str(child)
+        elif not isinstance(child, (Tagifiable, Tag, MetadataNode, str)):
+            raise TypeError(
+                f"Invalid tag child type: {type(child)}. "
+                + "Consider calling str() on this value before treating it as a tag child."
+            )
 
     # At this point, we know that all items in new_children must be valid TagChild
     # objects, because None, int, float, and TagList objects have been removed. (Note
@@ -798,31 +886,14 @@ def _tag_show(self: Union[TagList, "Tag"], renderer: str = "auto") -> Any:
     raise Exception(f"Unknown renderer {renderer}")
 
 
-def tag_repr_impl(name: str, attrs: Dict[str, str], children: TagList) -> str:
-    x = "<" + name
-    n_attrs = len(attrs)
-    if attrs.get("id"):
-        x += "#" + attrs["id"]
-        n_attrs -= 1
-    if attrs.get("class"):
-        x += "." + attrs["class"].replace(" ", ".")
-        n_attrs -= 1
-    x += " with "
-    if n_attrs > 0:
-        x += f"{n_attrs} other attributes and "
-    n = len(children)
-    x += "1 child>" if n == 1 else f"{n} children>"
-    return x
-
-
-def normalize_text(txt: str) -> str:
-    if isinstance(txt, html):
+def _normalize_text(txt: str) -> str:
+    if isinstance(txt, HTML):
         return txt
     else:
         return _html_escape(txt, attr=False)
 
 
-def equals_impl(x: Any, y: Any) -> bool:
+def _equals_impl(x: Any, y: Any) -> bool:
     if not isinstance(y, type(x)):
         return False
     for key in x.__dict__.keys():

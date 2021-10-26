@@ -21,14 +21,22 @@ def saved_html(x: Union[Tag, HTMLDocument]) -> str:
 
 
 def test_basic_tag_api(snapshot):
-    children = [h1("hello"), h2("world"), "text", None, ["list", ["here"]]]
+    children = [
+        h1("hello"),
+        h2("world"),
+        "text",
+        1,
+        2.1,
+        None,
+        ["list", ["here"]],
+    ]
     props = dict(class_="foo", for_="bar", id="baz", bool="")
     x1 = div(*children, **props)
     x2 = div(**props, children=children)
     x3 = div(**props)(*children)
     x4 = div()
     x4.append(*children)
-    x4.set_attr(**props)
+    x4.attrs.update(**props)
     assert x1 == x2 == x3 == x4
     assert x1.attrs["id"] == "baz"
     assert x1.attrs["bool"] == ""
@@ -129,12 +137,13 @@ def test_tag_repr():
 def test_tag_escaping():
     # Regular text is escaped
     expect_html(div("<a&b>"), "<div>&lt;a&amp;b&gt;</div>")
-    # Children wrapped in html() isn't escaped
-    expect_html(div(html("<a&b>")), "<div><a&b></div>")
-    # Text in a property is escaped
+    # Children wrapped in HTML() isn't escaped
+    expect_html(div(HTML("<a&b>")), "<div><a&b></div>")
+    # Attributes are HTML escaped
     expect_html(div("text", class_="<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
-    # Attributes wrapped in html() isn't escaped
-    expect_html(div("text", class_=html("<a&b>")), '<div class="<a&b>">text</div>')
+    expect_html(div("text", class_="'ab'"), '<div class="&apos;ab&apos;">text</div>')
+    # Unless they are wrapped in HTML()
+    expect_html(div("text", class_=HTML("<a&b>")), '<div class="<a&b>">text</div>')
 
 
 def test_html_save(snapshot):
@@ -199,7 +208,6 @@ def test_attr_vals(snapshot):
         "str": "a",
         "int": 1,
         "float": 1.2,
-        "date": datetime.date(1999, 1, 2),
     }
     test = TagList(div(**attrs), div(class_="foo").add_class("bar"))
 
