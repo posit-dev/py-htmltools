@@ -890,7 +890,7 @@ def _normalize_text(txt: str) -> str:
     if isinstance(txt, HTML):
         return txt
     else:
-        return _html_escape(str(txt), attr=False)
+        return _html_escape(txt, attr=False)
 
 
 def _equals_impl(x: Any, y: Any) -> bool:
