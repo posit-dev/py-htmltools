@@ -886,7 +886,7 @@ def _tag_show(self: Union[TagList, "Tag"], renderer: str = "auto") -> Any:
     raise Exception(f"Unknown renderer {renderer}")
 
 
-def _normalize_text(txt: object) -> str:
+def _normalize_text(txt: str) -> str:
     if isinstance(txt, HTML):
         return txt
     else:
