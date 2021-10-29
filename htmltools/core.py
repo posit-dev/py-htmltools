@@ -99,7 +99,7 @@ class TagFunction(Protocol):
 
 
 # =============================================================================
-# TagList
+# TagList class
 # =============================================================================
 class TagList(List[TagChild]):
     """
@@ -201,12 +201,16 @@ class TagList(List[TagChild]):
     def __eq__(self, other: Any) -> bool:
         return _equals_impl(self, other)
 
+    def __repr__(self) -> str:
+        return self.get_html_string()
+
+    def _repr_html_(self) -> str:
+        return self.get_html_string()
+
 
 # =============================================================================
 # TagAttrs class
 # =============================================================================
-
-
 class TagAttrs(Dict[str, str]):
     def __init__(self, **kwargs: TagAttrArg) -> None:
         super().__init__()
@@ -411,22 +415,10 @@ class Tag:
         return self.get_html_string()
 
     def __repr__(self) -> str:
-        x = "<" + self.name
-        n_attrs = len(self.attrs)
-        id = self.attrs.get("id")
-        if id:
-            x += "#" + id
-            n_attrs -= 1
-        cls = self.attrs.get("class")
-        if cls:
-            x += "." + cls.replace(" ", ".")
-            n_attrs -= 1
-        x += " with "
-        if n_attrs > 0:
-            x += f"{n_attrs} other attributes and "
-        n = len(self.children)
-        x += "1 child>" if n == 1 else f"{n} children>"
-        return x
+        return self.get_html_string()
+
+    def _repr_html_(self) -> str:
+        return self.get_html_string()
 
     def __eq__(self, other: Any) -> bool:
         return _equals_impl(self, other)

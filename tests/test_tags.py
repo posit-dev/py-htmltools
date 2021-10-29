@@ -124,13 +124,10 @@ def test_tag_writing(snapshot):
 
 
 def test_tag_repr():
-    assert repr(div()) == "<div with 0 children>"
-    assert repr(div("foo")) == "<div with 1 child>"
-    assert repr(div("foo", "bar", id="id")) == "<div#id with 2 children>"
-    assert repr(div(id="id", class_="foo bar")) == "<div#id.foo.bar with 0 children>"
-    assert (
-        repr(div(id="id", class_="cls", foo="bar"))
-        == "<div#id.cls with 1 other attributes and 0 children>"
+    assert repr(div()) == str(div())
+    assert repr(div("foo", "bar", id="id")) == str(div("foo", "bar", id="id"))
+    assert repr(div(id="id", class_="cls", foo="bar")) == str(
+        div(id="id", class_="cls", foo="bar")
     )
 
 

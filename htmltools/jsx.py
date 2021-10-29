@@ -125,6 +125,12 @@ class JSXTag:
     def __str__(self) -> str:
         return str(self.tagify())
 
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def _repr_html_(self) -> str:
+        return self.__str__()
+
 
 def _walk_attrs_and_children(x: Any, fn: Callable[[Any], Any]) -> Any:
     x = fn(x)
