@@ -142,6 +142,14 @@ def test_tag_escaping():
     # Unless they are wrapped in HTML()
     expect_html(div("text", class_=HTML("<a&b>")), '<div class="<a&b>">text</div>')
 
+    # script and style tags are not escaped
+    assert str(tags.script("a && b > 3")) == "<script>a && b > 3</script>"
+    assert (
+        str(tags.script("a && b", "x > 3")) == "<script>\n  a && b\n  x > 3\n</script>"
+    )
+    assert str(tags.script("a && b\nx > 3")) == "<script>a && b\nx > 3</script>"
+    assert str(tags.style("a && b > 3")) == "<style>a && b > 3</style>"
+
 
 def test_html_save(snapshot):
     snapshot.assert_match(saved_html(div()), "html_save_div")

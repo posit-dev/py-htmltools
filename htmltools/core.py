@@ -157,11 +157,17 @@ class TagList(List[TagChild]):
         deps = cp.get_dependencies()
         return {"dependencies": deps, "html": cp.get_html_string()}
 
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "HTML":
+    def get_html_string(
+        self, indent: int = 0, eol: str = "\n", *, _escape_strings: bool = True
+    ) -> "HTML":
         html_ = ""
         line_prefix = ""
         for child in self:
             if isinstance(child, Tag):
+                # Note that we don't pass _escape_strings along, because that should
+                # only be set to True when <script> and <style> tags call
+                # self.children.get_html_string(), and those tags don't have children to
+                # recurse into.
                 html_ += line_prefix + child.get_html_string(indent, eol)
             elif isinstance(child, MetadataNode):
                 continue
@@ -171,7 +177,10 @@ class TagList(List[TagChild]):
                 )
             else:
                 # If we get here, x must be a string.
-                html_ += line_prefix + ("  " * indent) + _normalize_text(child)
+                if _escape_strings:
+                    html_ += line_prefix + ("  " * indent) + _normalize_text(child)
+                else:
+                    html_ += line_prefix + ("  " * indent) + child
 
             if line_prefix == "":
                 line_prefix = eol
@@ -359,7 +368,6 @@ class Tag:
             return False
 
     def tagify(self: TagT) -> TagT:
-        # TODO: Does this result in extra copies of the NodeList?
         cp = copy(self)
         cp.children = cp.children.tagify()
         return cp
@@ -389,12 +397,17 @@ class Tag:
 
         # Inline a single/empty child text node
         if len(children) == 1 and isinstance(children[0], str):
-            return HTML(html_ + _normalize_text(children[0]) + close)
+            if self.name in _NO_ESCAPE_TAG_NAMES:
+                return HTML(html_ + children[0] + close)
+            else:
+                return HTML(html_ + _normalize_text(children[0]) + close)
 
         # Write children
         # TODO: inline elements should eat ws?
         html_ += eol
-        html_ += self.children.get_html_string(indent + 1, eol)
+        html_ += self.children.get_html_string(
+            indent + 1, eol, _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES)
+        )
         return HTML(html_ + eol + indent_str + close)
 
     def render(self) -> RenderedHTML:
@@ -444,6 +457,7 @@ _VOID_TAG_NAMES = {
     "wbr",
 }
 
+_NO_ESCAPE_TAG_NAMES = {"script", "style"}
 
 # =============================================================================
 # HTMLDocument class
