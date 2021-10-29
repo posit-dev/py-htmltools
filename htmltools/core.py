@@ -565,16 +565,19 @@ class HTML(str):
     >>> print(div(HTML("<p>Hello</p>")))
     """
 
-    def __new__(cls, *args: str) -> "HTML":
-        return super().__new__(cls, "\n".join(args))
-
-    def __str__(self) -> "HTML":
-        return HTML(self)
+    def __str__(self) -> str:
+        return self
 
     # HTML() + HTML() should return HTML()
     def __add__(self, other: Union[str, "HTML"]) -> str:
         res = str.__add__(self, other)
         return HTML(res) if isinstance(other, HTML) else res
+
+    def __repr__(self) -> str:
+        return self
+
+    def _repr_html_(self) -> str:
+        return self
 
 
 # =============================================================================
