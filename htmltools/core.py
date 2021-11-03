@@ -708,6 +708,37 @@ class HTMLDependency(MetadataNode):
         scripts = [Tag("script", **s) for s in script]
         return TagList(*metas, *links, *scripts, self.head)
 
+    def as_dict(self, prefix_dir: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Return a dictionary representation of the dependency, in the canonical format
+        to be ingested by shiny.js.
+        """
+        href_prefix = os.path.join(self.name + "-" + str(self.version))
+        if prefix_dir:
+            href_prefix = os.path.join(prefix_dir, href_prefix)
+
+        stylesheets = deepcopy(self.stylesheet)
+        for s in stylesheets:
+            s.update(
+                {
+                    "href": os.path.join(href_prefix, urllib.parse.quote(s["href"])),
+                    "rel": "stylesheet",
+                }
+            )
+
+        scripts = deepcopy(self.script)
+        for s in scripts:
+            s.update({"src": os.path.join(href_prefix, urllib.parse.quote(s["src"]))})
+
+        return {
+            "name": self.name,
+            "version": str(self.version),
+            "script": scripts,
+            "stylesheet": stylesheets,
+            "meta": self.meta,
+            "head": self.head,
+        }
+
     def copy_to(self, path: str) -> None:
         src_file_infos = self._find_src_files()
 

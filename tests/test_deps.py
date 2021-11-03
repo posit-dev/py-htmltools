@@ -188,3 +188,43 @@ def test_meta_output():
     )
     assert combined_html.find('<meta name="x" content="x-value"/>') != -1
     assert combined_html.find('<meta name="y" content="y-value"/>') != -1
+
+
+def test_as_dict():
+    a = HTMLDependency(
+        "a",
+        "1.0",
+        source={"package": "foo", "subdir": "bar"},
+        script={"src": "a1.js"},
+        meta={"name": "viewport", "content": "width=device-width, initial-scale=1"},
+    )
+
+    assert a.as_dict() == {
+        "name": "a",
+        "version": "1.0",
+        "script": [{"src": "a-1.0/a1.js"}],
+        "stylesheet": [],
+        "meta": [
+            {"name": "viewport", "content": "width=device-width, initial-scale=1"}
+        ],
+        "head": None,
+    }
+
+    b = HTMLDependency(
+        "b",
+        "2.0",
+        source={"package": "foo", "subdir": "bar"},
+        stylesheet=[{"href": "b1.css"}, {"href": "b2.css"}],
+        head=tags.script("1 && 1"),
+    )
+    assert b.as_dict() == {
+        "name": "b",
+        "version": "2.0",
+        "script": [],
+        "stylesheet": [
+            {"href": "b-2.0/b1.css", "rel": "stylesheet"},
+            {"href": "b-2.0/b2.css", "rel": "stylesheet"},
+        ],
+        "meta": [],
+        "head": "<script>1 && 1</script>",
+    }
