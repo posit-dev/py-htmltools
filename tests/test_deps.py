@@ -139,14 +139,14 @@ def test_meta_output():
         "1.0",
         source={"package": None, "subdir": "foo"},
         script={"src": "a1.js"},
-        meta={"viewport": "width=device-width, initial-scale=1"},
+        meta={"name": "viewport", "content": "width=device-width, initial-scale=1"},
     )
 
     b = HTMLDependency(
         "b",
         "2.0",
         source={"package": None, "subdir": "foo"},
-        meta={"x": "x-value", "y": "y-value"},
+        meta=[{"name": "x", "content": "x-value"}, {"name": "y", "content": "y-value"}],
     )
 
     assert str(a.as_html_tags()) == textwrap.dedent(

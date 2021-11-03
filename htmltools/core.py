@@ -632,7 +632,7 @@ class HTMLDependency(MetadataNode):
         script: Union[Dict[str, str], List[Dict[str, str]]] = [],
         stylesheet: Union[Dict[str, str], List[Dict[str, str]]] = [],
         all_files: bool = False,
-        meta: Dict[str, str] = {},
+        meta: Union[Dict[str, str], List[Dict[str, str]]] = [],
         head: TagChildArg = None,
     ) -> None:
         self.name: str = name
@@ -656,8 +656,12 @@ class HTMLDependency(MetadataNode):
             if "rel" not in s:
                 s.update({"rel": "stylesheet"})
 
+        if isinstance(meta, dict):
+            meta = [meta]
+        self._validate_dicts(meta, ["name", "content"])
+        self.meta: List[Dict[str, str]] = meta
+
         self.all_files: bool = all_files
-        self.meta: Dict[str, str] = meta
         self.head: Optional[TagChildArg]
         if head is None:
             self.head = None
@@ -696,10 +700,7 @@ class HTMLDependency(MetadataNode):
         for s in script:
             s.update({"src": os.path.join(href_prefix, urllib.parse.quote(s["src"]))})
 
-        metas = [
-            Tag("meta", name=name, content=content)
-            for name, content in self.meta.items()
-        ]
+        metas = [Tag("meta", **m) for m in self.meta]
         links = [Tag("link", **s) for s in sheets]
         scripts = [Tag("script", **s) for s in script]
         return TagList(*metas, *links, *scripts, self.head)
