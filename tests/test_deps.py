@@ -133,6 +133,24 @@ def test_script_input(snapshot):
         )
 
 
+def test_head_output():
+    a = HTMLDependency(
+        "a",
+        "1.0",
+        source={"package": None, "subdir": "foo"},
+        head=tags.script("1 && 1"),
+    )
+    assert a.as_html_tags().get_html_string() == "<script>1 && 1</script>"
+
+    b = HTMLDependency(
+        "a",
+        "1.0",
+        source={"package": None, "subdir": "foo"},
+        head="<script>1 && 1</script>",
+    )
+    assert b.as_html_tags().get_html_string() == "<script>1 && 1</script>"
+
+
 def test_meta_output():
     a = HTMLDependency(
         "a",

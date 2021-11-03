@@ -662,11 +662,14 @@ class HTMLDependency(MetadataNode):
         self.meta: List[Dict[str, str]] = meta
 
         self.all_files: bool = all_files
-        self.head: Optional[TagChildArg]
+        self.head: Optional[str]
         if head is None:
             self.head = None
+        elif isinstance(head, str):
+            # User doesn't have to manually wrap the text in HTML().
+            self.head = HTML(head)
         else:
-            self.head = TagList(head)
+            self.head = TagList(head).get_html_string()
 
     def get_source_dir(self) -> str:
         """Return the directory on disk where the dependency's files reside."""
