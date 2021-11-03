@@ -131,3 +131,42 @@ def test_script_input(snapshot):
               <body></body>
             </html>"""
         )
+
+
+def test_meta_output():
+    a = HTMLDependency(
+        "a",
+        "1.0",
+        source={"package": None, "subdir": "foo"},
+        script={"src": "a1.js"},
+        meta={"viewport": "width=device-width, initial-scale=1"},
+    )
+
+    b = HTMLDependency(
+        "b",
+        "2.0",
+        source={"package": None, "subdir": "foo"},
+        meta={"x": "x-value", "y": "y-value"},
+    )
+
+    assert str(a.as_html_tags()) == textwrap.dedent(
+        """\
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <script src="a-1.0/a1.js"></script>"""
+    )
+    assert str(b.as_html_tags()) == textwrap.dedent(
+        """\
+        <meta name="x" content="x-value"/>
+        <meta name="y" content="y-value"/>"""
+    )
+
+    # Combine the two in an HTMLDocument and render; all meta tags should show up.
+    combined_html = HTMLDocument(TagList(a, b)).render()["html"]
+    assert (
+        combined_html.find(
+            '<meta name="viewport" content="width=device-width, initial-scale=1"/>'
+        )
+        != -1
+    )
+    assert combined_html.find('<meta name="x" content="x-value"/>') != -1
+    assert combined_html.find('<meta name="y" content="y-value"/>') != -1
