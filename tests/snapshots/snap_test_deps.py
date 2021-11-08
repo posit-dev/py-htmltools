@@ -7,42 +7,6 @@ from snapshottest import Snapshot
 
 snapshots = Snapshot()
 
-snapshots['test_append_deps append_deps'] = '''<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8"/>
-    <script src="a-1.2/a2.js"></script>
-    <script src="b-1.0/b1.js"></script>
-  </head>
-  <body>
-    <div></div>
-  </body>
-</html>
-
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8"/>
-    <script src="a-1.2/a2.js"></script>
-    <script src="b-1.0/b1.js"></script>
-  </head>
-  <body>
-    <div></div>
-  </body>
-</html>
-
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8"/>
-    <script src="a-1.2/a2.js"></script>
-    <script src="b-1.0/b1.js"></script>
-  </head>
-  <body>
-    <div></div>
-  </body>
-</html>'''
-
 snapshots['test_inline_deps inline_deps'] = '''<!DOCTYPE html>
 <html>
   <head>

@@ -415,7 +415,7 @@ class Tag:
         deps = cp.get_dependencies()
         return {"dependencies": deps, "html": cp.get_html_string()}
 
-    def save_html(self, file: str, lib_prefix: Optional[str] = None) -> str:
+    def save_html(self, file: str, lib_prefix: Optional[str] = "lib") -> str:
         return HTMLDocument(self).save_html(file, lib_prefix)
 
     def get_dependencies(self, dedup: bool = True) -> List["HTMLDependency"]:
@@ -491,13 +491,13 @@ class HTMLDocument:
     def append(self, *args: TagChildArg) -> None:
         self._content.append(*args)
 
-    def render(self, *, lib_prefix: Optional[str] = None) -> RenderedHTML:
+    def render(self, *, lib_prefix: Optional[str] = "lib") -> RenderedHTML:
         html_ = self._gen_html_tag_tree(lib_prefix)
         rendered = html_.render()
         rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
         return rendered
 
-    def save_html(self, file: str, lib_prefix: Optional[str] = None) -> str:
+    def save_html(self, file: str, lib_prefix: Optional[str] = "lib") -> str:
         # Directory where dependencies are copied to.
         dest_libdir = str(Path(file).resolve().parent)
         if lib_prefix:
@@ -562,7 +562,7 @@ class HTMLDocument:
         # Put <meta charset="utf-8"> at beginning of head, and other hoisted tags at the
         # end. This matters only if the <head> tag starts out with some children.
         head.insert(0, Tag("meta", charset="utf-8"))
-        head.extend([d.as_html_tags(prefix_dir=lib_prefix) for d in deps])
+        head.extend([d.as_html_tags(lib_prefix=lib_prefix) for d in deps])
         return res
 
 
@@ -662,14 +662,14 @@ class HTMLDependency(MetadataNode):
         self.meta: List[Dict[str, str]] = meta
 
         self.all_files: bool = all_files
-        self.head: Optional[str]
+        self.head: Optional[TagList]
         if head is None:
             self.head = None
         elif isinstance(head, str):
             # User doesn't have to manually wrap the text in HTML().
-            self.head = HTML(head)
+            self.head = TagList(HTML(head))
         else:
-            self.head = TagList(head).get_html_string()
+            self.head = TagList(head)
 
     def get_source_dir(self) -> str:
         """Return the directory on disk where the dependency's files reside."""
@@ -684,11 +684,11 @@ class HTMLDependency(MetadataNode):
 
     def as_html_tags(
         self,
-        prefix_dir: Optional[str] = None,
+        lib_prefix: Optional[str] = "lib",
     ) -> TagList:
         href_prefix = os.path.join(self.name + "-" + str(self.version))
-        if prefix_dir:
-            href_prefix = os.path.join(prefix_dir, href_prefix)
+        if lib_prefix:
+            href_prefix = os.path.join(lib_prefix, href_prefix)
 
         sheets = deepcopy(self.stylesheet)
         for s in sheets:
@@ -708,14 +708,14 @@ class HTMLDependency(MetadataNode):
         scripts = [Tag("script", **s) for s in script]
         return TagList(*metas, *links, *scripts, self.head)
 
-    def as_dict(self, prefix_dir: Optional[str] = None) -> Dict[str, Any]:
+    def as_dict(self, lib_prefix: Optional[str] = "lib") -> Dict[str, Any]:
         """
         Return a dictionary representation of the dependency, in the canonical format
         to be ingested by shiny.js.
         """
         href_prefix = os.path.join(self.name + "-" + str(self.version))
-        if prefix_dir:
-            href_prefix = os.path.join(prefix_dir, href_prefix)
+        if lib_prefix:
+            href_prefix = os.path.join(lib_prefix, href_prefix)
 
         stylesheets = deepcopy(self.stylesheet)
         for s in stylesheets:
@@ -730,13 +730,19 @@ class HTMLDependency(MetadataNode):
         for s in scripts:
             s.update({"src": os.path.join(href_prefix, urllib.parse.quote(s["src"]))})
 
+        head: Optional[str]
+        if self.head is None:
+            head = None
+        else:
+            head = self.head.get_html_string()
+
         return {
             "name": self.name,
             "version": str(self.version),
             "script": scripts,
             "stylesheet": stylesheets,
             "meta": self.meta,
-            "head": self.head,
+            "head": head,
         }
 
     def copy_to(self, path: str) -> None:

@@ -1,11 +1,10 @@
 import os
 import copy
 from tempfile import TemporaryDirectory
-from typing import Any, Union
+from typing import Any, Union, Optional
 import textwrap
 
 from htmltools import *
-from htmltools.util import cwd
 import htmltools.core
 
 
@@ -13,14 +12,14 @@ def expect_html(x: Any, expected: str):
     assert str(x) == expected
 
 
-def saved_html(x: Union[Tag, HTMLDocument]) -> str:
+def saved_html(x: Union[Tag, HTMLDocument], lib_prefix: Optional[str] = "lib") -> str:
     with TemporaryDirectory() as tmpdir:
         f = os.path.join(tmpdir, "index.html")
-        x.save_html(f)
+        x.save_html(f, lib_prefix=lib_prefix)
         return open(f, "r").read()
 
 
-def test_basic_tag_api(snapshot):
+def test_basic_tag_api():
     children = [
         h1("hello"),
         h2("world"),
@@ -40,7 +39,18 @@ def test_basic_tag_api(snapshot):
     assert x1 == x2 == x3 == x4
     assert x1.attrs["id"] == "baz"
     assert x1.attrs["bool"] == ""
-    snapshot.assert_match(str(x1), "basic_tag_api")
+    assert str(x1) == textwrap.dedent(
+        """\
+        <div class="foo" for="bar" id="baz" bool="">
+          <h1>hello</h1>
+          <h2>world</h2>
+          text
+          1
+          2.1
+          list
+          here
+        </div>"""
+    )
     assert x1.attrs["class"] == "foo"
     x1.add_class("bar")
     assert x1.attrs["class"] == "foo bar"
@@ -109,7 +119,7 @@ def test_tagify_deep_copy():
     assert x.children[2] is not y.children[2]
 
 
-def test_tag_writing(snapshot):
+def test_tag_writing():
     expect_html(TagList("hi"), "hi")
     expect_html(TagList("one", "two", TagList("three")), "one\ntwo\nthree")
     expect_html(tags.b("one"), "<b>one</b>")
@@ -117,8 +127,19 @@ def test_tag_writing(snapshot):
     expect_html(TagList(["one"]), "one")
     expect_html(TagList([TagList("one")]), "one")
     expect_html(TagList(tags.br(), "one"), "<br/>\none")
-    snapshot.assert_match(
-        str(tags.b("one", "two", span("foo", "bar", span("baz")))), "tag_writing"
+    assert str(
+        tags.b("one", "two", span("foo", "bar", span("baz")))
+    ) == textwrap.dedent(
+        """\
+            <b>
+              one
+              two
+              <span>
+                foo
+                bar
+                <span>baz</span>
+              </span>
+            </b>"""
     )
     expect_html(tags.area(), "<area/>")
 
@@ -151,21 +172,60 @@ def test_tag_escaping():
     assert str(tags.style("a && b > 3")) == "<style>a && b > 3</style>"
 
 
-def test_html_save(snapshot):
-    snapshot.assert_match(saved_html(div()), "html_save_div")
-    test_dir = os.path.dirname(__file__)
-    with cwd(test_dir):
-        dep = HTMLDependency(
-            "foo",
-            "1.0",
-            source={"package": None, "subdir": "assets"},
-            stylesheet={"href": "css/my-styles.css"},
-            script={"src": "js/my-js.js"},
-        )
-        snapshot.assert_match(saved_html(div("foo", dep)), "html_save_dep")
-        desc = tags.meta(name="description", content="test")
-        doc = HTMLDocument(div("foo", dep), desc, lang="en")
-        snapshot.assert_match(saved_html(doc), "html_save_doc")
+def test_html_save():
+    assert saved_html(div()) == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8"/>
+          </head>
+          <body>
+            <div></div>
+          </body>
+        </html>"""
+    )
+
+    dep = HTMLDependency(
+        "foo",
+        "1.0",
+        source={"package": "htmltools", "subdir": "libtest"},
+        stylesheet={"href": "testdep/testdep.css"},
+        script={"src": "testdep/testdep.js"},
+    )
+    assert saved_html(div("foo", dep), lib_prefix=None) == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8"/>
+            <link href="foo-1.0/testdep/testdep.css" rel="stylesheet"/>
+            <script src="foo-1.0/testdep/testdep.js"></script>
+          </head>
+          <body>
+            <div>foo</div>
+          </body>
+        </html>"""
+    )
+
+    doc = HTMLDocument(
+        div("foo", dep), tags.meta(name="description", content="test"), lang="en"
+    )
+    assert saved_html(doc) == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8"/>
+            <link href="lib/foo-1.0/testdep/testdep.css" rel="stylesheet"/>
+            <script src="lib/foo-1.0/testdep/testdep.js"></script>
+          </head>
+          <body>
+            <div>foo</div>
+            <meta name="description" content="test"/>
+          </body>
+        </html>"""
+    )
 
 
 def test_tag_walk():
@@ -203,9 +263,7 @@ def test_tag_list_flatten():
     assert list(x) == ["1", "2", span("3"), "4"]
 
 
-def test_attr_vals(snapshot):
-    import datetime
-
+def test_attr_vals():
     attrs = {
         "none": None,
         "false": False,
@@ -216,7 +274,11 @@ def test_attr_vals(snapshot):
     }
     test = TagList(div(**attrs), div(class_="foo").add_class("bar"))
 
-    snapshot.assert_match(str(test), "attr_vals.txt")
+    assert (
+        str(test)
+        == """<div true="" str="a" int="1" float="1.2"></div>
+<div class="foo bar"></div>"""
+    )
 
 
 def test_tag_normalize_attr():

@@ -154,13 +154,3 @@ def get_open_port() -> int:
     with closing(socket()) as sock:
         sock.bind(("", 0))
         return sock.getsockname()[1]
-
-
-@contextmanager
-def cwd(path: str):
-    oldpwd = os.getcwd()
-    os.chdir(path)
-    try:
-        yield
-    finally:
-        os.chdir(oldpwd)
