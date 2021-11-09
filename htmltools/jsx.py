@@ -19,7 +19,11 @@ __all__ = (
     "jsx",
     "jsx_tag_create",
     "JSXTag",
+    "JSXTagAttrArg",
 )
+
+# A JSX tag attribute can be anything.
+JSXTagAttrArg = object
 
 
 class JSXTagAttrs(Dict[str, object]):
