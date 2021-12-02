@@ -79,10 +79,11 @@ TagChildArg = Union[TagChild, "TagList", int, float, None, Iterable["TagChildArg
 TagAttrArg = Union[str, int, float, bool, None]
 
 
-# Objects with tagify() methods are considered Tagifiable.
+# Objects with tagify() methods are considered Tagifiable. Note that an object returns a
+# TagList, the children of the TagList must also be tagified.
 @runtime_checkable
 class Tagifiable(Protocol):
-    def tagify(self) -> Union["Tag", MetadataNode, str]:
+    def tagify(self) -> Union["TagList", "Tag", MetadataNode, str]:
         ...
 
 
@@ -142,9 +143,20 @@ class TagList(List[TagChild]):
 
     def tagify(self) -> "TagList":
         cp = copy(self)
-        for i, child in enumerate(cp):
+
+        # Iterate backwards because if we hit a Tagifiable object, it may be replaced
+        # with 0, 1, or more items (if it returns TagList).
+        for i in reversed(range(len(cp))):
+            child = cp[i]
+
             if isinstance(child, Tagifiable):
-                cp[i] = child.tagify()
+                tagified_child = child.tagify()
+                if isinstance(tagified_child, TagList):
+                    # If the Tagifiable object returned a TagList, flatten it into this one.
+                    cp[i : i + 1] = _tagchildargs_to_tagchilds(tagified_child)
+                else:
+                    cp[i] = tagified_child
+
             elif isinstance(child, MetadataNode):
                 cp[i] = copy(child)
         return cp

@@ -255,12 +255,54 @@ def test_tag_walk():
     assert x.children[1].children[0] == "WORLD"
 
 
-def test_tag_list_flatten():
+def test_taglist_flatten():
     x = div(1, TagList(2, TagList(span(3), 4)))
     assert list(x.children) == ["1", "2", span("3"), "4"]
 
     x = TagList(1, TagList(2, TagList(span(3), 4)))
     assert list(x) == ["1", "2", span("3"), "4"]
+
+
+def test_taglist_insert():
+    x = TagList(1, 2, 3, 4)
+    x.insert(2, "new")
+    assert list(x) == ["1", "2", "new", "3", "4"]
+
+    x = TagList(1, 2, 3, 4)
+    x.insert(2, TagList("new"))
+    assert list(x) == ["1", "2", "new", "3", "4"]
+
+    x = TagList(1, 2, 3, 4)
+    x.insert(2, TagList("new", "new2"))
+    assert list(x) == ["1", "2", "new", "new2", "3", "4"]
+
+
+def test_taglist_tagifiable():
+    # When a TagList contains a Tagifiable object which returns a TagList, make sure it
+    # gets flattened into the original TagList.
+    class Foo:
+        def __init__(self, *args) -> None:
+            self._content = TagList(*args)
+
+        def tagify(self) -> TagList:
+            return self._content.tagify()
+
+    x = TagList(1, Foo(), 2)
+    assert list(x.tagify()) == ["1", "2"]
+
+    x = TagList(1, Foo("foo"), 2)
+    assert list(x.tagify()) == ["1", "foo", "2"]
+
+    x = TagList(1, Foo("foo", span("bar")), 2)
+    assert list(x.tagify()) == ["1", "foo", span("bar"), "2"]
+
+    # Recursive tagify()
+    x = TagList(1, Foo("foo", Foo("bar")), 2)
+    assert list(x.tagify()) == ["1", "foo", "bar", "2"]
+
+    # Make sure it works for Tag objects as well.
+    x = div(1, Foo("foo", Foo("bar")), 2)
+    assert list(x.tagify().children) == ["1", "foo", "bar", "2"]
 
 
 def test_attr_vals():
