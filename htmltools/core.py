@@ -427,8 +427,8 @@ class Tag:
         deps = cp.get_dependencies()
         return {"dependencies": deps, "html": cp.get_html_string()}
 
-    def save_html(self, file: str, lib_prefix: Optional[str] = "lib") -> str:
-        return HTMLDocument(self).save_html(file, lib_prefix)
+    def save_html(self, file: str, libdir: Optional[str] = "lib") -> str:
+        return HTMLDocument(self).save_html(file, libdir)
 
     def get_dependencies(self, dedup: bool = True) -> List["HTMLDependency"]:
         return self.children.get_dependencies(dedup=dedup)
@@ -503,33 +503,58 @@ class HTMLDocument:
     def append(self, *args: TagChildArg) -> None:
         self._content.append(*args)
 
-    def render(self, *, lib_prefix: Optional[str] = "lib") -> RenderedHTML:
-        html_ = self._gen_html_tag_tree(lib_prefix)
+    def render(self) -> RenderedHTML:
+        html_ = self._gen_html_tag_tree()
         rendered = html_.render()
         rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
         return rendered
 
-    def save_html(self, file: str, lib_prefix: Optional[str] = "lib") -> str:
+    def save_html(self, file: str, libdir: Optional[str] = "lib") -> str:
         # Directory where dependencies are copied to.
-        dest_libdir = str(Path(file).resolve().parent)
-        if lib_prefix:
-            dest_libdir = os.path.join(dest_libdir, lib_prefix)
+        filedir = str(Path(file).resolve().parent)
+        libdir_abs = os.path.join(filedir, libdir) if libdir else filedir
 
-        rendered = self.render(lib_prefix=lib_prefix)
+        ui = self._content
+        ui = ui.tagify()
 
-        for dep in rendered["dependencies"]:
-            dep.copy_to(dest_libdir)
+        # Copy dependencies to the destination directory
+        deps = ui.get_dependencies()
+        for dep in deps:
+            dep.copy_to(libdir_abs)
 
-        with open(file, "w") as f:
-            f.write(rendered["html"])
+        # Before getting the HTML, update the dependencies to point to the
+        # destination directory.
+        if libdir:
+
+            def _add_libdir(x: TagChild) -> TagChild:
+                if isinstance(x, HTMLDependency):
+                    setattr(x, "orig_prefix", x.path_prefix)
+                    x.path_prefix = os.path.join(libdir, x.path_prefix)
+                return x
+
+            _walk_mutate(ui, _add_libdir)
+
+        try:
+            rendered = self.render()
+            with open(file, "w") as f:
+                f.write(rendered["html"])
+        finally:
+            if libdir:
+
+                def _rm_libdir(x: TagChild) -> TagChild:
+                    if isinstance(x, HTMLDependency):
+                        x.path_prefix = getattr(x, "orig_prefix")
+                        delattr(x, "orig_prefix")
+                    return x
+
+                _walk_mutate(ui, _rm_libdir)
+
         return file
 
     # Take the stored content, and generate an <html> tag which contains the correct
     # <head> and <body> content. HTMLDependency items will be extracted out of the body
     # and inserted into the <head>.
-    # - lib_prefix: A directoy prefix to add to <script src="[lib_prefix]/script.js">
-    #   and <link rel="[lib_prefix]/style.css"> tags.
-    def _gen_html_tag_tree(self, lib_prefix: Optional[str]) -> Tag:
+    def _gen_html_tag_tree(self) -> Tag:
         content: TagList = self._content
         html: Tag
         body: Tag
@@ -542,7 +567,7 @@ class HTMLDocument:
             html = cast(Tag, content[0])
             html.attrs.update(**self._html_attr_args)
             html = html.tagify()
-            html = HTMLDocument._hoist_head_content(html, lib_prefix)
+            html = HTMLDocument._hoist_head_content(html)
             return html
 
         if (
@@ -557,14 +582,14 @@ class HTMLDocument:
         body = body.tagify()
 
         html = Tag("html", Tag("head"), body, **self._html_attr_args)
-        html = HTMLDocument._hoist_head_content(html, lib_prefix)
+        html = HTMLDocument._hoist_head_content(html)
         return html
 
     # Given an <html> tag object, copies the top node, then extracts dependencies from
     # the tree, and inserts the content from those dependencies into the <head>, such as
     # <link> and <script> tags.
     @staticmethod
-    def _hoist_head_content(x: Tag, lib_prefix: Optional[str]) -> Tag:
+    def _hoist_head_content(x: Tag) -> Tag:
         if x.name != "html":
             raise ValueError(f"Expected <html> tag, got <{x.name}>.")
         deps: List[HTMLDependency] = x.get_dependencies()
@@ -574,7 +599,7 @@ class HTMLDocument:
         # Put <meta charset="utf-8"> at beginning of head, and other hoisted tags at the
         # end. This matters only if the <head> tag starts out with some children.
         head.insert(0, Tag("meta", charset="utf-8"))
-        head.extend([d.as_html_tags(lib_prefix=lib_prefix) for d in deps])
+        head.extend([d.as_html_tags() for d in deps])
         return res
 
 
@@ -683,6 +708,14 @@ class HTMLDependency(MetadataNode):
         else:
             self.head = TagList(head)
 
+        # The path to be used when serializing the dependency into HTML.
+        # For example, <script src="[_relative_path]/script.js">
+        # For dynamic rendering via Shiny, this "just works" so long as the
+        # mounted path created via session.app.create_web_dependency() matches
+        # this target location. In the case of static rendering, this attribute
+        # may be (temporarily) se
+        self.path_prefix: str = self.name + "-" + str(self.version)
+
     def get_source_dir(self) -> str:
         """Return the directory on disk where the dependency's files reside."""
         if self.source is None:
@@ -694,53 +727,33 @@ class HTMLDependency(MetadataNode):
         else:
             return os.path.realpath(self.source["subdir"])
 
-    def as_html_tags(
-        self,
-        lib_prefix: Optional[str] = "lib",
-    ) -> TagList:
-        href_prefix = os.path.join(self.name + "-" + str(self.version))
-        if lib_prefix:
-            href_prefix = os.path.join(lib_prefix, href_prefix)
-
-        sheets = deepcopy(self.stylesheet)
-        for s in sheets:
-            s.update(
-                {
-                    "href": os.path.join(href_prefix, urllib.parse.quote(s["href"])),
-                    "rel": "stylesheet",
-                }
-            )
-
-        script = deepcopy(self.script)
-        for s in script:
-            s.update({"src": os.path.join(href_prefix, urllib.parse.quote(s["src"]))})
-
+    def as_html_tags(self) -> TagList:
+        d = self.as_dict()
         metas = [Tag("meta", **m) for m in self.meta]
-        links = [Tag("link", **s) for s in sheets]
-        scripts = [Tag("script", **s) for s in script]
+        links = [Tag("link", **s) for s in d["stylesheet"]]
+        scripts = [Tag("script", **s) for s in d["script"]]
         return TagList(*metas, *links, *scripts, self.head)
 
-    def as_dict(self, lib_prefix: Optional[str] = "lib") -> Dict[str, Any]:
+    def as_dict(self) -> Dict[str, Any]:
         """
         Return a dictionary representation of the dependency, in the canonical format
         to be ingested by shiny.js.
         """
-        href_prefix = os.path.join(self.name + "-" + str(self.version))
-        if lib_prefix:
-            href_prefix = os.path.join(lib_prefix, href_prefix)
 
         stylesheets = deepcopy(self.stylesheet)
         for s in stylesheets:
+            href = urllib.parse.quote(s["href"])
             s.update(
                 {
-                    "href": os.path.join(href_prefix, urllib.parse.quote(s["href"])),
+                    "href": os.path.join(self.path_prefix, href),
                     "rel": "stylesheet",
                 }
             )
 
         scripts = deepcopy(self.script)
         for s in scripts:
-            s.update({"src": os.path.join(href_prefix, urllib.parse.quote(s["src"]))})
+            src = urllib.parse.quote(s["src"])
+            s.update({"src": os.path.join(self.path_prefix, src)})
 
         head: Optional[str]
         if self.head is None:
@@ -761,7 +774,7 @@ class HTMLDependency(MetadataNode):
         src_file_infos = self._find_src_files()
 
         # Set up the target directory.
-        target_dir = os.path.join(path, self.name + "-" + str(self.version))
+        target_dir = os.path.join(path, self.path_prefix)
         if os.path.exists(target_dir):
             shutil.rmtree(target_dir)
         Path(target_dir).mkdir(parents=True, exist_ok=True)
@@ -915,6 +928,9 @@ def _walk_mutate(x: TagChild, fn: Callable[[TagChild], TagChild]) -> TagChild:
     if isinstance(x, Tag):
         for i, child in enumerate(x.children):
             x.children[i] = _walk_mutate(child, fn)
+    elif isinstance(x, list):
+        for i, child in enumerate(x):
+            x[i] = _walk_mutate(child, fn)
     return x
 
 

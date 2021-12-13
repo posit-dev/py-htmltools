@@ -12,10 +12,10 @@ def expect_html(x: Any, expected: str):
     assert str(x) == expected
 
 
-def saved_html(x: Union[Tag, HTMLDocument], lib_prefix: Optional[str] = "lib") -> str:
+def saved_html(x: Union[Tag, HTMLDocument]) -> str:
     with TemporaryDirectory() as tmpdir:
         f = os.path.join(tmpdir, "index.html")
-        x.save_html(f, lib_prefix=lib_prefix)
+        x.save_html(f, libdir=None)
         return open(f, "r").read()
 
 
@@ -193,7 +193,7 @@ def test_html_save():
         stylesheet={"href": "testdep/testdep.css"},
         script={"src": "testdep/testdep.js"},
     )
-    assert saved_html(div("foo", dep), lib_prefix=None) == textwrap.dedent(
+    assert saved_html(div("foo", dep)) == textwrap.dedent(
         """\
         <!DOCTYPE html>
         <html>
@@ -217,8 +217,8 @@ def test_html_save():
         <html lang="en">
           <head>
             <meta charset="utf-8"/>
-            <link href="lib/foo-1.0/testdep/testdep.css" rel="stylesheet"/>
-            <script src="lib/foo-1.0/testdep/testdep.js"></script>
+            <link href="foo-1.0/testdep/testdep.css" rel="stylesheet"/>
+            <script src="foo-1.0/testdep/testdep.js"></script>
           </head>
           <body>
             <div>foo</div>

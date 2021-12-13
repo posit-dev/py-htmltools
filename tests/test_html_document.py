@@ -9,7 +9,7 @@ from htmltools import *
 def saved_html(x: Union[Tag, HTMLDocument]) -> str:
     with TemporaryDirectory() as tmpdir:
         f = os.path.join(tmpdir, "index.html")
-        x.save_html(f)
+        x.save_html(f, libdir=None)
         return open(f, "r").read()
 
 
@@ -136,7 +136,7 @@ def test_tagify_first():
     result = x.tagify().render()
     assert result["dependencies"] == [DelayedDep.dep]
 
-    result = HTMLDocument(x).render(lib_prefix=None)
+    result = HTMLDocument(x).render()
     assert result["dependencies"] == [DelayedDep.dep]
     assert result["html"].find('<script src="testdep-1.0/testdep.js">') != -1
     assert (
@@ -144,27 +144,21 @@ def test_tagify_first():
         != -1
     )
 
-    result = HTMLDocument(x).render(lib_prefix="mylib")
-    assert result["dependencies"] == [DelayedDep.dep]
-    assert result["html"].find('<script src="mylib/testdep-1.0/testdep.js">') != -1
-    assert (
-        result["html"].find(
-            '<link href="mylib/testdep-1.0/testdep.css" rel="stylesheet"/>'
-        )
-        != -1
-    )
+    y = x
 
     # When save_html() is called, check content and make sure dependency files are
     # copied to the right place.
     with TemporaryDirectory() as tmpdir:
         f = os.path.join(tmpdir, "index.html")
-        x.save_html(f)
+        y.save_html(f, libdir=None)
 
         html = open(f, "r").read()
         html.find('<script src="testdep-1.0/testdep.js">') != -1
         assert (
             html.find('<link href="testdep-1.0/testdep.css" rel="stylesheet"/>') != -1
         )
+
+        print(os.listdir(tmpdir))
 
         testdep_files = os.listdir(os.path.join(tmpdir, "testdep-1.0"))
         testdep_files.sort()
@@ -173,7 +167,7 @@ def test_tagify_first():
     # Same as previous, except save_html() is called with a different libdir.
     with TemporaryDirectory() as tmpdir:
         f = os.path.join(tmpdir, "index.html")
-        x.save_html(f, "mylib")
+        y.save_html(f, "mylib")
 
         html = open(f, "r").read()
         html.find('<script src="mylib/testdep-1.0/testdep.js">') != -1
@@ -181,6 +175,8 @@ def test_tagify_first():
             html.find('<link href="mylib/testdep-1.0/testdep.css" rel="stylesheet"/>')
             != -1
         )
+
+        print(os.listdir(tmpdir))
 
         testdep_files = os.listdir(os.path.join(tmpdir, "mylib", "testdep-1.0"))
         testdep_files.sort()
