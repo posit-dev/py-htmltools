@@ -514,8 +514,9 @@ class HTMLDocument:
 
     def save_html(self, file: str, libdir: Optional[str] = "lib") -> str:
         # Directory where dependencies are copied to.
-        filedir = str(Path(file).resolve().parent)
-        destdir = os.path.join(filedir, libdir) if libdir else filedir
+        destdir = str(Path(file).resolve().parent)
+        if libdir:
+            destdir = os.path.join(destdir, libdir)
 
         rendered = self._render(libdir=libdir)
         for dep in rendered["dependencies"]:
@@ -523,7 +524,6 @@ class HTMLDocument:
 
         with open(file, "w") as f:
             f.write(rendered["html"])
-
         return file
 
     # Take the stored content, and generate an <html> tag which contains the correct
@@ -563,6 +563,9 @@ class HTMLDocument:
     # Given an <html> tag object, copies the top node, then extracts dependencies from
     # the tree, and inserts the content from those dependencies into the <head>, such as
     # <link> and <script> tags.
+    # - libdir: An additional directory prefix to add to
+    #    <script src="[libdir]/name-version/script.js"> and
+    #    <link rel="[libdir]/name-version/style.css"> tags.
     @staticmethod
     def _hoist_head_content(x: Tag, libdir: Optional[str]) -> Tag:
         if x.name != "html":
