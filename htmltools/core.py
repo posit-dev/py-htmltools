@@ -796,9 +796,6 @@ class HTMLDependency(MetadataNode):
                 *[s["href"] for s in self.stylesheet],
             ]
 
-        # For example: "htmltools-0.0.1"
-        dest_href_prefix = os.path.join(self.name + "-" + str(self.version))
-
         result: List[Dict[str, str]] = []
         for f in src_files:
             src_file_path = os.path.join(src_dir, f)
@@ -811,7 +808,7 @@ class HTMLDependency(MetadataNode):
             result.append(
                 {
                     "filepath": src_file_path,
-                    "href": os.path.join(dest_href_prefix, f),
+                    "href": os.path.join(self.path_prefix, f),
                 }
             )
 
