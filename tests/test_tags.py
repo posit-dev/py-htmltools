@@ -328,11 +328,8 @@ def test_tag_normalize_attr():
     x = div(class_="class_", x__="x__", x_="x_", x="x")
     assert x.attrs == {"class": "class_", "x-": "x__", "x": "x"}
 
-    x = div(clAsS_="clAsS_", X__="X__")
-    assert x.attrs == {"class": "clAsS_", "x-": "X__"}
-
-    x = div(clAsS_2="clAsS_2")
-    assert x.attrs == {"class-2": "clAsS_2"}
+    x = div(foo_bar="baz")
+    assert x.attrs == {"foo-bar": "baz"}
 
 
 def test_metadata_nodes_gone():

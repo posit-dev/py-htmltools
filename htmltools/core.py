@@ -254,10 +254,10 @@ class TagAttrs(Dict[str, str]):
 
     @staticmethod
     def _normalize_attr_name(x: str) -> str:
-        # e.g., foo_Bar_ -> foo-bar
+        # e.g., foo_Bar_ -> foo-Bar
         if x.endswith("_"):
             x = x[:-1]
-        return x.replace("_", "-").lower()
+        return x.replace("_", "-")
 
     @staticmethod
     def _normalize_attr_value(x: TagAttrArg) -> Optional[str]:
