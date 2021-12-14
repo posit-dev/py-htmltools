@@ -579,8 +579,7 @@ class HTMLDocument:
         deps = copy(x.get_dependencies())
         dep_tags: List[TagList] = []
         for d in deps:
-            if libdir:
-                d.path_prefix = os.path.join(libdir, d.path_prefix)
+            d._libdir = libdir
             dep_tags.append(d.as_html_tags())
         head.extend(dep_tags)
         return res
@@ -691,9 +690,17 @@ class HTMLDependency(MetadataNode):
         else:
             self.head = TagList(head)
 
-        # A path prefix to use when writing the dependency into HTML.
-        # (e.g., <script src="{path_prefix}/script.js">)
-        self.path_prefix: str = self.name + "-" + str(self.version)
+        # The directory name to use when serializing file paths.
+        # (e.g., <script src="{directory}/script.js">)
+        # This is made public not only so that session.app.create_web_dependency()
+        # can read it, but can also be useful if users didn't, for example,
+        # want to include the version in the directory name
+        self.directory: str = self.name + "-" + str(self.version)
+
+        # An additional (internal) directory prefix to add
+        # to <script src="{_parent_dir}/{directory}/script.js">
+        # which is primarily useful for save_html(libdir = "mylib")
+        self._libdir: Optional[str] = None
 
     def get_source_dir(self) -> str:
         """Return the directory on disk where the dependency's files reside."""
@@ -719,12 +726,16 @@ class HTMLDependency(MetadataNode):
         to be ingested by shiny.js.
         """
 
+        prefix = self.directory
+        if self._libdir is not None:
+            prefix = os.path.join(self._libdir, prefix)
+
         stylesheets = deepcopy(self.stylesheet)
         for s in stylesheets:
             href = urllib.parse.quote(s["href"])
             s.update(
                 {
-                    "href": os.path.join(self.path_prefix, href),
+                    "href": os.path.join(prefix, href),
                     "rel": "stylesheet",
                 }
             )
@@ -732,7 +743,7 @@ class HTMLDependency(MetadataNode):
         scripts = deepcopy(self.script)
         for s in scripts:
             src = urllib.parse.quote(s["src"])
-            s.update({"src": os.path.join(self.path_prefix, src)})
+            s.update({"src": os.path.join(prefix, src)})
 
         head: Optional[str]
         if self.head is None:
@@ -750,41 +761,9 @@ class HTMLDependency(MetadataNode):
         }
 
     def copy_to(self, path: str) -> None:
-        src_file_infos = self._find_src_files()
-
-        # Set up the target directory.
-        target_dir = os.path.join(path, self.path_prefix)
-        if os.path.exists(target_dir):
-            shutil.rmtree(target_dir)
-        Path(target_dir).mkdir(parents=True, exist_ok=True)
-
-        # Copy all the files
-        for file_info in src_file_infos:
-            src_file = file_info["filepath"]
-            if not os.path.isfile(src_file):
-                raise Exception(
-                    f"Failed to copy HTML dependency {self.name}-{str(self.version)} "
-                    + f"to {path} because {src_file} doesn't exist."
-                )
-            target_file = os.path.join(target_dir, path, file_info["href"])
-            os.makedirs(os.path.dirname(target_file), exist_ok=True)
-            shutil.copy2(src_file, target_file)
-
-    # Returns an object like:
-    # [
-    #   {
-    #     "filepath": "/xyz/htmltools/lib/testdep/testdep.js",
-    #     "href": "test-0.0.1/testdep.js"
-    #   },
-    #   {
-    #     "filepath": "/xyz/htmltools/lib/testdep/testdep.css",
-    #     "href": "test-0.0.1/testdep.css"
-    #   }
-    # ]
-    def _find_src_files(self) -> List[Dict[str, str]]:
-        src_dir: str = self.get_source_dir()
-        if src_dir == "":
-            return []
+        src_dir = self.get_source_dir()
+        if dir == "":
+            return None
 
         # Collect all the source files
         if self.all_files:
@@ -796,23 +775,27 @@ class HTMLDependency(MetadataNode):
                 *[s["href"] for s in self.stylesheet],
             ]
 
-        result: List[Dict[str, str]] = []
+        # Verify they all exist
         for f in src_files:
-            src_file_path = os.path.join(src_dir, f)
-            if not os.path.isfile(src_file_path):
-                raise RuntimeError(
-                    f"Failed to find HTML dependency {self.name}-{self.version} "
-                    + f"because {src_file_path} doesn't exist."
+            src_file = os.path.join(src_dir, f)
+            if not os.path.isfile(src_file):
+                raise Exception(
+                    f"Failed to copy HTML dependency {self.name}-{str(self.version)} "
+                    + f"because {src_file} doesn't exist."
                 )
 
-            result.append(
-                {
-                    "filepath": src_file_path,
-                    "href": os.path.join(self.path_prefix, f),
-                }
-            )
+        # Set up the target directory.
+        target_dir = Path(os.path.join(path, self.directory)).resolve()
+        if os.path.exists(target_dir):
+            shutil.rmtree(target_dir)
+        target_dir.mkdir(parents=True, exist_ok=True)
 
-        return result
+        # Copy all the files
+        for f in src_files:
+            src_file = os.path.join(src_dir, f)
+            target_file = os.path.join(target_dir, f)
+            os.makedirs(os.path.dirname(target_file), exist_ok=True)
+            shutil.copy2(src_file, target_file)
 
     def _validate_dicts(
         self, ld: List[Dict[str, str]], req_attr: List[str] = []
