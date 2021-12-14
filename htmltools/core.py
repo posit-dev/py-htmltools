@@ -692,12 +692,7 @@ class HTMLDependency(MetadataNode):
             self.head = TagList(head)
 
         # A path prefix to use when writing the dependency into HTML.
-        # (e.g., <script src="[_relative_path]/script.js">)
-        # For dynamic rendering via Shiny, this "just works" so long as the
-        # mounted path created via session.app.create_web_dependency() matches
-        # this target location. In the case of static rendering, we temporarily
-        # modify this attribute to reflect the side-effect of copying the dependencies
-        # under libdir
+        # (e.g., <script src="{path_prefix}/script.js">)
         self.path_prefix: str = self.name + "-" + str(self.version)
 
     def get_source_dir(self) -> str:
