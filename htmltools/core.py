@@ -563,9 +563,6 @@ class HTMLDocument:
     # Given an <html> tag object, copies the top node, then extracts dependencies from
     # the tree, and inserts the content from those dependencies into the <head>, such as
     # <link> and <script> tags.
-    # - libdir: An additional directory prefix to add to
-    #    <script src="[libdir]/name-version/script.js"> and
-    #    <link rel="[libdir]/name-version/style.css"> tags.
     @staticmethod
     def _hoist_head_content(x: Tag, libdir: Optional[str]) -> Tag:
         if x.name != "html":
@@ -576,12 +573,8 @@ class HTMLDocument:
         # Put <meta charset="utf-8"> at beginning of head, and other hoisted tags at the
         # end. This matters only if the <head> tag starts out with some children.
         head.insert(0, Tag("meta", charset="utf-8"))
-        deps = copy(x.get_dependencies())
-        dep_tags: List[TagList] = []
-        for d in deps:
-            d._libdir = libdir
-            dep_tags.append(d.as_html_tags())
-        head.extend(dep_tags)
+        deps = x.get_dependencies()
+        head.extend([d._as_html_tags(libdir=libdir) for d in deps])
         return res
 
 
@@ -697,11 +690,6 @@ class HTMLDependency(MetadataNode):
         # want to include the version in the directory name
         self.directory: str = self.name + "-" + str(self.version)
 
-        # An additional (internal) directory prefix to add
-        # to <script src="{_parent_dir}/{directory}/script.js">
-        # which is primarily useful for save_html(libdir = "mylib")
-        self._libdir: Optional[str] = None
-
     def get_source_dir(self) -> str:
         """Return the directory on disk where the dependency's files reside."""
         if self.source is None:
@@ -714,7 +702,11 @@ class HTMLDependency(MetadataNode):
             return os.path.realpath(self.source["subdir"])
 
     def as_html_tags(self) -> TagList:
-        d = self.as_dict()
+        """Render the dependency as a TagList()."""
+        return self._as_html_tags()
+
+    def _as_html_tags(self, libdir: Optional[str] = None) -> TagList:
+        d = self._as_dict(libdir=libdir)
         metas = [Tag("meta", **m) for m in self.meta]
         links = [Tag("link", **s) for s in d["stylesheet"]]
         scripts = [Tag("script", **s) for s in d["script"]]
@@ -725,10 +717,13 @@ class HTMLDependency(MetadataNode):
         Return a dictionary representation of the dependency, in the canonical format
         to be ingested by shiny.js.
         """
+        return self._as_dict()
+
+    def _as_dict(self, libdir: Optional[str] = None) -> Dict[str, Any]:
 
         prefix = self.directory
-        if self._libdir is not None:
-            prefix = os.path.join(self._libdir, prefix)
+        if libdir is not None:
+            prefix = os.path.join(libdir, prefix)
 
         stylesheets = deepcopy(self.stylesheet)
         for s in stylesheets:
@@ -761,6 +756,7 @@ class HTMLDependency(MetadataNode):
         }
 
     def copy_to(self, path: str) -> None:
+        """Copy the dependency's files to the given path."""
         src_dir = self.get_source_dir()
         if dir == "":
             return None
