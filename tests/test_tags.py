@@ -12,10 +12,10 @@ def expect_html(x: Any, expected: str):
     assert str(x) == expected
 
 
-def saved_html(x: Union[Tag, HTMLDocument], libdir: Optional[str] = "lib") -> str:
+def saved_html(x: Union[Tag, HTMLDocument], **kwargs) -> str:
     with TemporaryDirectory() as tmpdir:
         f = os.path.join(tmpdir, "index.html")
-        x.save_html(f, libdir=libdir)
+        x.save_html(f, **kwargs)
         return open(f, "r").read()
 
 

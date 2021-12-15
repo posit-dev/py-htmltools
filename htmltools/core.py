@@ -503,11 +503,8 @@ class HTMLDocument:
     def append(self, *args: TagChildArg) -> None:
         self._content.append(*args)
 
-    def render(self) -> RenderedHTML:
-        return self._render(libdir=None)
-
-    def _render(self, libdir: Optional[str]) -> RenderedHTML:
-        html_ = self._gen_html_tag_tree(libdir=libdir)
+    def render(self, *, href_prefix: Optional[str] = "lib") -> RenderedHTML:
+        html_ = self._gen_html_tag_tree(href_prefix)
         rendered = html_.render()
         rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
         return rendered
@@ -518,7 +515,7 @@ class HTMLDocument:
         if libdir:
             destdir = os.path.join(destdir, libdir)
 
-        rendered = self._render(libdir=libdir)
+        rendered = self.render(href_prefix=libdir)
         for dep in rendered["dependencies"]:
             dep.copy_to(destdir)
 
@@ -529,7 +526,7 @@ class HTMLDocument:
     # Take the stored content, and generate an <html> tag which contains the correct
     # <head> and <body> content. HTMLDependency items will be extracted out of the body
     # and inserted into the <head>.
-    def _gen_html_tag_tree(self, libdir: Optional[str]) -> Tag:
+    def _gen_html_tag_tree(self, href_prefix: Optional[str]) -> Tag:
         content: TagList = self._content
         html: Tag
         body: Tag
@@ -542,7 +539,7 @@ class HTMLDocument:
             html = cast(Tag, content[0])
             html.attrs.update(**self._html_attr_args)
             html = html.tagify()
-            html = HTMLDocument._hoist_head_content(html, libdir=libdir)
+            html = HTMLDocument._hoist_head_content(html, href_prefix)
             return html
 
         if (
@@ -557,14 +554,14 @@ class HTMLDocument:
         body = body.tagify()
 
         html = Tag("html", Tag("head"), body, **self._html_attr_args)
-        html = HTMLDocument._hoist_head_content(html, libdir=libdir)
+        html = HTMLDocument._hoist_head_content(html, href_prefix)
         return html
 
     # Given an <html> tag object, copies the top node, then extracts dependencies from
     # the tree, and inserts the content from those dependencies into the <head>, such as
     # <link> and <script> tags.
     @staticmethod
-    def _hoist_head_content(x: Tag, libdir: Optional[str]) -> Tag:
+    def _hoist_head_content(x: Tag, href_prefix: Optional[str]) -> Tag:
         if x.name != "html":
             raise ValueError(f"Expected <html> tag, got <{x.name}>.")
         res = copy(x)
@@ -574,7 +571,7 @@ class HTMLDocument:
         # end. This matters only if the <head> tag starts out with some children.
         head.insert(0, Tag("meta", charset="utf-8"))
         deps = x.get_dependencies()
-        head.extend([d._as_html_tags(libdir=libdir) for d in deps])
+        head.extend([d.as_html_tags(href_prefix=href_prefix) for d in deps])
         return res
 
 
@@ -612,6 +609,11 @@ class HTML(str):
 class PackageHTMLDependencySource(TypedDict):
     package: Optional[str]
     subdir: str
+
+
+class SourcePathMapping(TypedDict):
+    source: str
+    href: str
 
 
 class HTMLDependency(MetadataNode):
@@ -683,54 +685,43 @@ class HTMLDependency(MetadataNode):
         else:
             self.head = TagList(head)
 
-        # The directory name to use when serializing file paths.
-        # (e.g., <script src="{directory}/script.js">)
-        # This is made public not only so that session.app.create_web_dependency()
-        # can read it, but can also be useful if users didn't, for example,
-        # want to include the version in the directory name
-        self.directory: str = self.name + "-" + str(self.version)
+    def source_path_map(
+        self, *, href_prefix: Optional[str] = "lib"
+    ) -> SourcePathMapping:
+        """Returns a dict of the absolute 'source' filepath and the 'href' path it will point to in the HTML (given the href_prefix)."""
 
-    def get_source_dir(self) -> str:
-        """Return the directory on disk where the dependency's files reside."""
-        if self.source is None:
-            return ""
-        if self.source["package"] is not None:
-            return os.path.join(
-                _package_dir(self.source["package"]), self.source["subdir"]
-            )
+        src = self.source
+        if src is None:
+            return {"source": "", "href": ""}
+
+        if src["package"] is None:
+            source = os.path.realpath(src["subdir"])
         else:
-            return os.path.realpath(self.source["subdir"])
+            source = os.path.join(_package_dir(src["package"]), src["subdir"])
 
-    def as_html_tags(self) -> TagList:
+        # TODO: expose a global setting to remove version?
+        href = self.name + "-" + str(self.version)
+        href = os.path.join(href_prefix, href) if href_prefix else href
+        return {"source": source, "href": href}
+
+    def as_html_tags(self, *, href_prefix: Optional[str] = "lib") -> TagList:
         """Render the dependency as a TagList()."""
-        return self._as_html_tags()
-
-    def _as_html_tags(self, libdir: Optional[str] = None) -> TagList:
-        d = self._as_dict(libdir=libdir)
+        d = self.as_dict(href_prefix=href_prefix)
         metas = [Tag("meta", **m) for m in self.meta]
         links = [Tag("link", **s) for s in d["stylesheet"]]
         scripts = [Tag("script", **s) for s in d["script"]]
         return TagList(*metas, *links, *scripts, self.head)
 
-    def as_dict(self) -> Dict[str, Any]:
-        """
-        Return a dictionary representation of the dependency, in the canonical format
-        to be ingested by shiny.js.
-        """
-        return self._as_dict()
+    def as_dict(self, *, href_prefix: Optional[str] = "lib") -> Dict[str, Any]:
 
-    def _as_dict(self, libdir: Optional[str] = None) -> Dict[str, Any]:
-
-        prefix = self.directory
-        if libdir is not None:
-            prefix = os.path.join(libdir, prefix)
+        paths = self.source_path_map(href_prefix=href_prefix)
 
         stylesheets = deepcopy(self.stylesheet)
         for s in stylesheets:
             href = urllib.parse.quote(s["href"])
             s.update(
                 {
-                    "href": os.path.join(prefix, href),
+                    "href": os.path.join(paths["href"], href),
                     "rel": "stylesheet",
                 }
             )
@@ -738,7 +729,7 @@ class HTMLDependency(MetadataNode):
         scripts = deepcopy(self.script)
         for s in scripts:
             src = urllib.parse.quote(s["src"])
-            s.update({"src": os.path.join(prefix, src)})
+            s.update({"src": os.path.join(paths["href"], src)})
 
         head: Optional[str]
         if self.head is None:
@@ -757,13 +748,16 @@ class HTMLDependency(MetadataNode):
 
     def copy_to(self, path: str) -> None:
         """Copy the dependency's files to the given path."""
-        src_dir = self.get_source_dir()
-        if dir == "":
+
+        # href_prefix=None makes it so the href path is simply the
+        # dependency name and version.
+        paths = self.source_path_map(href_prefix=None)
+        if paths["source"] == "":
             return None
 
         # Collect all the source files
         if self.all_files:
-            src_files = list(Path(src_dir).glob("*"))
+            src_files = list(Path(paths["source"]).glob("*"))
             src_files = [str(x) for x in src_files]
         else:
             src_files = [
@@ -773,7 +767,7 @@ class HTMLDependency(MetadataNode):
 
         # Verify they all exist
         for f in src_files:
-            src_file = os.path.join(src_dir, f)
+            src_file = os.path.join(paths["source"], f)
             if not os.path.isfile(src_file):
                 raise Exception(
                     f"Failed to copy HTML dependency {self.name}-{str(self.version)} "
@@ -781,14 +775,14 @@ class HTMLDependency(MetadataNode):
                 )
 
         # Set up the target directory.
-        target_dir = Path(os.path.join(path, self.directory)).resolve()
+        target_dir = Path(os.path.join(path, paths["href"])).resolve()
         if os.path.exists(target_dir):
             shutil.rmtree(target_dir)
         target_dir.mkdir(parents=True, exist_ok=True)
 
         # Copy all the files
         for f in src_files:
-            src_file = os.path.join(src_dir, f)
+            src_file = os.path.join(paths["source"], f)
             target_file = os.path.join(target_dir, f)
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
             shutil.copy2(src_file, target_file)

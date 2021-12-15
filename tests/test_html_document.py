@@ -136,7 +136,7 @@ def test_tagify_first():
     result = x.tagify().render()
     assert result["dependencies"] == [DelayedDep.dep]
 
-    result = HTMLDocument(x).render()
+    result = HTMLDocument(x).render(href_prefix=None)
     assert result["dependencies"] == [DelayedDep.dep]
     assert result["html"].find('<script src="testdep-1.0/testdep.js">') != -1
     assert (
@@ -144,11 +144,21 @@ def test_tagify_first():
         != -1
     )
 
+    result = HTMLDocument(x).render(href_prefix="mylib")
+    assert result["dependencies"] == [DelayedDep.dep]
+    assert result["html"].find('<script src="mylib/testdep-1.0/testdep.js">') != -1
+    assert (
+        result["html"].find(
+            '<link href="mylib/testdep-1.0/testdep.css" rel="stylesheet"/>'
+        )
+        != -1
+    )
+
     # When save_html() is called, check content and make sure dependency files are
     # copied to the right place.
     with TemporaryDirectory() as tmpdir:
         f = os.path.join(tmpdir, "index.html")
-        x.save_html(f, libdir=None)
+        x.save_html(f)
 
         html = open(f, "r").read()
         html.find('<script src="testdep-1.0/testdep.js">') != -1
