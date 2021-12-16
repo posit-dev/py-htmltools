@@ -207,7 +207,7 @@ def test_as_dict():
     a = HTMLDependency(
         "a",
         "1.0",
-        source={"package": "foo", "subdir": "bar"},
+        source={"package": "htmltools", "subdir": "bar"},
         script={"src": "a1.js"},
         meta={"name": "viewport", "content": "width=device-width, initial-scale=1"},
     )
@@ -226,7 +226,7 @@ def test_as_dict():
     b = HTMLDependency(
         "b",
         "2.0",
-        source={"package": "foo", "subdir": "bar"},
+        source={"package": "htmltools", "subdir": "bar"},
         stylesheet=[{"href": "b1.css"}, {"href": "b2.css"}],
         head=tags.script("1 && 1"),
     )
