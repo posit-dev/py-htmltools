@@ -860,29 +860,6 @@ def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
     return cast(List[TagChild], result)
 
 
-# Walk a Tag tree, and apply a function to each node. The node in the tree will be
-# replaced with the value returned from `fn()`. If the function alters a node, then it
-# will be reflected in the original object that `.walk_mutate()` was called on.
-#
-# Note that if we were to export this function (perhaps in a class method), some other
-# possible variants are:
-# * Instead of one `fn`, take `pre` and `post` functions.
-# * Allow functions that return `TagChildArg`, and then flatten/convert those to
-#   `TagChild`.
-# * Provide a `_walk` function that doesn't mutate the tree. It would return `None`, and
-#   `fn` should return `None`. This could be useful when `fn` just collects things from
-#   the tree.
-def _walk_mutate(x: TagChild, fn: Callable[[TagChild], TagChild]) -> TagChild:
-    x = fn(x)
-    if isinstance(x, Tag):
-        for i, child in enumerate(x.children):
-            x.children[i] = _walk_mutate(child, fn)
-    elif isinstance(x, list):
-        for i, child in enumerate(x):
-            x[i] = _walk_mutate(child, fn)
-    return x
-
-
 def _tag_show(self: Union[TagList, "Tag"], renderer: str = "auto") -> Any:
     if renderer == "auto":
         try:
