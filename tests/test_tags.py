@@ -1,21 +1,20 @@
 import os
 import copy
 from tempfile import TemporaryDirectory
-from typing import Any, Union, Optional
+from typing import Any, Union, Callable
 import textwrap
 
 from htmltools import *
-import htmltools.core
 
 
 def expect_html(x: Any, expected: str):
     assert str(x) == expected
 
 
-def saved_html(x: Union[Tag, HTMLDocument], lib_prefix: Optional[str] = "lib") -> str:
+def saved_html(x: Union[Tag, HTMLDocument], **kwargs) -> str:
     with TemporaryDirectory() as tmpdir:
         f = os.path.join(tmpdir, "index.html")
-        x.save_html(f, lib_prefix=lib_prefix)
+        x.save_html(f, **kwargs)
         return open(f, "r").read()
 
 
@@ -193,7 +192,7 @@ def test_html_save():
         stylesheet={"href": "testdep/testdep.css"},
         script={"src": "testdep/testdep.js"},
     )
-    assert saved_html(div("foo", dep), lib_prefix=None) == textwrap.dedent(
+    assert saved_html(div("foo", dep), libdir=None) == textwrap.dedent(
         """\
         <!DOCTYPE html>
         <html>
@@ -228,6 +227,29 @@ def test_html_save():
     )
 
 
+# Walk a Tag tree, and apply a function to each node. The node in the tree will be
+# replaced with the value returned from `fn()`. If the function alters a node, then it
+# will be reflected in the original object that `.walk_mutate()` was called on.
+#
+# Note that if we were to export this function (perhaps in a class method), some other
+# possible variants are:
+# * Instead of one `fn`, take `pre` and `post` functions.
+# * Allow functions that return `TagChildArg`, and then flatten/convert those to
+#   `TagChild`.
+# * Provide a `_walk` function that doesn't mutate the tree. It would return `None`, and
+#   `fn` should return `None`. This could be useful when `fn` just collects things from
+#   the tree.
+def _walk_mutate(x: TagChild, fn: Callable[[TagChild], TagChild]) -> TagChild:
+    x = fn(x)
+    if isinstance(x, Tag):
+        for i, child in enumerate(x.children):
+            x.children[i] = _walk_mutate(child, fn)
+    elif isinstance(x, list):
+        for i, child in enumerate(x):
+            x[i] = _walk_mutate(child, fn)
+    return x
+
+
 def test_tag_walk():
     # walk() alters the tree in place, and also returns the altered object.
     x = div("hello ", tags.i("world"))
@@ -243,7 +265,7 @@ def test_tag_walk():
 
         return x
 
-    res = htmltools.core._walk_mutate(x, alter)
+    res = _walk_mutate(x, alter)
 
     assert y.children[1] is x
     assert x is res

@@ -6,13 +6,6 @@ import textwrap
 from htmltools import *
 
 
-def saved_html(x: Union[Tag, HTMLDocument], lib_prefix: Optional[str] = "lib") -> str:
-    with TemporaryDirectory() as tmpdir:
-        f = os.path.join(tmpdir, "index.html")
-        x.save_html(f, lib_prefix=lib_prefix)
-        return open(f, "r").read()
-
-
 def test_dep_resolution():
     a1_1 = HTMLDependency(
         "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
@@ -214,7 +207,7 @@ def test_as_dict():
     a = HTMLDependency(
         "a",
         "1.0",
-        source={"package": "foo", "subdir": "bar"},
+        source={"package": "htmltools", "subdir": "bar"},
         script={"src": "a1.js"},
         meta={"name": "viewport", "content": "width=device-width, initial-scale=1"},
     )
@@ -233,7 +226,7 @@ def test_as_dict():
     b = HTMLDependency(
         "b",
         "2.0",
-        source={"package": "foo", "subdir": "bar"},
+        source={"package": "htmltools", "subdir": "bar"},
         stylesheet=[{"href": "b1.css"}, {"href": "b2.css"}],
         head=tags.script("1 && 1"),
     )
