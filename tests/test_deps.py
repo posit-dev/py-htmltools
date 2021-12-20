@@ -26,7 +26,7 @@ def test_dep_resolution():
         "c", "1.0", source={"package": None, "subdir": "foo"}, script={"src": "c1.js"}
     )
     test = TagList(a1_1, b1_9, b1_10, a1_2, a1_2_1, b1_9, b1_10, c1_0)
-    assert HTMLDocument(test).render(href_prefix=None)["html"] == textwrap.dedent(
+    assert HTMLDocument(test).render(lib_prefix=None)["html"] == textwrap.dedent(
         """\
         <!DOCTYPE html>
         <html>
@@ -40,7 +40,7 @@ def test_dep_resolution():
         </html>"""
     )
 
-    assert HTMLDocument(test).render(href_prefix="libfoo")["html"] == textwrap.dedent(
+    assert HTMLDocument(test).render(lib_prefix="libfoo")["html"] == textwrap.dedent(
         """\
         <!DOCTYPE html>
         <html>
@@ -71,7 +71,7 @@ def test_inline_deps(snapshot):
         div([a1_1, div("foo")], "bar"),
     ]
     html_ = "\n\n".join(
-        [HTMLDocument(t).render(href_prefix=None)["html"] for t in tests]
+        [HTMLDocument(t).render(lib_prefix=None)["html"] for t in tests]
     )
     snapshot.assert_match(html_, "inline_deps")
 
@@ -104,16 +104,16 @@ def test_append_deps():
 
     x = div(a1_1, b1_0)
     x.append(a1_2)
-    assert HTMLDocument(x).render(href_prefix=None)["html"] == expected_result
+    assert HTMLDocument(x).render(lib_prefix=None)["html"] == expected_result
 
     y = div(a1_1)
     y.append([a1_2, b1_0])
-    assert HTMLDocument(y).render(href_prefix=None)["html"] == expected_result
+    assert HTMLDocument(y).render(lib_prefix=None)["html"] == expected_result
 
     z = div()
     z.append([a1_1, b1_0])
     z.append(a1_2)
-    assert HTMLDocument(z).render(href_prefix=None)["html"] == expected_result
+    assert HTMLDocument(z).render(lib_prefix=None)["html"] == expected_result
 
 
 def test_script_input():
@@ -230,7 +230,7 @@ def test_as_dict():
         stylesheet=[{"href": "b1.css"}, {"href": "b2.css"}],
         head=tags.script("1 && 1"),
     )
-    assert b.as_dict(href_prefix=None) == {
+    assert b.as_dict(lib_prefix=None) == {
         "name": "b",
         "version": "2.0",
         "script": [],
