@@ -12,7 +12,7 @@ from typing import (
     Union,
     List,
     Dict,
-    Callable,
+    Mapping,
     Any,
     TypeVar,
     cast,
@@ -247,9 +247,17 @@ class TagAttrs(Dict[str, str]):
             nm = self._normalize_attr_name(name)
             super().__setitem__(nm, val)
 
-    def update(self, **kwargs: TagAttrArg) -> None:
+    # Note: typing is ignored because the type checker thinks this is an incompatible
+    # override. It's possible that we could find a way to override so that it's happy.
+    def update(  # type: ignore
+        self, m: Mapping[str, TagAttrArg] = {}, /, **kwargs: TagAttrArg
+    ) -> None:
+        self._update(m)
+        self._update(kwargs)
+
+    def _update(self, m: Mapping[str, TagAttrArg]) -> None:
         attrs: Dict[str, str] = {}
-        for key, val in kwargs.items():
+        for key, val in m.items():
             val_ = self._normalize_attr_value(val)
             if val_ is None:
                 continue

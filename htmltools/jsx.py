@@ -1,4 +1,15 @@
-from typing import Callable, Iterable, List, Dict, Union, Optional, Any, cast, Tuple
+from typing import (
+    Callable,
+    Iterable,
+    List,
+    Dict,
+    Mapping,
+    Union,
+    Optional,
+    Any,
+    cast,
+    Tuple,
+)
 import copy
 import re
 
@@ -35,9 +46,17 @@ class JSXTagAttrs(Dict[str, object]):
         nm = self._normalize_attr_name(name)
         super().__setitem__(nm, value)
 
-    def update(self, **kwargs: object) -> None:
+    # Note: typing is ignored because the type checker thinks this is an incompatible
+    # override. It's possible that we could find a way to override so that it's happy.
+    def update(  # type: ignore
+        self, m: Mapping[str, object] = {}, /, **kwargs: object
+    ) -> None:
+        self._update(m)
+        self._update(kwargs)
+
+    def _update(self, m: Mapping[str, object]) -> None:
         attrs: Dict[str, object] = {}
-        for key, val in kwargs.items():
+        for key, val in m.items():
             attrs[self._normalize_attr_name(key)] = val
         super().update(**attrs)
 

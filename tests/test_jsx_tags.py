@@ -244,3 +244,22 @@ def test_jsx_tag_normalize_attr():
 
     x = Foo(clAsS_2="clAsS_2")
     assert x.attrs == {"clAsS-2": "clAsS_2"}
+
+
+def test_jsx_tag_attrs_update():
+    Foo = jsx_tag_create("Foo")
+
+    # Update with dict
+    x = Foo(a=1)
+    x.attrs.update({"b": 2, "c": "C"})
+    assert x.attrs == {"a": 1, "b": 2, "c": "C"}
+
+    # Update with kwargs
+    x = Foo(a=1)
+    x.attrs.update(b=2, c="C")
+    assert x.attrs == {"a": 1, "b": 2, "c": "C"}
+
+    # Update with dict and kwargs
+    x = Foo(a=1)
+    x.attrs.update({"b": 2}, c="C")
+    assert x.attrs == {"a": 1, "b": 2, "c": "C"}

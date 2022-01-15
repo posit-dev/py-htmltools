@@ -60,6 +60,23 @@ def test_basic_tag_api():
     expect_html(x5, "<span></span>\n<a></a>")
 
 
+def test_tag_attrs_update():
+    # Update with dict
+    x = div(a=1)
+    x.attrs.update({"b": "2", "c": "C"})
+    assert x.attrs == {"a": "1", "b": "2", "c": "C"}
+
+    # Update with kwargs
+    x = div(a=1)
+    x.attrs.update(b=2, c="C")
+    assert x.attrs == {"a": "1", "b": "2", "c": "C"}
+
+    # Update with dict and kwargs
+    x = div(a=1)
+    x.attrs.update({"b": "2"}, c="C")
+    assert x.attrs == {"a": "1", "b": "2", "c": "C"}
+
+
 def test_tag_shallow_copy():
     dep = HTMLDependency(
         "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
