@@ -49,14 +49,14 @@ class JSXTagAttrs(Dict[str, object]):
     # Note: typing is ignored because the type checker thinks this is an incompatible
     # override. It's possible that we could find a way to override so that it's happy.
     def update(  # type: ignore
-        self, m: Mapping[str, object] = {}, /, **kwargs: object
+        self, __m: Mapping[str, object] = {}, **kwargs: object
     ) -> None:
-        self._update(m)
+        self._update(__m)
         self._update(kwargs)
 
-    def _update(self, m: Mapping[str, object]) -> None:
+    def _update(self, __m: Mapping[str, object]) -> None:
         attrs: Dict[str, object] = {}
-        for key, val in m.items():
+        for key, val in __m.items():
             attrs[self._normalize_attr_name(key)] = val
         super().update(**attrs)
 
