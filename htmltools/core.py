@@ -77,7 +77,6 @@ TagChild = Union["Tagifiable", "Tag", MetadataNode, str]
 TagChildArg = Union[
     TagChild,
     "TagList",
-    int,
     float,
     None,
     List["TagChildArg"],
