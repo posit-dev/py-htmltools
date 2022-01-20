@@ -9,6 +9,7 @@ import webbrowser
 from typing import (
     Iterable,
     Optional,
+    Tuple,
     Union,
     List,
     Dict,
@@ -73,7 +74,14 @@ TagT = TypeVar("TagT", bound="Tag")
 TagChild = Union["Tagifiable", "Tag", MetadataNode, str]
 
 # Types that can be passed as args to TagList() and tag functions.
-TagChildArg = Union[TagChild, "TagList", int, float, None, Iterable["TagChildArg"]]
+TagChildArg = Union[
+    TagChild,
+    "TagList",
+    float,
+    None,
+    List["TagChildArg"],
+    Tuple["TagChildArg", ...],
+]
 
 # Types that can be passed in as attributes to tag functions.
 TagAttrArg = Union[str, int, float, bool, None]
