@@ -1,4 +1,4 @@
 typing_extensions==3.10.0.0
 pytest==6.2.3
 packaging==20.9
-ipython==7.29.0
+ipython==7.31.1
