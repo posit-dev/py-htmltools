@@ -70,6 +70,9 @@ T = TypeVar("T")
 
 TagT = TypeVar("TagT", bound="Tag")
 
+# Types that can be passed in as attributes to tag functions.
+TagAttrArg = Union[str, float, bool, None]
+
 # Types of objects that can be a child of a tag.
 TagChild = Union["Tagifiable", "Tag", MetadataNode, str]
 
@@ -79,12 +82,10 @@ TagChildArg = Union[
     "TagList",
     float,
     None,
+    Dict[str, TagAttrArg],  # i.e., tag attrbutes (e.g., {"id": "foo"})
     List["TagChildArg"],
     Tuple["TagChildArg", ...],
 ]
-
-# Types that can be passed in as attributes to tag functions.
-TagAttrArg = Union[str, int, float, bool, None]
 
 
 # Objects with tagify() methods are considered Tagifiable. Note that an object returns a
@@ -245,9 +246,11 @@ class TagList(List[TagChild]):
 # TagAttrs class
 # =============================================================================
 class TagAttrs(Dict[str, str]):
-    def __init__(self, **kwargs: TagAttrArg) -> None:
+    def __init__(
+        self, attrs: Mapping[str, TagAttrArg] = {}, **kwargs: TagAttrArg
+    ) -> None:
         super().__init__()
-        self.update(**kwargs)
+        self.update(attrs, **kwargs)
 
     def __setitem__(self, name: str, value: TagAttrArg) -> None:
         val = self._normalize_attr_value(value)
@@ -265,11 +268,32 @@ class TagAttrs(Dict[str, str]):
 
     def _update(self, __m: Mapping[str, TagAttrArg]) -> None:
         attrs: Dict[str, str] = {}
-        for key, val in __m.items():
-            val_ = self._normalize_attr_value(val)
-            if val_ is None:
+
+        for k, v in __m.items():
+            val = self._normalize_attr_value(v)
+            if val is None:
                 continue
-            attrs[self._normalize_attr_name(key)] = val_
+            nm = self._normalize_attr_name(k)
+
+            sep = " "
+            if isinstance(val, HTML):
+                sep = HTML(sep)
+
+            final_val = val
+            attr_val = attrs.get(nm)
+            if attr_val:
+                final_val = attr_val + sep + final_val
+
+            attrs[nm] = final_val
+
+        for k, v in attrs.items():
+            self_v = self.get(k)
+            if self_v:
+                sep = " "
+                if isinstance(v, HTML):
+                    sep = HTML(sep)
+                attrs[k] = self_v + sep + v
+
         super().update(**attrs)
 
     @staticmethod
@@ -339,10 +363,23 @@ class Tag:
         **kwargs: TagAttrArg,
     ) -> None:
         self.name: str = _name
-        self.attrs: TagAttrs = TagAttrs(**kwargs)
+        self.attrs: TagAttrs = TagAttrs()
+
+        # As a workaround for Python not allowing for numerous keyword
+        # arguments of the same name, we treat any dictionaries in the
+        # positional arguments as attributes.
+        child_args: List[TagChildArg] = []
+        for arg in _flatten(args):
+            if isinstance(arg, dict):
+                self.attrs.update(arg)
+            else:
+                child_args.append(arg)
+
+        self.attrs.update(kwargs)
+
         self.children: TagList = TagList()
 
-        self.children.extend(args)
+        self.children.extend(child_args)
         if children:
             self.children.extend(children)
 
