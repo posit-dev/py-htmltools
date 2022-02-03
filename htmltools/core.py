@@ -261,6 +261,8 @@ class TagAttrs(Dict[str, str]):
     def update(  # type: ignore
         self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg
     ) -> None:
+        if kwargs:
+            args = args + (kwargs,)
 
         attrz: Dict[str, Union[str, HTML]] = {}
         for arg in args:
@@ -271,24 +273,10 @@ class TagAttrs(Dict[str, str]):
                 nm = self._normalize_attr_name(k)
 
                 # Preserve the HTML() when combining two HTML() attributes
-                sep = HTML(" ")
                 if nm in attrz:
-                    val = attrz[nm] + sep + val
+                    val = attrz[nm] + HTML(" ") + val
 
                 attrz[nm] = val
-
-        for k, v in kwargs.items():
-            val = self._normalize_attr_value(v)
-            if val is None:
-                continue
-            nm = self._normalize_attr_name(k)
-
-            # Preserve the HTML() when combining two HTML() attributes
-            sep = HTML(" ")
-            if nm in attrz:
-                val = attrz[nm] + sep + val
-
-            attrz[nm] = val
 
         super().update(attrz)
 
@@ -367,16 +355,10 @@ class Tag:
         if children:
             arguments.extend(_flatten(children))
 
-        attrs: List[Dict[str, TagAttrArg]] = []
-        kids: List[TagChildArg] = []
-        for x in arguments:
-            if isinstance(x, dict):
-                attrs.append(x)
-            else:
-                kids.append(x)
-
+        attrs = [x for x in arguments if isinstance(x, dict)]
         self.attrs: TagAttrs = TagAttrs(*attrs, **kwargs)
 
+        kids = [x for x in arguments if not isinstance(x, dict)]
         self.children: TagList = TagList(*kids)
 
     def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "Tag":
