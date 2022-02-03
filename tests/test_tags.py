@@ -85,7 +85,7 @@ def test_tag_multiple_repeated_attrs():
     assert y.attrs == {"class": "foo bar baz"}
     assert z.attrs == {"class": "foo bar baz"}
     x.attrs.update({"class": "bap", "class_": "bas"}, class_="bat")
-    assert x.attrs == {"class": "foo bar baz bap bas bat"}
+    assert x.attrs == {"class": "bap bas bat"}
 
 
 def test_tag_shallow_copy():

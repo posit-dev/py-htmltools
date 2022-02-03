@@ -246,11 +246,9 @@ class TagList(List[TagChild]):
 # TagAttrs class
 # =============================================================================
 class TagAttrs(Dict[str, str]):
-    def __init__(
-        self, attrs: Mapping[str, TagAttrArg] = {}, **kwargs: TagAttrArg
-    ) -> None:
+    def __init__(self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg) -> None:
         super().__init__()
-        self.update(attrs, **kwargs)
+        self.update(*args, **kwargs)
 
     def __setitem__(self, name: str, value: TagAttrArg) -> None:
         val = self._normalize_attr_value(value)
@@ -261,40 +259,38 @@ class TagAttrs(Dict[str, str]):
     # Note: typing is ignored because the type checker thinks this is an incompatible
     # override. It's possible that we could find a way to override so that it's happy.
     def update(  # type: ignore
-        self, __m: Mapping[str, TagAttrArg] = {}, **kwargs: TagAttrArg
+        self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg
     ) -> None:
-        self._update(__m)
-        self._update(kwargs)
 
-    def _update(self, __m: Mapping[str, TagAttrArg]) -> None:
-        attrs: Dict[str, str] = {}
+        attrz: Dict[str, Union[str, HTML]] = {}
+        for arg in args:
+            for k, v in arg.items():
+                val = self._normalize_attr_value(v)
+                if val is None:
+                    continue
+                nm = self._normalize_attr_name(k)
 
-        for k, v in __m.items():
+                # Preserve the HTML() when combining two HTML() attributes
+                sep = HTML(" ")
+                if nm in attrz:
+                    val = attrz[nm] + sep + val
+
+                attrz[nm] = val
+
+        for k, v in kwargs.items():
             val = self._normalize_attr_value(v)
             if val is None:
                 continue
             nm = self._normalize_attr_name(k)
 
-            sep = " "
-            if isinstance(val, HTML):
-                sep = HTML(sep)
+            # Preserve the HTML() when combining two HTML() attributes
+            sep = HTML(" ")
+            if nm in attrz:
+                val = attrz[nm] + sep + val
 
-            final_val = val
-            attr_val = attrs.get(nm)
-            if attr_val:
-                final_val = attr_val + sep + final_val
+            attrz[nm] = val
 
-            attrs[nm] = final_val
-
-        for k, v in attrs.items():
-            self_v = self.get(k)
-            if self_v:
-                sep = " "
-                if isinstance(v, HTML):
-                    sep = HTML(sep)
-                attrs[k] = self_v + sep + v
-
-        super().update(**attrs)
+        super().update(attrz)
 
     @staticmethod
     def _normalize_attr_name(x: str) -> str:
@@ -363,25 +359,25 @@ class Tag:
         **kwargs: TagAttrArg,
     ) -> None:
         self.name: str = _name
-        self.attrs: TagAttrs = TagAttrs()
 
         # As a workaround for Python not allowing for numerous keyword
-        # arguments of the same name, we treat any dictionaries in the
-        # positional arguments as attributes.
-        child_args: List[TagChildArg] = []
-        for arg in _flatten(args):
-            if isinstance(arg, dict):
-                self.attrs.update(arg)
-            else:
-                child_args.append(arg)
-
-        self.attrs.update(kwargs)
-
-        self.children: TagList = TagList()
-
-        self.children.extend(child_args)
+        # arguments of the same name, we treat any dictionaries that appear
+        # within children as attributes (i.e., treat them like kwargs).
+        arguments = _flatten(args)
         if children:
-            self.children.extend(children)
+            arguments.extend(_flatten(children))
+
+        attrs: List[Dict[str, TagAttrArg]] = []
+        kids: List[TagChildArg] = []
+        for x in arguments:
+            if isinstance(x, dict):
+                attrs.append(x)
+            else:
+                kids.append(x)
+
+        self.attrs: TagAttrs = TagAttrs(*attrs, **kwargs)
+
+        self.children: TagList = TagList(*kids)
 
     def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "Tag":
         self.children.extend(args)
