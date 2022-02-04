@@ -77,6 +77,26 @@ def test_tag_attrs_update():
     assert x.attrs == {"a": "1", "b": "2", "c": "C"}
 
 
+def test_tag_multiple_repeated_attrs():
+    x = div({"class": "foo", "class_": "bar"}, class_="baz")
+    y = div({"class": "foo"}, {"class_": "bar"}, class_="baz")
+    z = div({"class": "foo"}, {"class": "bar"}, class_="baz")
+    w = div({"class": "foo"}, children=[{"class_": "bar"}], class_="baz")
+    assert x.attrs == {"class": "foo bar baz"}
+    assert y.attrs == {"class": "foo bar baz"}
+    assert z.attrs == {"class": "foo bar baz"}
+    assert w.attrs == {"class": "foo bar baz"}
+    x.attrs.update({"class": "bap", "class_": "bas"}, class_="bat")
+    assert x.attrs == {"class": "bap bas bat"}
+    x.attrs.update({"class": HTML("&")}, class_=HTML("<"))
+    assert str(x) == '<div class="& <"></div>'
+    x.attrs.update({"class": HTML("&")}, class_="<")
+    # Combining HTML() with non-HTML() currently forces everything to be escaped,
+    # but it'd be good to change this behavior if we can manage to change it
+    # in general https://github.com/rstudio/py-htmltools/issues/15
+    assert str(x) == '<div class="&amp; &lt;"></div>'
+
+
 def test_tag_shallow_copy():
     dep = HTMLDependency(
         "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
@@ -363,9 +383,8 @@ def test_attr_vals():
 
 
 def test_tag_normalize_attr():
-    # Note that x_ maps to x, and it gets replaced by the latter.
     x = div(class_="class_", x__="x__", x_="x_", x="x")
-    assert x.attrs == {"class": "class_", "x-": "x__", "x": "x"}
+    assert x.attrs == {"class": "class_", "x-": "x__", "x": "x_ x"}
 
     x = div(foo_bar="baz")
     assert x.attrs == {"foo-bar": "baz"}

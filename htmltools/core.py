@@ -70,6 +70,9 @@ T = TypeVar("T")
 
 TagT = TypeVar("TagT", bound="Tag")
 
+# Types that can be passed in as attributes to tag functions.
+TagAttrArg = Union[str, float, bool, None]
+
 # Types of objects that can be a child of a tag.
 TagChild = Union["Tagifiable", "Tag", MetadataNode, str]
 
@@ -79,12 +82,10 @@ TagChildArg = Union[
     "TagList",
     float,
     None,
+    Dict[str, TagAttrArg],  # i.e., tag attrbutes (e.g., {"id": "foo"})
     List["TagChildArg"],
     Tuple["TagChildArg", ...],
 ]
-
-# Types that can be passed in as attributes to tag functions.
-TagAttrArg = Union[str, int, float, bool, None]
 
 
 # Objects with tagify() methods are considered Tagifiable. Note that an object returns a
@@ -245,9 +246,9 @@ class TagList(List[TagChild]):
 # TagAttrs class
 # =============================================================================
 class TagAttrs(Dict[str, str]):
-    def __init__(self, **kwargs: TagAttrArg) -> None:
+    def __init__(self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg) -> None:
         super().__init__()
-        self.update(**kwargs)
+        self.update(*args, **kwargs)
 
     def __setitem__(self, name: str, value: TagAttrArg) -> None:
         val = self._normalize_attr_value(value)
@@ -258,19 +259,26 @@ class TagAttrs(Dict[str, str]):
     # Note: typing is ignored because the type checker thinks this is an incompatible
     # override. It's possible that we could find a way to override so that it's happy.
     def update(  # type: ignore
-        self, __m: Mapping[str, TagAttrArg] = {}, **kwargs: TagAttrArg
+        self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg
     ) -> None:
-        self._update(__m)
-        self._update(kwargs)
+        if kwargs:
+            args = args + (kwargs,)
 
-    def _update(self, __m: Mapping[str, TagAttrArg]) -> None:
-        attrs: Dict[str, str] = {}
-        for key, val in __m.items():
-            val_ = self._normalize_attr_value(val)
-            if val_ is None:
-                continue
-            attrs[self._normalize_attr_name(key)] = val_
-        super().update(**attrs)
+        attrz: Dict[str, Union[str, HTML]] = {}
+        for arg in args:
+            for k, v in arg.items():
+                val = self._normalize_attr_value(v)
+                if val is None:
+                    continue
+                nm = self._normalize_attr_name(k)
+
+                # Preserve the HTML() when combining two HTML() attributes
+                if nm in attrz:
+                    val = attrz[nm] + HTML(" ") + val
+
+                attrz[nm] = val
+
+        super().update(attrz)
 
     @staticmethod
     def _normalize_attr_name(x: str) -> str:
@@ -339,12 +347,19 @@ class Tag:
         **kwargs: TagAttrArg,
     ) -> None:
         self.name: str = _name
-        self.attrs: TagAttrs = TagAttrs(**kwargs)
-        self.children: TagList = TagList()
 
-        self.children.extend(args)
+        # As a workaround for Python not allowing for numerous keyword
+        # arguments of the same name, we treat any dictionaries that appear
+        # within children as attributes (i.e., treat them like kwargs).
+        arguments = _flatten(args)
         if children:
-            self.children.extend(children)
+            arguments.extend(_flatten(children))
+
+        attrs = [x for x in arguments if isinstance(x, dict)]
+        self.attrs: TagAttrs = TagAttrs(*attrs, **kwargs)
+
+        kids = [x for x in arguments if not isinstance(x, dict)]
+        self.children: TagList = TagList(*kids)
 
     def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "Tag":
         self.children.extend(args)
