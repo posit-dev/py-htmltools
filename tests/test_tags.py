@@ -89,7 +89,12 @@ def test_tag_multiple_repeated_attrs():
     x.attrs.update({"class": "bap", "class_": "bas"}, class_="bat")
     assert x.attrs == {"class": "bap bas bat"}
     x.attrs.update({"class": HTML("&")}, class_=HTML("<"))
-    assert x.attrs == {"class": "& <"}
+    assert str(x) == '<div class="& <"></div>'
+    x.attrs.update({"class": HTML("&")}, class_="<")
+    # Combining HTML() with non-HTML() currently forces everything to be escaped,
+    # but it'd be good to change this behavior if we can manage to change it
+    # in general https://github.com/rstudio/py-htmltools/issues/15
+    assert str(x) == '<div class="&amp; &lt;"></div>'
 
 
 def test_tag_shallow_copy():
