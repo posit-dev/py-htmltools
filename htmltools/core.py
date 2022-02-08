@@ -46,6 +46,7 @@ __all__ = (
     "TagChildArg",
     "TagChild",
     "TagFunction",
+    "Tagifiable",
     "head_content",
 )
 
