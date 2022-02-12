@@ -9,7 +9,7 @@ import webbrowser
 from typing import (
     Iterable,
     Optional,
-    Tuple,
+    Sequence,
     Union,
     List,
     Dict,
@@ -84,8 +84,7 @@ TagChildArg = Union[
     float,
     None,
     Dict[str, TagAttrArg],  # i.e., tag attrbutes (e.g., {"id": "foo"})
-    List["TagChildArg"],
-    Tuple["TagChildArg", ...],
+    Sequence["TagChildArg"],
 ]
 
 
