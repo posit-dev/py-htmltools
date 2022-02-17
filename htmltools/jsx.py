@@ -1,3 +1,4 @@
+from textwrap import dedent
 from typing import (
     Callable,
     Iterable,
@@ -120,14 +121,29 @@ class JSXTag:
         # instead of calling the standard Tag.get_html_string() method to format the
         # object, we'll recurse using _render_react_js(), which descends into the tree
         # and formats objects appropriately for inside of a JSX element.
+        component = _render_react_js(self, 2, "\n")
+
+        # Ideally, we'd use document.currentScript.after() to insert the component
+        # directly after the script tag, but when dynamically rendered via jQuery (i.e.,
+        # @render_ui()), the script tag actually executes in <head>, which makes the
+        # document.currentScript reference basically useless for this purpose. So,
+        # instead, to make this work when dynamically rendered, this script queries for
+        # the first JSXTag script that hasn't yet rendered, and insert the component
+        # there. It seems like this should work fine as long as these script tags are
+        # synchronously executed in order, but if we ever need them to render
+        # asynchronously, it might make sense to use a unique ID for each script tag
+        # instead.
         js = "\n".join(
             [
                 "(function() {",
                 "  var container = new DocumentFragment();",
                 "  ReactDOM.render(",
-                _render_react_js(self, 2, "\n"),
+                component,
                 "  , container);",
-                "  document.currentScript.after(container);",
+                "  var thisScript = document.querySelector('script[jsx-needs-render]');",
+                f"  if (!thisScript) throw new Error('Failed to render JSXTag(\"{self.name}\")');",
+                "  thisScript.after(container);",
+                "  thisScript.removeAttribute('jsx-needs-render');",
                 "})();",
             ]
         )
@@ -135,6 +151,7 @@ class JSXTag:
         return Tag(
             "script",
             type="text/javascript",
+            jsx_needs_render=True,
             children=[
                 HTML("\n" + js + "\n"),
                 _lib_dependency("react", script={"src": "react.production.min.js"}),
