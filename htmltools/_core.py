@@ -8,7 +8,6 @@ import urllib.parse
 import webbrowser
 from typing import (
     Iterable,
-    Literal,
     Optional,
     Sequence,
     Union,
@@ -21,9 +20,9 @@ from typing import (
 )
 
 if sys.version_info >= (3, 8):
-    from typing import TypedDict, SupportsIndex, Protocol, runtime_checkable
+    from typing import TypedDict, SupportsIndex, Protocol, runtime_checkable, Literal
 else:
-    from typing_extensions import TypedDict, SupportsIndex, Protocol, runtime_checkable
+    from typing_extensions import TypedDict, SupportsIndex, Protocol, runtime_checkable, Literal
 
 from packaging.version import Version
 
