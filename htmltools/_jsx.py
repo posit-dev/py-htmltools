@@ -157,10 +157,10 @@ class JSXTag:
                 "  ReactDOM.render(",
                 component,
                 "  , container);",
-                "  var thisScript = document.querySelector('script[jsx-needs-render]');",
+                "  var thisScript = document.querySelector('script[data-needs-render]');",
                 f"  if (!thisScript) throw new Error('Failed to render JSXTag(\"{self.name}\")');",
                 "  thisScript.after(container);",
-                "  thisScript.removeAttribute('jsx-needs-render');",
+                "  thisScript.removeAttribute('data-needs-render');",
                 "})();",
             ]
         )
@@ -168,7 +168,7 @@ class JSXTag:
         return Tag(
             "script",
             type="text/javascript",
-            jsx_needs_render=True,
+            data_needs_render=True,
             children=[
                 HTML("\n" + js + "\n"),
                 _lib_dependency("react", script={"src": "react.production.min.js"}),
