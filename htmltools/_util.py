@@ -14,7 +14,7 @@ from typing import (
     Iterable,
 )
 
-from contextlib import contextmanager, closing
+from contextlib import closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
 from socketserver import TCPServer
@@ -24,28 +24,41 @@ T = TypeVar("T")
 
 HashableT = TypeVar("HashableT", bound=Hashable)
 
-__all__ = ["css"]
+__all__ = ("css",)
 
 
 def css(collapse_: str = "", **kwargs: Union[str, float, None]) -> Optional[str]:
     """
     CSS string helper
 
-    Convenience function for building CSS style declarations (i.e. the string that goes into a style attribute, or the parts that go inside curly braces in a full stylesheet).
+    Convenience function for building CSS style declarations (i.e. the string that goes
+    into a style attribute, or the parts that go inside curly braces in a full
+    stylesheet).
 
-    Args:
-        collapse_: Character to use to collapse properties into a single string; likely "" (the default) for style attributes, and either "\n" or None for style blocks.
-        **kwargs: Named style properties, where the name is the property name and the argument is the property value.
+    Parameters
+    ----------
+    collapse_
+        Character to use to collapse properties into a single string; likely "" (the
+        default) for style attributes, and either "\n" or None for style blocks.
+    **kwargs
+        Named style properties, where the name is the property name and the argument is
+        the property value.
 
-    Returns:
-        A string of CSS style declarations, or None if no properties were given.
+    Returns
+    -------
+    A string of CSS style declarations, or ``None`` if no properties were given.
 
-    Examples:
-        >>> css(font_size = "12px", backgroundColor = "red")
+    Example
+    -------
+    >>> from htmltools import css
+    >>> css(font_size = "12px", backgroundColor = "red")
+    'font-size:12px;background-color:red;'
 
-    Details:
-        CSS uses '-' (minus) as a separator character in property names, which isn't allowed in Python's keyword arguments.
-        This function allows you to use '_' (underscore) as a separator and/or camelCase notation instead.
+    Note
+    ----
+    CSS uses '-' (minus) as a separator character in property names, which isn't allowed
+    in Python's keyword arguments. This function allows you to use '_' (underscore) as a
+    separator and/or camelCase notation instead.
     """
     res = ""
     for k, v in kwargs.items():

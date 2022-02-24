@@ -8,6 +8,7 @@ import urllib.parse
 import webbrowser
 from typing import (
     Iterable,
+    Literal,
     Optional,
     Sequence,
     Union,
@@ -27,7 +28,7 @@ else:
 from packaging.version import Version
 
 
-from .util import (
+from ._util import (
     ensure_http_server,
     _package_dir,  # type: ignore
     _html_escape,  # type: ignore
@@ -115,42 +116,51 @@ class TagList(List[TagChild]):
     """
     Create an HTML tag list (i.e., a fragment of HTML)
 
-    Methods:
-    --------
-        show: Preview as a complete HTML document.
-        save_html: Save to a HTML file.
-        append: Append children to existing children.
-        extend: Append an iterable child to existing children.
-        insert: Add children into a specific child index.
-        render: Returns the HTML string and list of dependencies.
-        get_html_string: the HTML string.
-        get_dependencies: the HTMLDependency()s.
-        tagify: Converts any tagifiable children to Tag/TagList objects.
+    Parameters
+    ----------
+    *args
+        The tag children to add to the list.
 
-    Examples:
-    ---------
-        >>> from htmltools import *
-        >>> x = TagList("hello", div(id="foo", class_="bar"))
-        >>> x
-        >>> print(x)
+    Example
+    -------
+    >>> from htmltools import TagList, div
+    >>> TagList("hello", div(id="foo", class_="bar"))
+    hello
+    <div id="foo" class="bar"></div>
     """
 
     def __init__(self, *args: TagChildArg) -> None:
         super().__init__(_tagchildargs_to_tagchilds(args))
 
     def extend(self, x: Iterable[TagChildArg]) -> None:
+        """
+        Extend the children by appending an iterable of children.
+        """
+
         super().extend(_tagchildargs_to_tagchilds(x))
 
     def append(self, *args: TagChildArg) -> None:  # type: ignore
+        """
+        Append tag children to the end of the list.
+        """
+
         # Note that if x is a list or tag_list, it could be flattened into a list of
         # TagChildArg or TagChild objects, and the list.append() method only accepts one
         # item, so we need to wrap it into a list and send it to .extend().
         self.extend(args)
 
     def insert(self, index: SupportsIndex, x: TagChildArg) -> None:
+        """
+        Insert tag children before a given index.
+        """
+
         self[index:index] = _tagchildargs_to_tagchilds([x])
 
     def tagify(self) -> "TagList":
+        """
+        Convert any tagifiable children to Tag/TagList objects.
+        """
+
         cp = copy(self)
 
         # Iterate backwards because if we hit a Tagifiable object, it may be replaced
@@ -173,11 +183,31 @@ class TagList(List[TagChild]):
     def save_html(
         self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
     ) -> str:
+        """
+        Save to a HTML file.
+
+        Parameters
+        ----------
+        file
+            The file to save to.
+        libdir
+            The directory to save the dependencies to.
+        include_version
+            Whether to include the version number in the dependency folder name.
+
+        Returns
+        -------
+        The path to the generated HTML file.
+        """
+
         return HTMLDocument(self).save_html(
             file, libdir=libdir, include_version=include_version
         )
 
     def render(self) -> RenderedHTML:
+        """
+        Get string representation as well as it's HTML dependencies.
+        """
         cp = self.tagify()
         deps = cp.get_dependencies()
         return {"dependencies": deps, "html": cp.get_html_string()}
@@ -185,6 +215,17 @@ class TagList(List[TagChild]):
     def get_html_string(
         self, indent: int = 0, eol: str = "\n", *, _escape_strings: bool = True
     ) -> "HTML":
+        """
+        Return the HTML string for this tag list.
+
+        Parameters
+        ----------
+        indent
+            Number of spaces to indent each line of the HTML.
+        eol
+            End-of-line character(s).
+        """
+
         html_ = ""
         line_prefix = ""
         for child in self:
@@ -212,6 +253,15 @@ class TagList(List[TagChild]):
         return HTML(html_)
 
     def get_dependencies(self, *, dedup: bool = True) -> List["HTMLDependency"]:
+        """
+        Get any dependencies needed to render the HTML.
+
+        Parameters
+        ----------
+        dedup
+            Whether to deduplicate the dependencies.
+        """
+
         deps: List[HTMLDependency] = []
         for x in self:
             if isinstance(x, HTMLDependency):
@@ -226,7 +276,15 @@ class TagList(List[TagChild]):
         else:
             return deps
 
-    def show(self, renderer: str = "auto") -> Any:
+    def show(self, renderer: Literal["auto", "ipython", "browser"] = "auto") -> object:
+        """
+        Preview as a complete HTML document.
+
+        Parameters
+        ----------
+        renderer
+            The renderer to use.
+        """
         _tag_show(self, renderer)
 
     def __str__(self) -> str:
@@ -246,6 +304,17 @@ class TagList(List[TagChild]):
 # TagAttrs class
 # =============================================================================
 class TagAttrs(Dict[str, str]):
+    """
+    A dictionary-like object that can be used to store attributes for a tag.
+
+    Parameters
+    ----------
+    *args
+        The initial attributes.
+    **kwargs
+        More attributes.
+    """
+
     def __init__(self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg) -> None:
         super().__init__()
         self.update(*args, **kwargs)
@@ -308,35 +377,35 @@ class TagAttrs(Dict[str, str]):
 # =============================================================================
 class Tag:
     """
-    Create an HTML tag.
+    The HTML tag class.
 
-    Methods:
-    --------
-        show: Preview as a complete HTML document.
-        save_html: Save to a HTML file.
-        append: Append children to existing children.
-        extend: Append an iterable child to existing children.
-        insert: Add children into a specific child index.
-        add_class: Add a class to the tag.
-        has_class: Check if the class attribte contains a particular class.
-        render: Returns the HTML string and list of dependencies.
-        get_html_string: the HTML string.
-        get_dependencies: the HTMLDependency()s.
-        tagify: Converts any tagifiable children to Tag/TagList objects.
-
-    Attributes:
+    Parameters
     -----------
-        name: The name of the tag as a string
-        attrs: A dictionary of attributes.
-        children: A list of children.
+    _name
+        The tag's name.
+    *args
+        Children for the tag.
+    children
+        Children for the tag.
+    **kwargs
+        Attributes for the tag.
 
-    Examples:
-    ---------
-        >>> from htmltools import *
-        >>> x = div("hello", id="foo", class_="bar")
-        >>> x
-        >>> print(x)
-        >>> x.show()
+    Attributes
+    ----------
+    name
+        The tag's name.
+    attrs
+        The tag's attributes.
+    children
+        The tag's children.
+
+    Example
+    --------
+    >>> from htmltools import div
+    >>> x = div("hello", id="foo", class_="bar")
+    >>> x
+    <div id="foo" class="bar">hello</div>
+    >>> x.show()
     """
 
     def __init__(
@@ -376,22 +445,38 @@ class Tag:
         return cp
 
     def insert(self, index: SupportsIndex, x: TagChildArg) -> None:
+        """
+        Insert tag children before a given index.
+        """
+
         self.children.insert(index, x)
 
     def extend(self, x: Iterable[TagChildArg]) -> None:
+        """
+        Extend the children by appending an iterable of children.
+        """
+
         self.children.extend(x)
 
     def append(self, *args: TagChildArg) -> None:
+        """
+        Append tag children to the end of the list.
+        """
+
         self.children.append(*args)
 
     def add_class(self, x: str) -> "Tag":
         """
         Add an HTML class attribute.
 
-        Args:
-            x: The class name to add.
+        Parameters
+        ----------
+        x
+            The class name to add.
 
-        Returns: The modified tag.
+        Returns
+        -------
+        The modified tag.
         """
         cls = self.attrs.get("class")
         if cls:
@@ -403,10 +488,14 @@ class Tag:
         """
         Check if the tag has a particular class.
 
-        Args:
-            class_: The class name to check for.
+        Parameters
+        ----------
+        class_
+            The class name to check for.
 
-        Returns: `True` if the tag has the class, `False` otherwise.
+        Returns
+        -------
+        ``True`` if the tag has the class, ``False`` otherwise.
         """
         cls = self.attrs.get("class")
         if cls:
@@ -415,11 +504,26 @@ class Tag:
             return False
 
     def tagify(self: TagT) -> TagT:
+        """
+        Convert any tagifiable children to Tag/TagList objects.
+        """
+
         cp = copy(self)
         cp.children = cp.children.tagify()
         return cp
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> "HTML":
+        """
+        Get the HTML string representation of the tag.
+
+        Parameters
+        ----------
+        indent
+            The number of spaces to indent the tag.
+        eol
+            The end-of-line character(s).
+        """
+
         indent_str = "  " * indent
         html_ = indent_str + "<" + self.name
 
@@ -458,6 +562,9 @@ class Tag:
         return HTML(html_ + eol + indent_str + close)
 
     def render(self) -> RenderedHTML:
+        """
+        Get string representation as well as it's HTML dependencies.
+        """
         cp = self.tagify()
         deps = cp.get_dependencies()
         return {"dependencies": deps, "html": cp.get_html_string()}
@@ -465,14 +572,42 @@ class Tag:
     def save_html(
         self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
     ) -> str:
+        """
+        Save to a HTML file.
+
+        Parameters
+        ----------
+        file
+            The file to save to.
+        libdir
+            The directory to save the dependencies to.
+        include_version
+            Whether to include the version number in the dependency folder name.
+
+        Returns
+        -------
+        The path to the generated HTML file.
+        """
+
         return HTMLDocument(self).save_html(
             file, libdir=libdir, include_version=include_version
         )
 
     def get_dependencies(self, dedup: bool = True) -> List["HTMLDependency"]:
+        """
+        Get any HTML dependencies.
+        """
         return self.children.get_dependencies(dedup=dedup)
 
-    def show(self, renderer: str = "auto") -> Any:
+    def show(self, renderer: Literal["auto", "ipython", "browser"] = "auto") -> object:
+        """
+        Preview as a complete HTML document.
+
+        Parameters
+        ----------
+        renderer
+            The renderer to use.
+        """
         _tag_show(self, renderer)
 
     def __str__(self) -> str:
@@ -517,9 +652,17 @@ class HTMLDocument:
     """
     Create an HTML document.
 
-    Examples:
-    ---------
-        >>> print(HTMLDocument(h1("Hello"), tags.meta(name="description", content="test"), lang = "en"))
+    Parameters
+    ----------
+    *args
+        Children to add to the document.
+    **kwargs
+        Attributes to set on the document (i.e., the root <html> tag).
+
+    Example
+    -------
+    >>> from htmltools import HTMLDocument, h1, tags
+    >>> HTMLDocument(h1("Hello"), tags.meta(name="description", content="test"), lang = "en")
     """
 
     def __init__(
@@ -540,11 +683,30 @@ class HTMLDocument:
         return cp
 
     def append(self, *args: TagChildArg) -> None:
+        """
+        Add children to the document.
+
+        Parameters
+        ----------
+        *args
+            Children to add to the document.
+        """
         self._content.append(*args)
 
     def render(
         self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
     ) -> RenderedHTML:
+        """
+        Render the document.
+
+        Parameters
+        ----------
+        lib_prefix
+            A prefix to add to relative paths to dependency files.
+        include_version
+            Whether to include the version number in the dependency's folder name.
+        """
+
         html_ = self._gen_html_tag_tree(lib_prefix, include_version=include_version)
         rendered = html_.render()
         rendered["html"] = "<!DOCTYPE html>\n" + rendered["html"]
@@ -553,6 +715,19 @@ class HTMLDocument:
     def save_html(
         self, file: str, libdir: Optional[str] = "lib", include_version: bool = True
     ) -> str:
+        """
+        Save the document to a HTML file.
+
+        Parameters
+        ----------
+        file
+            The file to save to.
+        libdir
+            The directory to save the dependencies to (relative to the file's directory).
+        include_version
+            Whether to include the version number in the dependency folder name.
+        """
+
         # Directory where dependencies are copied to.
         destdir = str(Path(file).resolve().parent)
         if libdir:
@@ -634,12 +809,16 @@ class HTMLDocument:
 # =============================================================================
 class HTML(str):
     """
-    Mark a string as raw HTML.
+    Mark a string as raw HTML. This will prevent the string from being escaped when
+    rendered inside an HTML tag.
 
-    Example:
+    Example
     -------
-    >>> print(div("<p>Hello</p>"))
-    >>> print(div(HTML("<p>Hello</p>")))
+    >>> from htmltools import HTML, div
+    >>> div("<p>Hello</p>")
+    <div>&lt;p&gt;Hello&lt;/p&gt;</div>
+    >>> div(HTML("<p>Hello</p>"))
+    <div><p>Hello</p></div>
     """
 
     def __str__(self) -> str:
@@ -672,9 +851,38 @@ class SourcePathMapping(TypedDict):
 
 class HTMLDependency(MetadataNode):
     """
-    Create an HTML dependency.
+    Define an HTML dependency.
 
-    Example:
+    Define an HTML dependency (i.e. CSS and/or JavaScript bundled in a directory). HTML
+    dependencies make it possible to use libraries like jQuery, Bootstrap, and d3 in a
+    more composable and portable way than simply using script, link, and style tags.
+
+    Parameters
+    ----------
+    name
+        Library name.
+    version
+        Library version.
+    source
+        A specification for the location of dependency files.
+    script
+        ``<script>`` tags to include in the document's ``<head>``. Each tag definition
+        should include at least the ``src`` attribute (which should be file path
+        relative to the ``source`` file location).
+    stylesheet
+        ``<link>`` tags to include in the document's ``<head>``. Each tag definition
+        should include at least the ``href`` attribute (which should be file path
+        relative to the ``source`` file location).
+    all_files
+        Whether all files under the ``source`` directory are dependency files. If
+        ``False``, only the files specified in script and stylesheet are treated as
+        dependency files.
+    meta
+        ``<meta>`` tags to include in the document's ``<head>``.
+    head
+        Tags to include in the document's ``<head>``.
+
+    Example
     -------
     >>> dep = HTMLDependency(
             name="mypackage",
@@ -742,7 +950,10 @@ class HTMLDependency(MetadataNode):
     def source_path_map(
         self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
     ) -> SourcePathMapping:
-        """Returns a dict of the absolute 'source' filepath and the 'href' path it will point to in the HTML (given the lib_prefix)."""
+        """
+        Returns a dict of the absolute 'source' filepath and the 'href' path it will
+        point to in the HTML (given the lib_prefix).
+        """
 
         src = self.source
         if src is None:
@@ -762,7 +973,9 @@ class HTMLDependency(MetadataNode):
     def as_html_tags(
         self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
     ) -> TagList:
-        """Render the dependency as a TagList()."""
+        """
+        Render the dependency as a ``TagList()``.
+        """
         d = self.as_dict(lib_prefix=lib_prefix, include_version=include_version)
         metas = [Tag("meta", **m) for m in self.meta]
         links = [Tag("link", **s) for s in d["stylesheet"]]
@@ -772,6 +985,9 @@ class HTMLDependency(MetadataNode):
     def as_dict(
         self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
     ) -> Dict[str, Any]:
+        """
+        Returns a dict of the dependency's attributes.
+        """
 
         paths = self.source_path_map(
             lib_prefix=lib_prefix, include_version=include_version
@@ -808,7 +1024,9 @@ class HTMLDependency(MetadataNode):
         }
 
     def copy_to(self, path: str, include_version: bool = True) -> None:
-        """Copy the dependency's files to the given path."""
+        """
+        Copy the dependency's files to the given path.
+        """
 
         paths = self.source_path_map(lib_prefix=None, include_version=include_version)
         if paths["source"] == "":
@@ -888,6 +1106,30 @@ def _resolve_dependencies(deps: List[HTMLDependency]) -> List[HTMLDependency]:
 
 
 def head_content(*args: TagChildArg) -> HTMLDependency:
+    """
+    Place content in the ``<head>`` of the HTML document.
+
+    Parameters
+    ----------
+    *args
+        The content to place in the ``<head>``.
+
+    Example
+    -------
+    >>> from htmltools import *
+    >>> x = div(head_content(title("My Title")))
+    >>> print(HTMLDocument(x).render()["html"])
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8"/>
+        <title>My Title</title>
+      </head>
+      <body>
+        <div></div>
+      </body>
+    </html>
+    """
     head = TagList(*args)
     head_str = head.get_html_string()
     # Create unique ID to use as name
@@ -919,7 +1161,10 @@ def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
     return cast(List[TagChild], result)
 
 
-def _tag_show(self: Union[TagList, "Tag"], renderer: str = "auto") -> Any:
+def _tag_show(
+    self: Union[TagList, "Tag"],
+    renderer: Literal["auto", "ipython", "browser"] = "auto",
+) -> object:
     if renderer == "auto":
         try:
             import IPython
