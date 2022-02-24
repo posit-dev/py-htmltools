@@ -19,13 +19,16 @@ def test_jsx_tags():
             <script src="lib/react-dom-%s/react-dom.production.min.js"></script>
           </head>
           <body>
-            <script type="text/javascript">
+            <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
           ReactDOM.render(
             React.createElement(Foo)
           , container);
-          document.currentScript.after(container);
+          var thisScript = document.querySelector('script[data-needs-render]');
+          if (!thisScript) throw new Error('Failed to render JSXTag("Foo")');
+          thisScript.after(container);
+          thisScript.removeAttribute('data-needs-render');
         })();
         </script>
           </body>
@@ -44,7 +47,7 @@ def test_jsx_tags():
             <script src="lib/react-dom-%s/react-dom.production.min.js"></script>
           </head>
           <body>
-            <script type="text/javascript">
+            <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
           ReactDOM.render(
@@ -53,7 +56,10 @@ def test_jsx_tags():
               React.createElement(Bar)
             )
           , container);
-          document.currentScript.after(container);
+          var thisScript = document.querySelector('script[data-needs-render]');
+          if (!thisScript) throw new Error('Failed to render JSXTag("Foo")');
+          thisScript.after(container);
+          thisScript.removeAttribute('data-needs-render');
         })();
         </script>
           </body>
@@ -78,7 +84,7 @@ def test_jsx_tags():
     )
     assert str(x) == textwrap.dedent(
         """\
-        <script type="text/javascript">
+        <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
           ReactDOM.render(
@@ -102,7 +108,10 @@ def test_jsx_tags():
               )
             )
           , container);
-          document.currentScript.after(container);
+          var thisScript = document.querySelector('script[data-needs-render]');
+          if (!thisScript) throw new Error('Failed to render JSXTag("Foo")');
+          thisScript.after(container);
+          thisScript.removeAttribute('data-needs-render');
         })();
         </script>"""
     )
@@ -116,7 +125,7 @@ def test_jsx_tags():
     )
     assert str(x) == textwrap.dedent(
         """\
-        <script type="text/javascript">
+        <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
           ReactDOM.render(
@@ -129,7 +138,10 @@ def test_jsx_tags():
               )
             )
           , container);
-          document.currentScript.after(container);
+          var thisScript = document.querySelector('script[data-needs-render]');
+          if (!thisScript) throw new Error('Failed to render JSXTag("Foo")');
+          thisScript.after(container);
+          thisScript.removeAttribute('data-needs-render');
         })();
         </script>"""
     )
@@ -139,7 +151,7 @@ def test_jsx_tags():
     )
     assert str(x) == textwrap.dedent(
         """\
-        <script type="text/javascript">
+        <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
           ReactDOM.render(
@@ -147,7 +159,10 @@ def test_jsx_tags():
               Foo, {"htmlTag": [React.createElement('div'), React.createElement(
           'div', {"foo": "1"})]})
           , container);
-          document.currentScript.after(container);
+          var thisScript = document.querySelector('script[data-needs-render]');
+          if (!thisScript) throw new Error('Failed to render JSXTag("Foo")');
+          thisScript.after(container);
+          thisScript.removeAttribute('data-needs-render');
         })();
         </script>"""
     )
@@ -159,7 +174,7 @@ def test_jsx_tags():
     )
     assert str(x) == textwrap.dedent(
         """\
-        <script type="text/javascript">
+        <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
           ReactDOM.render(
@@ -169,7 +184,10 @@ def test_jsx_tags():
                 'div', {"style": {"color": "red"}})
             )
           , container);
-          document.currentScript.after(container);
+          var thisScript = document.querySelector('script[data-needs-render]');
+          if (!thisScript) throw new Error('Failed to render JSXTag("Foo")');
+          thisScript.after(container);
+          thisScript.removeAttribute('data-needs-render');
         })();
         </script>"""
     )
@@ -209,7 +227,7 @@ def test_jsx_tagifiable_children():
 
     assert str(x) == textwrap.dedent(
         """\
-        <script type="text/javascript">
+        <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
           ReactDOM.render(
@@ -228,7 +246,10 @@ def test_jsx_tagifiable_children():
               )
             )
           , container);
-          document.currentScript.after(container);
+          var thisScript = document.querySelector('script[data-needs-render]');
+          if (!thisScript) throw new Error('Failed to render JSXTag("Foo")');
+          thisScript.after(container);
+          thisScript.removeAttribute('data-needs-render');
         })();
         </script>"""
     )
