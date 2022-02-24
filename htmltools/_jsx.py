@@ -13,7 +13,7 @@ from typing import (
 import copy
 import re
 
-from .core import (
+from ._core import (
     TagList,
     TagAttrArg,
     Tag,
@@ -24,7 +24,7 @@ from .core import (
     MetadataNode,
     HTMLDependency,
 )
-from .versions import versions
+from ._versions import versions
 
 __all__ = (
     "jsx",
@@ -68,6 +68,19 @@ class JSXTagAttrs(Dict[str, object]):
 
 
 class JSXTag:
+    """
+    Create a JSX tag.
+
+    Warning
+    -------
+    This class shouldn't be used directly to create a JSX tag. Instead, use the
+    jsx_tag_create() function.
+
+    See Also
+    --------
+    jsx_tag_create
+    """
+
     def __init__(
         self,
         _name: str,
@@ -76,6 +89,11 @@ class JSXTag:
         children: Optional[List[TagChildArg]] = None,
         **kwargs: object,
     ) -> None:
+
+        pieces = _name.split(".")
+        if pieces[-1][:1] != pieces[-1][:1].upper():
+            raise NotImplementedError("JSX tags must be start with a capital letter.")
+
         if allowedProps:
             for k in kwargs.keys():
                 if k not in allowedProps:
@@ -257,24 +275,52 @@ def _serialize_style_attr(x: object) -> str:
 
 
 def jsx_tag_create(
-    _name: str, allowedProps: Optional[List[str]] = None
+    name: str, allowedProps: Optional[List[str]] = None
 ) -> Callable[..., JSXTag]:
-    pieces = _name.split(".")
-    if pieces[-1][:1] != pieces[-1][:1].upper():
-        raise NotImplementedError("JSX tags must be lowercase")
+    """
+    Create a function that creates a JSXTag object.
 
-    def jsx_tag_instantiate(
+    Parameters
+    ----------
+    name
+        The name of the JSX tag (should be camelCase and start with a capital letter).
+    allowedProps
+        A list of allowed properties for the tag. If ``None``, all properties are
+        allowed.
+
+    Returns
+    -------
+    JSXTag
+
+    Examples
+    --------
+    >>> from htmltools import jsx_tag_create
+    >>> MyTag = jsx_tag_create("MyTag")
+    >>> MyTag(id="foo", class_="bar")
+    <script type="text/javascript">
+    (function() {
+      var container = new DocumentFragment();
+      ReactDOM.render(
+        React.createElement(
+          MyTag, {"id": "foo", "class": "bar"})
+      , container);
+      document.currentScript.after(container);
+    })();
+    </script>
+    """
+
+    def create_tag(
         *args: TagChildArg,
         children: Optional[List[TagChildArg]] = None,
         **kwargs: TagAttrArg,
     ) -> JSXTag:
         return JSXTag(
-            _name, *args, allowedProps=allowedProps, children=children, **kwargs
+            name, *args, allowedProps=allowedProps, children=children, **kwargs
         )
 
-    jsx_tag_instantiate.__name__ = _name
+    create_tag.__name__ = name
 
-    return jsx_tag_instantiate
+    return create_tag
 
 
 # --------------------------------------------------------
@@ -284,10 +330,20 @@ class jsx(str):
     """
     Mark a string as a JSX expression.
 
-    Example:
+    Example
     -------
-    >>> Foo = jsx_tag_create("Foo")
-    >>> print(Foo(prop = "A string", jsxProp = jsx("() => console.log('here')")))
+    >>> Foo = JSXTag("Foo")
+    >>> Foo(prop = "A string", jsxProp = jsx("() => console.log('here')"))
+    <script type="text/javascript">
+    (function() {
+      var container = new DocumentFragment();
+      ReactDOM.render(
+        React.createElement(
+          Foo, {"prop": "A string", "jsxProp": () => console.log('here')})
+      , container);
+      document.currentScript.after(container);
+    })();
+    </script>
     """
 
     def __new__(cls, *args: str) -> "jsx":

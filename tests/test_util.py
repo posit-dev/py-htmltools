@@ -1,6 +1,6 @@
 import pytest
 from htmltools import *
-from htmltools.core import _flatten
+from htmltools._util import _flatten
 
 
 def test_flatten():
