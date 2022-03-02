@@ -794,6 +794,13 @@ class HTMLDocument:
         # end. This matters only if the <head> tag starts out with some children.
         head.insert(0, Tag("meta", charset="utf-8"))
         deps = x.get_dependencies()
+        # Add some metadata about the dependencies so that shiny.js' renderDependency
+        # logic knows not to re-render them.
+        head.append(Tag(
+            "script",
+            ";".join([d.name + "[" + str(d.version) + "]" for d in deps]),
+            type="application/html-dependencies",
+        ))
         head.extend(
             [
                 d.as_html_tags(lib_prefix=lib_prefix, include_version=include_version)
