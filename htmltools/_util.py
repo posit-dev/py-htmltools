@@ -1,6 +1,7 @@
+from hashlib import sha256
+import importlib
 import os
 import re
-import importlib
 import tempfile
 from typing import (
     Any,
@@ -125,6 +126,15 @@ def _package_dir(package: str) -> str:
     with tempfile.TemporaryDirectory():
         pkg_file = importlib.import_module(".", package=package).__file__
         return os.path.dirname(pkg_file)
+
+
+def hash_deterministic(s: str) -> str:
+    """
+    Returns a deterministic hash of the given string.
+    """
+    h = sha256()
+    h.update(s.encode("utf-8"))
+    return h.hexdigest()
 
 
 class _HttpServerInfo(NamedTuple):
