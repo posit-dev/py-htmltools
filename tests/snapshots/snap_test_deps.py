@@ -11,6 +11,7 @@ snapshots['test_inline_deps inline_deps'] = '''<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8"/>
+    <script type="application/html-dependencies">a[1.1]</script>
     <script src="a-1.1/a1.js"></script>
   </head>
   <body>
@@ -23,6 +24,7 @@ snapshots['test_inline_deps inline_deps'] = '''<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8"/>
+    <script type="application/html-dependencies">a[1.2]</script>
     <script src="a-1.2/a2.js"></script>
   </head>
   <body>
@@ -35,6 +37,7 @@ snapshots['test_inline_deps inline_deps'] = '''<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8"/>
+    <script type="application/html-dependencies">a[1.1]</script>
     <script src="a-1.1/a1.js"></script>
   </head>
   <body>
@@ -49,6 +52,7 @@ snapshots['test_inline_deps inline_deps'] = '''<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8"/>
+    <script type="application/html-dependencies">a[1.1]</script>
     <script src="a-1.1/a1.js"></script>
   </head>
   <body>
@@ -61,6 +65,7 @@ snapshots['test_inline_deps inline_deps'] = '''<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8"/>
+    <script type="application/html-dependencies">a[1.1]</script>
     <script src="a-1.1/a1.js"></script>
   </head>
   <body>

@@ -235,6 +235,7 @@ def test_html_save():
         <html>
           <head>
             <meta charset="utf-8"/>
+            <script type="application/html-dependencies">foo[1.0]</script>
             <link href="foo-1.0/testdep/testdep.css" rel="stylesheet"/>
             <script src="foo-1.0/testdep/testdep.js"></script>
           </head>
@@ -253,6 +254,7 @@ def test_html_save():
         <html lang="en">
           <head>
             <meta charset="utf-8"/>
+            <script type="application/html-dependencies">foo[1.0]</script>
             <link href="lib/foo-1.0/testdep/testdep.css" rel="stylesheet"/>
             <script src="lib/foo-1.0/testdep/testdep.js"></script>
           </head>

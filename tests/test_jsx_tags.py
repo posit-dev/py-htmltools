@@ -15,6 +15,7 @@ def test_jsx_tags():
         <html>
           <head>
             <meta charset="utf-8"/>
+            <script type="application/html-dependencies">react[%s];react-dom[%s]</script>
             <script src="lib/react-%s/react.production.min.js"></script>
             <script src="lib/react-dom-%s/react-dom.production.min.js"></script>
           </head>
@@ -33,7 +34,7 @@ def test_jsx_tags():
         </script>
           </body>
         </html>"""
-        % (react_ver, react_dom_ver)
+        % (react_ver, react_dom_ver, react_ver, react_dom_ver)
     )
 
     # Only the "top-level" tag gets wrapped in <script> tags
@@ -43,6 +44,7 @@ def test_jsx_tags():
         <html>
           <head>
             <meta charset="utf-8"/>
+            <script type="application/html-dependencies">react[%s];react-dom[%s]</script>
             <script src="lib/react-%s/react.production.min.js"></script>
             <script src="lib/react-dom-%s/react-dom.production.min.js"></script>
           </head>
@@ -64,7 +66,7 @@ def test_jsx_tags():
         </script>
           </body>
         </html>"""
-        % (react_ver, react_dom_ver)
+        % (react_ver, react_dom_ver, react_ver, react_dom_ver)
     )
 
     x = Foo(
