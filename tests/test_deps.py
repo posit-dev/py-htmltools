@@ -1,6 +1,3 @@
-import os
-from tempfile import TemporaryDirectory
-from typing import Union, Optional
 import textwrap
 
 from htmltools import *
@@ -32,6 +29,7 @@ def test_dep_resolution():
         <html>
           <head>
             <meta charset="utf-8"/>
+            <script type="application/html-dependencies">a[1.2.1];b[1.10];c[1.0]</script>
             <script src="a-1.2.1/a3.js"></script>
             <script src="b-1.10/b2.js"></script>
             <script src="c-1.0/c1.js"></script>
@@ -46,6 +44,7 @@ def test_dep_resolution():
         <html>
           <head>
             <meta charset="utf-8"/>
+            <script type="application/html-dependencies">a[1.2.1];b[1.10];c[1.0]</script>
             <script src="libfoo/a-1.2.1/a3.js"></script>
             <script src="libfoo/b-1.10/b2.js"></script>
             <script src="libfoo/c-1.0/c1.js"></script>
@@ -93,6 +92,7 @@ def test_append_deps():
         <html>
           <head>
             <meta charset="utf-8"/>
+            <script type="application/html-dependencies">a[1.2];b[1.0]</script>
             <script src="a-1.2/a2.js"></script>
             <script src="b-1.0/b1.js"></script>
           </head>
@@ -138,6 +138,7 @@ def test_script_input():
             <html>
               <head>
                 <meta charset="utf-8"/>
+                <script type="application/html-dependencies">a[1.0]</script>
                 <link href="lib/a-1.0/css/bar%20foo.css" rel="stylesheet"/>
                 <script src="lib/a-1.0/js/foo%20bar.js"></script>
               </head>

@@ -22,7 +22,13 @@ from typing import (
 if sys.version_info >= (3, 8):
     from typing import TypedDict, SupportsIndex, Protocol, runtime_checkable, Literal
 else:
-    from typing_extensions import TypedDict, SupportsIndex, Protocol, runtime_checkable, Literal
+    from typing_extensions import (
+        TypedDict,
+        SupportsIndex,
+        Protocol,
+        runtime_checkable,
+        Literal,
+    )
 
 from packaging.version import Version
 
@@ -32,6 +38,7 @@ from ._util import (
     _package_dir,  # type: ignore
     _html_escape,  # type: ignore
     _flatten,  # type: ignore
+    hash_deterministic,
 )
 
 __all__ = (
@@ -793,7 +800,19 @@ class HTMLDocument:
         # Put <meta charset="utf-8"> at beginning of head, and other hoisted tags at the
         # end. This matters only if the <head> tag starts out with some children.
         head.insert(0, Tag("meta", charset="utf-8"))
+
+        # Add some metadata about the dependencies so that shiny.js' renderDependency
+        # logic knows not to re-render them.
         deps = x.get_dependencies()
+        if len(deps) > 0:
+            head.append(
+                Tag(
+                    "script",
+                    ";".join([d.name + "[" + str(d.version) + "]" for d in deps]),
+                    type="application/html-dependencies",
+                )
+            )
+
         head.extend(
             [
                 d.as_html_tags(lib_prefix=lib_prefix, include_version=include_version)
@@ -1113,6 +1132,14 @@ def head_content(*args: TagChildArg) -> HTMLDependency:
     *args
         The content to place in the ``<head>``.
 
+    Note
+    ----
+    If the same content, ``x``, is included in a document multiple times via
+    ``head_content(x)``, ``x`` will only appear once in the final HTML document's
+    ``<head>``. More often than not, this is desirable behavior, but if you need the
+    same content included multiple times, you can add some irrelevant/empty tags (e.g.,
+    ``TagList(x, Tag("meta"))``) to make sure ``x`` is included multiple times.
+
     Example
     -------
     >>> from htmltools import *
@@ -1132,7 +1159,7 @@ def head_content(*args: TagChildArg) -> HTMLDependency:
     head = TagList(*args)
     head_str = head.get_html_string()
     # Create unique ID to use as name
-    name = "headcontent_{:x}".format(abs(hash(head_str)))
+    name = "headcontent_" + hash_deterministic(head_str)
     return HTMLDependency(name=name, version="0.0", head=head)
 
 
