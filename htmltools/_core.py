@@ -1132,6 +1132,14 @@ def head_content(*args: TagChildArg) -> HTMLDependency:
     *args
         The content to place in the ``<head>``.
 
+    Note
+    ----
+    If the same content, ``x``, is included in a document multiple times via
+    ``head_content(x)``, ``x`` will only appear once in the final HTML document's
+    ``<head>``. More often than not, this is desirable behavior, but if you need the
+    same content included multiple times, you can add some irrelevant/empty tags (e.g.,
+    ``TagList(x, Tag("meta"))``) to make sure ``x`` is included multiple times.
+
     Example
     -------
     >>> from htmltools import *

@@ -1,4 +1,4 @@
-from hashlib import sha256
+import hashlib
 import importlib
 import os
 import re
@@ -132,9 +132,7 @@ def hash_deterministic(s: str) -> str:
     """
     Returns a deterministic hash of the given string.
     """
-    h = sha256()
-    h.update(s.encode("utf-8"))
-    return h.hexdigest()
+    return hashlib.sha1(s.encode('utf-8')).hexdigest()
 
 
 class _HttpServerInfo(NamedTuple):

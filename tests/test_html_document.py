@@ -30,7 +30,7 @@ def test_html_document_html_input():
           <head>
             <meta charset="utf-8"/>
             <title>Title</title>
-            <script type="application/html-dependencies">headcontent_88d4266fd4e6338d13b845fcf289579d209c897823b9217da3e161936f031589[0.0]</script>
+            <script type="application/html-dependencies">headcontent_81fe8bfe87576c3ecb22426f8e57847382917acf[0.0]</script>
             abcd
           </head>
           <body>
@@ -50,7 +50,7 @@ def test_html_document_html_input():
         <html lang="en">
           <head>
             <meta charset="utf-8"/>
-            <script type="application/html-dependencies">headcontent_88d4266fd4e6338d13b845fcf289579d209c897823b9217da3e161936f031589[0.0]</script>
+            <script type="application/html-dependencies">headcontent_81fe8bfe87576c3ecb22426f8e57847382917acf[0.0]</script>
             abcd
           </head>
           <body>
@@ -70,7 +70,7 @@ def test_html_document_html_input():
         <html lang="en">
           <head>
             <meta charset="utf-8"/>
-            <script type="application/html-dependencies">headcontent_88d4266fd4e6338d13b845fcf289579d209c897823b9217da3e161936f031589[0.0]</script>
+            <script type="application/html-dependencies">headcontent_81fe8bfe87576c3ecb22426f8e57847382917acf[0.0]</script>
             abcd
           </head>
           <body>
@@ -99,7 +99,7 @@ def test_html_document_head_hoisting():
         <html>
           <head>
             <meta charset="utf-8"/>
-            <script type="application/html-dependencies">headcontent_30f3d4728150b01fae1b01ebae18b85a4bef02f3181870a56e1dc7ff1f8edd1e[0.0];headcontent_6841afc257df6c2d7be0dfbc893c02ba25b805c16f224d373303fd58ba37697e[0.0]</script>
+            <script type="application/html-dependencies">headcontent_f51fa154cb6a6ca2ef221e02b00e3f2e48570fe7[0.0];headcontent_59a6679e93d43c2db5b3ef7e865480dc61a63cb3[0.0]</script>
             <script>alert('1')</script>
             <style>span {color: red;}</style>
             <script>alert('2')</script>
