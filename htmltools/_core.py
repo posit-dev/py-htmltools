@@ -321,6 +321,10 @@ class TagAttrs(Dict[str, str]):
         More attributes.
     """
 
+    @staticmethod
+    def _namespace_id(x: str) -> str:
+        return x
+
     def __init__(self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg) -> None:
         super().__init__()
         self.update(*args, **kwargs)
@@ -339,6 +343,13 @@ class TagAttrs(Dict[str, str]):
         if kwargs:
             args = args + (kwargs,)
 
+        try:
+            from shiny._namespaces import namespaced_id
+
+            setattr(self, "_namespace_id", namespaced_id)
+        except ImportError:
+            pass
+
         attrz: Dict[str, Union[str, HTML]] = {}
         for arg in args:
             for k, v in arg.items():
@@ -350,6 +361,9 @@ class TagAttrs(Dict[str, str]):
                 # Preserve the HTML() when combining two HTML() attributes
                 if nm in attrz:
                     val = attrz[nm] + HTML(" ") + val
+
+                if nm == "id":
+                    val = self._namespace_id(val)
 
                 attrz[nm] = val
 
