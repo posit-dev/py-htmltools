@@ -23,6 +23,7 @@ from ._core import (
     HTML,
     MetadataNode,
     HTMLDependency,
+    head_content,
 )
 from ._versions import versions
 
@@ -123,6 +124,12 @@ class JSXTag:
         # metadata nodes. This could be done in two separate passes, but it's more
         # efficient to do it in one pass.
         def tagify_tagifiable_and_get_metadata(x: Any) -> Any:
+            if isinstance(x, Tag) and x.name == "script":
+                # React.createElement("script") won't invoke it's contents in the same
+                # way ordinary HTML tags do, but we can circumvent that by 'hoisting' it
+                # as head_content.
+                metadata_nodes.append(head_content(x))
+                x = MetadataNode()
             if isinstance(x, Tagifiable) and not isinstance(x, (Tag, JSXTag)):
                 x = x.tagify()
             else:
