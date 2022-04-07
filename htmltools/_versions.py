@@ -1,1 +1,1 @@
-versions = {"react": "17.0.2", "react-dom": "17.0.2"}
+versions = {"react":"18.0.0","react-dom":"18.0.0","html-react-parser":"1.4.10"}
