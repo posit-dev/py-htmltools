@@ -140,7 +140,7 @@ def test_tagify_first():
     result = x.tagify().render()
     assert result["dependencies"] == [DelayedDep.dep]
 
-    result = HTMLDocument(x).render(lib_prefix=None)
+    result = HTMLDocument(x).render(lib_prefix="")
     assert result["dependencies"] == [DelayedDep.dep]
     assert result["html"].find('<script src="testdep-1.0/testdep.js">') != -1
     assert (
