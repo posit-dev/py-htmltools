@@ -4,24 +4,16 @@ from htmltools import *
 
 
 def test_dep_resolution():
-    a1_1 = HTMLDependency(
-        "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
-    )
-    a1_2 = HTMLDependency(
-        "a", "1.2", source={"package": None, "subdir": "foo"}, script={"src": "a2.js"}
-    )
+    a1_1 = HTMLDependency("a", "1.1", source={"subdir": "foo"}, script={"src": "a1.js"})
+    a1_2 = HTMLDependency("a", "1.2", source={"subdir": "foo"}, script={"src": "a2.js"})
     a1_2_1 = HTMLDependency(
-        "a", "1.2.1", source={"package": None, "subdir": "foo"}, script={"src": "a3.js"}
+        "a", "1.2.1", source={"subdir": "foo"}, script={"src": "a3.js"}
     )
-    b1_9 = HTMLDependency(
-        "b", "1.9", source={"package": None, "subdir": "foo"}, script={"src": "b1.js"}
-    )
+    b1_9 = HTMLDependency("b", "1.9", source={"subdir": "foo"}, script={"src": "b1.js"})
     b1_10 = HTMLDependency(
-        "b", "1.10", source={"package": None, "subdir": "foo"}, script={"src": "b2.js"}
+        "b", "1.10", source={"subdir": "foo"}, script={"src": "b2.js"}
     )
-    c1_0 = HTMLDependency(
-        "c", "1.0", source={"package": None, "subdir": "foo"}, script={"src": "c1.js"}
-    )
+    c1_0 = HTMLDependency("c", "1.0", source={"subdir": "foo"}, script={"src": "c1.js"})
     test = TagList(a1_1, b1_9, b1_10, a1_2, a1_2_1, b1_9, b1_10, c1_0)
     assert HTMLDocument(test).render(lib_prefix=None)["html"] == textwrap.dedent(
         """\
@@ -56,12 +48,8 @@ def test_dep_resolution():
 
 # Test out renderTags and findDependencies when tags are inline
 def test_inline_deps(snapshot):
-    a1_1 = HTMLDependency(
-        "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
-    )
-    a1_2 = HTMLDependency(
-        "a", "1.2", source={"package": None, "subdir": "foo"}, script={"src": "a2.js"}
-    )
+    a1_1 = HTMLDependency("a", "1.1", source={"subdir": "foo"}, script={"src": "a1.js"})
+    a1_2 = HTMLDependency("a", "1.2", source={"subdir": "foo"}, script={"src": "a2.js"})
     tests = [
         TagList(a1_1, div("foo"), "bar"),
         TagList(a1_1, div("foo"), a1_2, "bar"),
@@ -76,15 +64,9 @@ def test_inline_deps(snapshot):
 
 
 def test_append_deps():
-    a1_1 = HTMLDependency(
-        "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
-    )
-    a1_2 = HTMLDependency(
-        "a", "1.2", source={"package": None, "subdir": "foo"}, script={"src": "a2.js"}
-    )
-    b1_0 = HTMLDependency(
-        "b", "1.0", source={"package": None, "subdir": "foo"}, script={"src": "b1.js"}
-    )
+    a1_1 = HTMLDependency("a", "1.1", source={"subdir": "foo"}, script={"src": "a1.js"})
+    a1_2 = HTMLDependency("a", "1.2", source={"subdir": "foo"}, script={"src": "a2.js"})
+    b1_0 = HTMLDependency("b", "1.0", source={"subdir": "foo"}, script={"src": "b1.js"})
 
     expected_result = textwrap.dedent(
         """\
@@ -151,7 +133,7 @@ def test_head_output():
     a = HTMLDependency(
         "a",
         "1.0",
-        source={"package": None, "subdir": "foo"},
+        source={"subdir": "foo"},
         head=tags.script("1 && 1"),
     )
     assert a.as_html_tags().get_html_string() == "<script>1 && 1</script>"
@@ -159,7 +141,7 @@ def test_head_output():
     b = HTMLDependency(
         "a",
         "1.0",
-        source={"package": None, "subdir": "foo"},
+        source={"subdir": "foo"},
         head="<script>1 && 1</script>",
     )
     assert b.as_html_tags().get_html_string() == "<script>1 && 1</script>"
@@ -169,7 +151,7 @@ def test_meta_output():
     a = HTMLDependency(
         "a",
         "1.0",
-        source={"package": None, "subdir": "foo"},
+        source={"subdir": "foo"},
         script={"src": "a1.js"},
         meta={"name": "viewport", "content": "width=device-width, initial-scale=1"},
     )
@@ -177,7 +159,7 @@ def test_meta_output():
     b = HTMLDependency(
         "b",
         "2.0",
-        source={"package": None, "subdir": "foo"},
+        source={"subdir": "foo"},
         meta=[{"name": "x", "content": "x-value"}, {"name": "y", "content": "y-value"}],
     )
 

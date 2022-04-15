@@ -19,11 +19,18 @@ from typing import (
     cast,
 )
 
+# Even though TypedDict is available in Python 3.8, because it's used with NotRequired,
+# they should both come from the same typing module.
+# https://peps.python.org/pep-0655/#usage-in-python-3-11
+if sys.version_info >= (3, 11):
+    from typing import NotRequired, TypedDict
+else:
+    from typing_extensions import NotRequired, TypedDict
+
 if sys.version_info >= (3, 8):
-    from typing import TypedDict, SupportsIndex, Protocol, runtime_checkable, Literal
+    from typing import SupportsIndex, Protocol, runtime_checkable, Literal
 else:
     from typing_extensions import (
-        TypedDict,
         SupportsIndex,
         Protocol,
         runtime_checkable,
@@ -857,8 +864,8 @@ class HTML(str):
 # =============================================================================
 # HTML dependencies
 # =============================================================================
-class PackageHTMLDependencySource(TypedDict):
-    package: Optional[str]
+class HTMLDependencySource(TypedDict):
+    package: NotRequired[str]
     subdir: str
 
 
@@ -922,7 +929,7 @@ class HTMLDependency(MetadataNode):
         name: str,
         version: Union[str, Version],
         *,
-        source: Optional[PackageHTMLDependencySource] = None,
+        source: Optional[HTMLDependencySource] = None,
         script: Union[Dict[str, str], List[Dict[str, str]]] = [],
         stylesheet: Union[Dict[str, str], List[Dict[str, str]]] = [],
         all_files: bool = False,
@@ -933,7 +940,7 @@ class HTMLDependency(MetadataNode):
         self.version: Version = (
             Version(version) if isinstance(version, str) else version
         )
-        self.source: Optional[PackageHTMLDependencySource] = source
+        self.source: Optional[HTMLDependencySource] = source
 
         if isinstance(script, dict):
             script = [script]
@@ -977,10 +984,11 @@ class HTMLDependency(MetadataNode):
         if src is None:
             return {"source": "", "href": ""}
 
-        if src["package"] is None:
+        pkg = src.get("package", None)
+        if pkg is None:
             source = os.path.realpath(src["subdir"])
         else:
-            source = os.path.join(_package_dir(src["package"]), src["subdir"])
+            source = os.path.join(_package_dir(pkg), src["subdir"])
 
         href = self.name
         if include_version:

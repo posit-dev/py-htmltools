@@ -198,12 +198,8 @@ def test_jsx_tags():
 def test_jsx_tagifiable_children():
     # Test case where children are Tagifiable but not Tag or JsxTag objects.
     Foo = jsx_tag_create("Foo")
-    dep = HTMLDependency(
-        "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
-    )
-    dep2 = HTMLDependency(
-        "b", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "b1.js"}
-    )
+    dep = HTMLDependency("a", "1.1", source={"subdir": "foo"}, script={"src": "a1.js"})
+    dep2 = HTMLDependency("b", "1.1", source={"subdir": "foo"}, script={"src": "b1.js"})
 
     class TagifiableDep:
         def tagify(self):
