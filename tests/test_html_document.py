@@ -105,10 +105,7 @@ def test_html_document_head_hoisting():
             <script>alert('2')</script>
           </head>
           <body>
-            <div>
-              Hello,
-              <span>world</span>
-            </div>
+            <div>Hello,<span>world</span></div>
           </body>
         </html>"""
     )

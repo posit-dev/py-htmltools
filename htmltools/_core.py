@@ -443,6 +443,9 @@ class Tag:
         kids = [x for x in arguments if not isinstance(x, dict)]
         self.children: TagList = TagList(*kids)
 
+        # Inline tags don't have outside or inside whitespace.
+        self._inline = _name in _INLINE_TAG_NAMES
+
     def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "Tag":
         self.children.extend(args)
         self.attrs.update(**kwargs)
@@ -546,33 +549,61 @@ class Tag:
                 val = _html_escape(val, attr=True)
             html_ += f' {key}="{val}"'
 
-        # Dependencies are ignored in the HTML output
-        children = [x for x in self.children if not isinstance(x, MetadataNode)]
+        # MetadataNodes (i.e., HTMLDependencies) are ignored in the HTML output
+        kids = [x for x in self.children if not isinstance(x, MetadataNode)]
 
-        # Don't enclose JSX/void elements if there are no children
-        if len(children) == 0 and self.name in _VOID_TAG_NAMES:
+        # Handle void elements with no children
+        if self.name in _VOID_TAG_NAMES:
+            if len(kids) > 0:
+                raise ValueError(
+                    f"Void HTML tags such as {self.name} cannot have children. "
+                    + "https://html.spec.whatwg.org/multipage/syntax.html#void-elements"
+                )
             return HTML(html_ + "/>")
 
-        # Other empty tags are enclosed
         html_ += ">"
-        close = "</" + self.name + ">"
-        if len(children) == 0:
-            return HTML(html_ + close)
 
-        # Inline a single/empty child text node
-        if len(children) == 1 and isinstance(children[0], str):
-            if self.name in _NO_ESCAPE_TAG_NAMES:
-                return HTML(html_ + children[0] + close)
-            else:
-                return HTML(html_ + _normalize_text(children[0]) + close)
-
-        # Write children
-        # TODO: inline elements should eat ws?
-        html_ += eol
-        html_ += self.children.get_html_string(
-            indent + 1, eol, _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES)
+        # If this tag is inline, is a leaf node, or has any inline children, then don't
+        # produce interior whitespace (ws). For this to make sense, first note that the
+        # browser essentially ignores all ws unless it's within a [inline formatting
+        # context](https://www.w3.org/TR/CSS21/visuren.html#inline-formatting) so any
+        # whitespace we produce outside of that context is essentially to make HTML more
+        # readable.
+        #
+        # By defaulting to not producing interior ws in these cases, we allow users to
+        # opt-in to ws via strings they provide, which seems a lot better than having
+        # some noWS-like API like we have in R:
+        # >>> p("Hello ", a("link", href="#"), ".")
+        # >>> <p>Hello <a href="#">link</a>.</p>
+        #
+        # Technically, an inline context requires *all* of the children to be strings
+        # or inline tags, but it seems better to produce no ws if *any* children are
+        # inline since block tags can be changed to inline tags via CSS (e.g., <div
+        # style="display:inline-block">), so we can't be 100% sure we're in an inline
+        # context. That means, by just dropping a <div style="display:inline-block"> in
+        # an inline context, you'd get different whitespace results, which would be
+        # really suprising, and so we're overly aggressive about not producing ws so
+        # to prevent this (remember, the browser will ignore ws anyway).
+        inline = (
+            self._inline
+            or len(kids) == 0
+            or (len(kids) == 1 and isinstance(kids[0], str))
+            or any([x._inline for x in kids if isinstance(x, Tag)])
         )
-        return HTML(html_ + eol + indent_str + close)
+
+        if inline:
+            child_html = self.children.get_html_string(
+                0, "", _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES)
+            )
+        else:
+            child_html = self.children.get_html_string(
+                indent + 1,
+                eol,
+                _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES),
+            )
+            child_html = eol + child_html + eol + indent_str
+
+        return HTML(html_ + child_html + f"</{self.name}>")
 
     def render(self) -> RenderedHTML:
         """
@@ -657,6 +688,45 @@ _VOID_TAG_NAMES = {
 }
 
 _NO_ESCAPE_TAG_NAMES = {"script", "style"}
+
+_INLINE_TAG_NAMES = {
+    "a",
+    "abbr",
+    "acronym",
+    "b",
+    "bdo",
+    "big",
+    "br",
+    "button",
+    "cite",
+    "code",
+    "dfn",
+    "em",
+    "i",
+    "img",
+    "input",
+    "kbd",
+    "label",
+    "map",
+    "object",
+    "output",
+    "q",
+    "samp",
+    # Technically, <script> is considered inline, but in practice it doesn't seem worth
+    # treating it this way since the current tag writing logic will inline any tag that
+    # has at least one inline tag, meaning that the <head> tag will be inlined in most
+    # cases.
+    "select",
+    "small",
+    "span",
+    "strong",
+    "sub",
+    "sup",
+    "textarea",
+    "time",
+    "tt",
+    "var",
+}
 
 # =============================================================================
 # HTMLDocument class

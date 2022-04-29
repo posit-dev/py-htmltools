@@ -159,24 +159,13 @@ def test_tag_writing():
     expect_html(TagList("hi"), "hi")
     expect_html(TagList("one", "two", TagList("three")), "one\ntwo\nthree")
     expect_html(tags.b("one"), "<b>one</b>")
-    expect_html(tags.b("one", "two"), "<b>\n  one\n  two\n</b>")
+    expect_html(tags.b("one", "two"), "<b>onetwo</b>")
     expect_html(TagList(["one"]), "one")
     expect_html(TagList([TagList("one")]), "one")
     expect_html(TagList(tags.br(), "one"), "<br/>\none")
     assert str(
         tags.b("one", "two", span("foo", "bar", span("baz")))
-    ) == textwrap.dedent(
-        """\
-            <b>
-              one
-              two
-              <span>
-                foo
-                bar
-                <span>baz</span>
-              </span>
-            </b>"""
-    )
+    ) == textwrap.dedent("<b>onetwo<span>foobar<span>baz</span></span></b>")
     expect_html(tags.area(), "<area/>")
 
 
@@ -395,10 +384,7 @@ def test_tag_normalize_attr():
 def test_metadata_nodes_gone():
     # Make sure MetadataNodes don't result in a blank line.
     assert str(div(span("Body content"), head_content("abc"))) == textwrap.dedent(
-        """\
-        <div>
-          <span>Body content</span>
-        </div>"""
+        "<div><span>Body content</span></div>"
     )
 
     assert (
