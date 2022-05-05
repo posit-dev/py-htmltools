@@ -39,6 +39,72 @@ def test_html_document_html_input():
         </html>"""
     )
 
+    doc = HTMLDocument(
+        tags.html(
+            head_content("abcd"),
+            tags.head(tags.title("Title")),
+            tags.body(div("Body content")),
+            myattr="value",
+        ),
+        lang="en",
+    )
+    assert doc.render()["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html myattr="value" lang="en">
+          <head>
+            <meta charset="utf-8"/>
+            <title>Title</title>
+            <script type="application/html-dependencies">headcontent_81fe8bfe87576c3ecb22426f8e57847382917acf[0.0]</script>
+            abcd
+          </head>
+          <body>
+            <div>Body content</div>
+          </body>
+        </html>"""
+    )
+
+    doc = HTMLDocument(
+        tags.html(
+            head_content("abcd"),
+            tags.body(div("Body content")),
+            myattr="value",
+        ),
+        lang="en",
+    )
+    assert doc.render()["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html myattr="value" lang="en">
+          <head>
+            <meta charset="utf-8"/>
+            <script type="application/html-dependencies">headcontent_81fe8bfe87576c3ecb22426f8e57847382917acf[0.0]</script>
+            abcd
+          </head>
+          <body>
+            <div>Body content</div>
+          </body>
+        </html>"""
+    )
+
+    doc = HTMLDocument(
+        tags.html(
+            div("Body content"),
+            myattr="value",
+        ),
+        lang="en",
+    )
+    assert doc.render()["html"] == textwrap.dedent(
+        """\
+        <!DOCTYPE html>
+        <html myattr="value" lang="en">
+          <head>
+            <meta charset="utf-8"/>
+          </head>
+          <div>Body content</div>
+        </html>"""
+    )
+
     # HTMLDocument with a <body> tag.
     doc = HTMLDocument(
         tags.body(div("Body content"), head_content("abcd")),
