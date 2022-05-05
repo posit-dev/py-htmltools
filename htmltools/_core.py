@@ -801,9 +801,24 @@ class HTMLDocument:
     ) -> Tag:
         if x.name != "html":
             raise ValueError(f"Expected <html> tag, got <{x.name}>.")
+
         res = copy(x)
-        res.children[0] = copy(res.children[0])
-        head = cast(Tag, res.children[0])
+
+        # <head> needs to be a direct child of <html>, but not necessarily the first
+        # child (it would be suprising if you weren't able to, for example, have a
+        # HTMLDependency() as the first child of <html>).
+        head_index: Optional[int] = None
+        for i, child in enumerate(res.children):
+            if isinstance(child, Tag) and child.name == "head":
+                head_index = i
+                break
+
+        if head_index is None:
+            res.insert(0, Tag("head"))
+            head_index = 0
+
+        res.children[head_index] = copy(res.children[head_index])
+        head = cast(Tag, res.children[head_index])
         # Put <meta charset="utf-8"> at beginning of head, and other hoisted tags at the
         # end. This matters only if the <head> tag starts out with some children.
         head.insert(0, Tag("meta", charset="utf-8"))
