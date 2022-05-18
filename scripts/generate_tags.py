@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from typing import List, Dict
 from urllib.request import urlopen
 
@@ -17,6 +18,12 @@ def generate_tag_code(url: str) -> str:
         # TODO: still provide this, but with underscores?
         if x["name"] == "del":
             continue
+        # The descriptions sometimes have multiple lines, with inconsistent indentation
+        # on lines after the first. We need to make the indentation consistently four
+        # spaces, or else it will confuse Sphinx when generating docs.
+        if "\n" in x["desc"]:
+            x["desc"] = re.sub("\n\\s+", "\n    ", x["desc"])
+
         code += tag_template.format(name=x["name"], desc=x["desc"]) + "\n"
     return code
 

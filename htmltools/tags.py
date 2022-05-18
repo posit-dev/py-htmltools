@@ -103,7 +103,7 @@ def link(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     Create a <link> tag.
 
     The <link> HTML element specifies relationships between the current document and an external resource.
-  This element is most commonly used to link to CSS, but is also used to establish site icons (both "favicon" style icons and icons for the home screen and apps on mobile devices) among other things. Learn more at https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
+    This element is most commonly used to link to CSS, but is also used to establish site icons (both "favicon" style icons and icons for the home screen and apps on mobile devices) among other things. Learn more at https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
 
     Parameters
     ----------
@@ -1829,10 +1829,10 @@ def svg(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     Create a <svg> tag.
 
     The svg element is a container that defines a new
-        coordinate system and
-        viewport. It is used
-        as the outermost element of SVG documents, but it can also be used to
-        embed an SVG fragment inside an SVG or HTML document. Learn more at https://developer.mozilla.org/en-US/docs/Web/HTML/Element/svg
+    coordinate system and
+    viewport. It is used
+    as the outermost element of SVG documents, but it can also be used to
+    embed an SVG fragment inside an SVG or HTML document. Learn more at https://developer.mozilla.org/en-US/docs/Web/HTML/Element/svg
 
     Parameters
     ----------
@@ -1856,10 +1856,10 @@ def math(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     Create a <math> tag.
 
     The top-level element in MathML is <math>. Every valid
-        MathML instance must be wrapped in <math> tags. In
-        addition you must not nest a second <math> element in
-        another, but you can have an arbitrary number of other child elements in
-        it. Learn more at https://developer.mozilla.org/en-US/docs/Web/HTML/Element/math
+    MathML instance must be wrapped in <math> tags. In
+    addition you must not nest a second <math> element in
+    another, but you can have an arbitrary number of other child elements in
+    it. Learn more at https://developer.mozilla.org/en-US/docs/Web/HTML/Element/math
 
     Parameters
     ----------
