@@ -1,3 +1,10 @@
+"""
+WARNING: this is a highly experimental/unsupported/private module for JSX/React
+components. Although JSXTag currently allows for HTML tags on attributes and children,
+that's an issue for HTML() and <script> tags, so using normal HTML tags inside JSX
+components may become unsupported in a future version (see #26 and #28)
+"""
+
 from typing import (
     Callable,
     Iterable,
@@ -26,11 +33,14 @@ from ._core import (
 )
 from ._versions import versions
 
+# CPS 6/8/2022: this module is currently too experimental to be recommended for use.
+# It's not clear that it's worth the effort to support it, and if we do, we may want to
+# remove the ability to nest HTML() and <script> tags inside JSXTag/JSXTagAttrArg
 __all__ = (
-    "jsx",
-    "jsx_tag_create",
-    "JSXTag",
-    "JSXTagAttrArg",
+    # "jsx",
+    # "jsx_tag_create",
+    # "JSXTag",
+    # "JSXTagAttrArg",
 )
 
 # A JSX tag attribute can be anything.
