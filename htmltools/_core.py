@@ -301,16 +301,16 @@ class TagList(List[TagChild]):
         _tag_show(self, renderer)
 
     def __str__(self) -> str:
-        return self.get_html_string()
+        return str(self.get_html_string())
 
     def __eq__(self, other: Any) -> bool:
         return _equals_impl(self, other)
 
     def __repr__(self) -> str:
-        return self.get_html_string()
+        return repr(self.get_html_string())
 
     def _repr_html_(self) -> str:
-        return self.get_html_string()
+        return str(self.get_html_string())
 
 
 # =============================================================================
@@ -624,13 +624,13 @@ class Tag:
         _tag_show(self, renderer)
 
     def __str__(self) -> str:
-        return self.get_html_string()
+        return str(self.get_html_string())
 
     def __repr__(self) -> str:
-        return self.get_html_string()
+        return repr(self.get_html_string())
 
     def _repr_html_(self) -> str:
-        return self.get_html_string()
+        return str(self.get_html_string())
 
     def __eq__(self, other: Any) -> bool:
         return _equals_impl(self, other)
@@ -862,7 +862,7 @@ class HTML(str):
     """
 
     def __str__(self) -> str:
-        return self
+        return self.as_string()
 
     # HTML() + HTML() should return HTML()
     def __add__(self, other: Union[str, "HTML"]) -> str:
@@ -870,10 +870,13 @@ class HTML(str):
         return HTML(res) if isinstance(other, HTML) else res
 
     def __repr__(self) -> str:
-        return self
+        return self.as_string()
 
     def _repr_html_(self) -> str:
-        return self
+        return self.as_string()
+
+    def as_string(self) -> str:
+        return self + ""
 
 
 # =============================================================================
