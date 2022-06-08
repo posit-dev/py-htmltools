@@ -266,6 +266,26 @@ def test_html_save():
     )
 
 
+def test_tag_str():
+    # Make sure Tag.__str__() doesn't return an HTML string
+    # (since, in that case, it'll render as HTML, which is suprising)
+    x = str(span())
+    y = repr(span())
+    assert isinstance(x, str) and not isinstance(x, HTML)
+    assert isinstance(y, str) and not isinstance(y, HTML)
+
+    # Same for TagList.__str__
+    x = str(TagList("foo"))
+    y = str(TagList("foo"))
+    assert isinstance(x, str) and not isinstance(x, HTML)
+    assert isinstance(y, str) and not isinstance(y, HTML)
+
+    x = str(HTML("foo&bar"))
+    y = repr(HTML("foo&bar"))
+    assert isinstance(x, str) and not isinstance(x, HTML)
+    assert isinstance(y, str) and not isinstance(y, HTML)
+
+
 # Walk a Tag tree, and apply a function to each node. The node in the tree will be
 # replaced with the value returned from `fn()`. If the function alters a node, then it
 # will be reflected in the original object that `.walk_mutate()` was called on.
