@@ -892,6 +892,78 @@ class SourcePathMapping(TypedDict):
     href: str
 
 
+# These TypedDict declarations are a weird combination of the class and non-class forms
+# of TypedDict. We use total=False for the optional attrs, and use inheritance to
+# combine the required and optional attrs. The reason we use the non-class TypedDict is
+# because some of the attributes (like `async`) are reserved keywords in Python, and
+# can't be used as field names in a class. Awkward.
+class ScriptItemBaseAttrs(TypedDict):
+    src: str
+
+
+ScriptItemExtraAttrs = TypedDict(
+    "ScriptItemExtraAttrs",
+    {
+        "async": str,
+        "crossorigin": str,
+        "defer": str,
+        "fetchpriority": str,
+        "integrity": str,
+        "referrerpolicy": str,
+        "type": str,
+    },
+    total=False,
+)
+
+
+class ScriptItem(ScriptItemBaseAttrs, ScriptItemExtraAttrs):
+    pass
+
+
+class StylesheetItemBaseAttrs(TypedDict):
+    href: str
+
+
+StylesheetItemExtraAttrs = TypedDict(
+    "StylesheetItemExtraAttrs",
+    {
+        "as": str,
+        "crossorigin": str,
+        "disabled": str,
+        "hreflang": str,
+        "imagesizes": str,
+        "imagesrcset": str,
+        "integrity": str,
+        "media": str,
+        "prefetch": str,
+        "referrerpolicy": str,
+        "rel": str,
+        "sizes": str,
+        "title": str,
+        "type": str,
+    },
+    total=False,
+)
+
+
+class StylesheetItem(StylesheetItemExtraAttrs, StylesheetItemBaseAttrs):
+    pass
+
+
+class MetaItemBaseAttrs(TypedDict):
+    name: str
+    content: str
+
+
+MetaItemExtraAttrs = TypedDict(
+    "MetaItemExtraAttrs", {"charset": str, "http-equiv": str}, total=False
+)
+
+
+class MetaItem(MetaItemBaseAttrs, MetaItemExtraAttrs):
+    pass
+
+
 class HTMLDependency(MetadataNode):
     """
     Define an HTML dependency.
@@ -948,10 +1020,10 @@ class HTMLDependency(MetadataNode):
         version: Union[str, Version],
         *,
         source: Optional[HTMLDependencySource] = None,
-        script: Union[Dict[str, str], List[Dict[str, str]]] = [],
-        stylesheet: Union[Dict[str, str], List[Dict[str, str]]] = [],
+        script: Union[ScriptItem, List[ScriptItem]] = [],
+        stylesheet: Union[StylesheetItem, List[StylesheetItem]] = [],
         all_files: bool = False,
-        meta: Union[Dict[str, str], List[Dict[str, str]]] = [],
+        meta: Union[MetaItem, List[MetaItem]] = [],
         head: TagChildArg = None,
     ) -> None:
         self.name: str = name
@@ -963,22 +1035,23 @@ class HTMLDependency(MetadataNode):
         if isinstance(script, dict):
             script = [script]
         self._validate_dicts(script, ["src"])
-        self.script: List[Dict[str, str]] = script
+        self.script: List[ScriptItem] = script
 
         if isinstance(stylesheet, dict):
             stylesheet = [stylesheet]
         self._validate_dicts(stylesheet, ["href"])
-        self.stylesheet: List[Dict[str, str]] = stylesheet
+        self.stylesheet: List[StylesheetItem] = stylesheet
 
         # Ensures a rel='stylesheet' default
         for s in self.stylesheet:
             if "rel" not in s:
-                s.update({"rel": "stylesheet"})
+                # Ignore due to this issue: https://github.com/python/typeshed/issues/8086
+                s.update({"rel": "stylesheet"})  # type: ignore
 
         if isinstance(meta, dict):
             meta = [meta]
         self._validate_dicts(meta, ["name", "content"])
-        self.meta: List[Dict[str, str]] = meta
+        self.meta: List[MetaItem] = meta
 
         self.all_files: bool = all_files
         self.head: Optional[TagList]
@@ -1108,9 +1181,7 @@ class HTMLDependency(MetadataNode):
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
             shutil.copy2(src_file, target_file)
 
-    def _validate_dicts(
-        self, ld: List[Dict[str, str]], req_attr: List[str] = []
-    ) -> None:
+    def _validate_dicts(self, ld: Iterable[object], req_attr: List[str] = []) -> None:
         for d in ld:
             self._validate_dict(d, req_attr)
 
