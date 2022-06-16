@@ -1045,8 +1045,7 @@ class HTMLDependency(MetadataNode):
         # Ensures a rel='stylesheet' default
         for s in self.stylesheet:
             if "rel" not in s:
-                # Ignore due to this issue: https://github.com/python/typeshed/issues/8086
-                s.update({"rel": "stylesheet"})  # type: ignore
+                s["rel"] = "stylesheet"
 
         if isinstance(meta, dict):
             meta = [meta]
