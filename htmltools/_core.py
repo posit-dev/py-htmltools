@@ -421,6 +421,10 @@ class Tag:
     >>> x.show()
     """
 
+    name: str
+    attrs: TagAttrs
+    children: TagList
+
     def __init__(
         self,
         _name: str,
@@ -428,7 +432,7 @@ class Tag:
         children: Optional[List[TagChildArg]] = None,
         **kwargs: TagAttrArg,
     ) -> None:
-        self.name: str = _name
+        self.name = _name
 
         # As a workaround for Python not allowing for numerous keyword
         # arguments of the same name, we treat any dictionaries that appear
@@ -438,10 +442,10 @@ class Tag:
             arguments.extend(_flatten(children))
 
         attrs = [x for x in arguments if isinstance(x, dict)]
-        self.attrs: TagAttrs = TagAttrs(*attrs, **kwargs)
+        self.attrs = TagAttrs(*attrs, **kwargs)
 
         kids = [x for x in arguments if not isinstance(x, dict)]
-        self.children: TagList = TagList(*kids)
+        self.children = TagList(*kids)
 
     def __call__(self, *args: TagChildArg, **kwargs: TagAttrArg) -> "Tag":
         self.children.extend(args)
@@ -1014,6 +1018,15 @@ class HTMLDependency(MetadataNode):
     >>> x.render()
     """
 
+    name: str
+    version: Version
+    source: Optional[HTMLDependencySource]
+    script: List[ScriptItem]
+    stylesheet: List[StylesheetItem]
+    meta: List[MetaItem]
+    all_files: bool
+    head: Optional[TagList]
+
     def __init__(
         self,
         name: str,
@@ -1026,21 +1039,19 @@ class HTMLDependency(MetadataNode):
         meta: Union[MetaItem, List[MetaItem]] = [],
         head: TagChildArg = None,
     ) -> None:
-        self.name: str = name
-        self.version: Version = (
-            Version(version) if isinstance(version, str) else version
-        )
-        self.source: Optional[HTMLDependencySource] = source
+        self.name = name
+        self.version = Version(version) if isinstance(version, str) else version
+        self.source = source
 
         if isinstance(script, dict):
             script = [script]
         self._validate_dicts(script, ["src"])
-        self.script: List[ScriptItem] = script
+        self.script = script
 
         if isinstance(stylesheet, dict):
             stylesheet = [stylesheet]
         self._validate_dicts(stylesheet, ["href"])
-        self.stylesheet: List[StylesheetItem] = stylesheet
+        self.stylesheet = stylesheet
 
         # Ensures a rel='stylesheet' default
         for s in self.stylesheet:
@@ -1050,10 +1061,10 @@ class HTMLDependency(MetadataNode):
         if isinstance(meta, dict):
             meta = [meta]
         self._validate_dicts(meta, ["name", "content"])
-        self.meta: List[MetaItem] = meta
+        self.meta = meta
 
-        self.all_files: bool = all_files
-        self.head: Optional[TagList]
+        self.all_files = all_files
+
         if head is None:
             self.head = None
         elif isinstance(head, str):
