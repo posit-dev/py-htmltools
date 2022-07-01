@@ -1,4 +1,4 @@
-__version__ = "0.1.0.9001"
+__version__ = "0.1.0.9002"
 
 from ._core import (
     TagList,
