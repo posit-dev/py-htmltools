@@ -1,5 +1,6 @@
 import textwrap
 from htmltools import *
+from htmltools._jsx import jsx_tag_create, jsx
 
 
 def test_jsx_tags():
