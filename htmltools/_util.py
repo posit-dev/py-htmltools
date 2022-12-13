@@ -132,7 +132,7 @@ def hash_deterministic(s: str) -> str:
     """
     Returns a deterministic hash of the given string.
     """
-    return hashlib.sha1(s.encode('utf-8')).hexdigest()
+    return hashlib.sha1(s.encode("utf-8")).hexdigest()
 
 
 class _HttpServerInfo(NamedTuple):
@@ -175,3 +175,11 @@ def get_open_port() -> int:
     with closing(socket()) as sock:
         sock.bind(("", 0))
         return sock.getsockname()[1]
+
+
+# Sentinel value - indicates a missing value in a function call.
+class MISSING_TYPE:
+    pass
+
+
+MISSING = MISSING_TYPE()

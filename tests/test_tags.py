@@ -229,7 +229,7 @@ def test_html_save():
         stylesheet={"href": "testdep/testdep.css"},
         script={"src": "testdep/testdep.js"},
     )
-    assert saved_html(div("foo", dep), libdir=None) == textwrap.dedent(
+    assert saved_html(div("foo", dep), libdir="") == textwrap.dedent(
         """\
         <!DOCTYPE html>
         <html>

@@ -46,6 +46,8 @@ from ._util import (
     _html_escape,  # type: ignore
     _flatten,  # type: ignore
     hash_deterministic,
+    MISSING,
+    MISSING_TYPE,
 )
 
 __all__ = (
@@ -194,7 +196,11 @@ class TagList(List[TagChild]):
         return cp
 
     def save_html(
-        self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
+        self,
+        file: str,
+        *,
+        libdir: Union[str, MISSING_TYPE] = MISSING,
+        include_version: bool = True,
     ) -> str:
         """
         Save to a HTML file.
@@ -587,7 +593,11 @@ class Tag:
         return {"dependencies": deps, "html": cp.get_html_string()}
 
     def save_html(
-        self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
+        self,
+        file: str,
+        *,
+        libdir: Union[str, MISSING_TYPE] = MISSING,
+        include_version: bool = True,
     ) -> str:
         """
         Save to a HTML file.
@@ -711,7 +721,10 @@ class HTMLDocument:
         self._content.append(*args)
 
     def render(
-        self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
+        self,
+        *,
+        lib_prefix: Union[str, MISSING_TYPE] = MISSING,
+        include_version: bool = True,
     ) -> RenderedHTML:
         """
         Render the document.
@@ -730,7 +743,10 @@ class HTMLDocument:
         return rendered
 
     def save_html(
-        self, file: str, libdir: Optional[str] = "lib", include_version: bool = True
+        self,
+        file: str,
+        libdir: Union[str, MISSING_TYPE] = MISSING,
+        include_version: bool = True,
     ) -> str:
         """
         Save the document to a HTML file.
@@ -747,9 +763,10 @@ class HTMLDocument:
 
         # Directory where dependencies are copied to.
         destdir = str(Path(file).resolve().parent)
-        if libdir:
-            destdir = os.path.join(destdir, libdir)
+        libdir = resolve_missing_lib_path(libdir)
+        destdir = os.path.join(destdir, libdir)
 
+        # TODO: fix all libdir occurrences
         rendered = self.render(lib_prefix=libdir, include_version=include_version)
         for dep in rendered["dependencies"]:
             dep.copy_to(destdir, include_version=include_version)
@@ -764,11 +781,13 @@ class HTMLDocument:
     # - lib_prefix: A directoy prefix to add to <script src="[lib_prefix]/script.js">
     #   and <link rel="[lib_prefix]/style.css"> tags.
     def _gen_html_tag_tree(
-        self, lib_prefix: Optional[str], include_version: bool
+        self, lib_prefix: Union[str, MISSING_TYPE], include_version: bool
     ) -> Tag:
         content: TagList = self._content
         html: Tag
         body: Tag
+
+        lib_prefix = resolve_missing_lib_path(lib_prefix)
 
         if (
             len(content) == 1
@@ -801,7 +820,7 @@ class HTMLDocument:
     # <link> and <script> tags.
     @staticmethod
     def _hoist_head_content(
-        x: Tag, lib_prefix: Optional[str], include_version: bool
+        x: Tag, lib_prefix: Union[str, MISSING_TYPE], include_version: bool
     ) -> Tag:
         if x.name != "html":
             raise ValueError(f"Expected <html> tag, got <{x.name}>.")
@@ -1074,12 +1093,17 @@ class HTMLDependency(MetadataNode):
             self.head = TagList(head)
 
     def source_path_map(
-        self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
+        self,
+        *,
+        lib_prefix: Union[str, MISSING_TYPE] = MISSING,
+        include_version: bool = True,
     ) -> SourcePathMapping:
         """
         Returns a dict of the absolute 'source' filepath and the 'href' path it will
         point to in the HTML (given the lib_prefix).
         """
+
+        lib_prefix = resolve_missing_lib_path(lib_prefix)
 
         src = self.source
         if src is None:
@@ -1098,7 +1122,10 @@ class HTMLDependency(MetadataNode):
         return {"source": source, "href": href}
 
     def as_html_tags(
-        self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
+        self,
+        *,
+        lib_prefix: Union[str, MISSING_TYPE] = MISSING,
+        include_version: bool = True,
     ) -> TagList:
         """
         Render the dependency as a ``TagList()``.
@@ -1110,7 +1137,10 @@ class HTMLDependency(MetadataNode):
         return TagList(*metas, *links, *scripts, self.head)
 
     def as_dict(
-        self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
+        self,
+        *,
+        lib_prefix: Union[str, MISSING_TYPE] = MISSING,
+        include_version: bool = True,
     ) -> Dict[str, Any]:
         """
         Returns a dict of the dependency's attributes.
@@ -1155,7 +1185,7 @@ class HTMLDependency(MetadataNode):
         Copy the dependency's files to the given path.
         """
 
-        paths = self.source_path_map(lib_prefix=None, include_version=include_version)
+        paths = self.source_path_map(lib_prefix="", include_version=include_version)
         if paths["source"] == "":
             return None
 
@@ -1344,3 +1374,10 @@ def _equals_impl(x: Any, y: Any) -> bool:
         if getattr(x, key, None) != getattr(y, key, None):
             return False
     return True
+
+
+def resolve_missing_lib_path(lib: Union[str, MISSING_TYPE] = MISSING) -> str:
+    if isinstance(lib, MISSING_TYPE):
+        return os.getenv("HTMLTOOLS_LIB_PREFIX", "lib")
+    else:
+        return lib
