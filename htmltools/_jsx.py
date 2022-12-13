@@ -32,6 +32,7 @@ from ._core import (
     HTMLDependency,
 )
 from ._versions import versions
+from . import tags
 
 # CPS 6/8/2022: this module is currently too experimental to be recommended for use.
 # It's not clear that it's worth the effort to support it, and if we do, we may want to
@@ -133,6 +134,8 @@ class JSXTag:
         # metadata nodes. This could be done in two separate passes, but it's more
         # efficient to do it in one pass.
         def tagify_tagifiable_and_get_metadata(x: Any) -> Any:
+            if isinstance(x, HTML):
+                x = html_string_component(html_as_string(x))
             if isinstance(x, Tagifiable) and not isinstance(x, (Tag, JSXTag)):
                 x = x.tagify()
             else:
@@ -379,6 +382,25 @@ class jsx(str):
     def __add__(self, other: Union[str, "jsx"]) -> str:
         res = str.__add__(self, other)
         return jsx(res) if isinstance(other, jsx) else res
+
+
+# JSX component that simply renders a raw HTML() string as DOM.
+def html_string_component(x: str) -> JSXTag:
+    component = jsx_tag_create("ReactHtmlStringComponent")
+    component_dependency = _lib_dependency(
+        "html-react-parser",
+        script={"src": "html-react-parser.min.js"},
+        head=tags.script(
+            "window.ReactHtmlStringComponent = function(props) { return HTMLReactParser(props.children); };"
+        ),
+    )
+    return component(x, component_dependency)
+
+
+# TODO: this isn't an ideal way to remove HTML class of a string
+# https://github.com/rstudio/py-htmltools/issues/15
+def html_as_string(x: Union[HTML, str]) -> str:
+    return x + ""
 
 
 def _lib_dependency(
