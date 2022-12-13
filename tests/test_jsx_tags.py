@@ -76,6 +76,7 @@ def test_jsx_tags():
         jsx("`childexpression`"),
         Foo(),
         [Foo(), Bar()],
+        tags.script("alert('hello')"),
         TagList(Foo(), Bar()),
         span(Foo(span()), Bar()),
         int=1,
@@ -85,9 +86,19 @@ def test_jsx_tags():
         string="string",
         list=[1, 2, 3],
     )
-    assert str(x) == textwrap.dedent(
+    assert HTMLDocument(x).render()["html"] == textwrap.dedent(
         """\
-        <script type="text/javascript" data-needs-render="">
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8"/>
+            <script type="application/html-dependencies">react[%s];react-dom[%s];headcontent_eb156e81fa07b6cf22e580f33fa4f1e4b3ee0431[0.0]</script>
+            <script src="lib/react-%s/react.production.min.js"></script>
+            <script src="lib/react-dom-%s/react-dom.production.min.js"></script>
+            <script>alert('hello')</script>
+          </head>
+          <body>
+            <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
           ReactDOM.render(
@@ -116,7 +127,10 @@ def test_jsx_tags():
           thisScript.after(container);
           thisScript.removeAttribute('data-needs-render');
         })();
-        </script>"""
+        </script>
+          </body>
+        </html>"""
+        % (react_ver, react_dom_ver, react_ver, react_dom_ver)
     )
 
     x = Foo(
