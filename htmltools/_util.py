@@ -72,7 +72,7 @@ def css(collapse_: str = "", **kwargs: Union[str, float, None]) -> Optional[str]
 
 
 # Flatten a arbitrarily nested list and remove None. Does not alter input object.
-def _flatten(x: Iterable[Union[T, None]]) -> List[T]:
+def flatten(x: Iterable[Union[T, None]]) -> List[T]:
     result: List[T] = []
     _flatten_recurse(x, result)  # type: ignore
     return result
@@ -112,7 +112,7 @@ HTML_ATTRS_ESCAPE_TABLE = {
 }
 
 
-def _html_escape(text: str, attr: bool = False) -> str:
+def html_escape(text: str, attr: bool = False) -> str:
     table = HTML_ATTRS_ESCAPE_TABLE if attr else HTML_ESCAPE_TABLE
     if not re.search("|".join(table), text):
         return text
@@ -122,9 +122,11 @@ def _html_escape(text: str, attr: bool = False) -> str:
 
 
 # similar to base::system.file()
-def _package_dir(package: str) -> str:
+def package_dir(package: str) -> str:
     with tempfile.TemporaryDirectory():
         pkg_file = importlib.import_module(".", package=package).__file__
+        if pkg_file is None:
+            raise ImportError(f"Couldn't load package {package}")
         return os.path.dirname(pkg_file)
 
 

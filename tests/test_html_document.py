@@ -231,7 +231,7 @@ def test_tagify_first():
         x.save_html(f)
 
         html = open(f, "r").read()
-        html.find('<script src="lib/testdep-1.0/testdep.js">') != -1
+        assert html.find('<script src="lib/testdep-1.0/testdep.js">') != -1
         assert (
             html.find('<link href="lib/testdep-1.0/testdep.css" rel="stylesheet"/>')
             != -1
@@ -247,7 +247,7 @@ def test_tagify_first():
         x.save_html(f, libdir="mylib", include_version=False)
 
         html = open(f, "r").read()
-        html.find('<script src="mylib/testdep/testdep.js">') != -1
+        assert html.find('<script src="mylib/testdep/testdep.js">') != -1
         assert (
             html.find('<link href="mylib/testdep/testdep.css" rel="stylesheet"/>') != -1
         )
