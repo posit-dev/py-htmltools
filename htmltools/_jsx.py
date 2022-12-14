@@ -299,7 +299,7 @@ def _serialize_style_attr(x: object) -> str:
         )
         x = dict(x)
     if isinstance(x, dict):
-        return _serialize_attr(cast(dict[str, Any], x))
+        return _serialize_attr(cast(Dict[str, Any], x))
     else:
         raise TypeError("The style attribute must be a dict() or string.")
 

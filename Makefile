@@ -85,7 +85,8 @@ install: dist ## install the package to the active Python's site-packages
 	python3 -m pip install --force-reinstall dist/htmltools*.whl
 
 pyright: ## type check with pyright
-	pyright
+	pyright --pythonversion=3.7
+	pyright --pythonversion=3.11
 
 check: pyright lint ## check code quality with pyright, flake8, black and isort
 	echo "Checking code with black."
