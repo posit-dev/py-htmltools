@@ -4,10 +4,11 @@ from __future__ import unicode_literals
 
 from snapshottest import Snapshot
 
-
 snapshots = Snapshot()
 
-snapshots['test_inline_deps inline_deps'] = '''<!DOCTYPE html>
+snapshots[
+    "test_inline_deps inline_deps"
+] = """<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8"/>
@@ -74,4 +75,4 @@ snapshots['test_inline_deps inline_deps'] = '''<!DOCTYPE html>
       bar
     </div>
   </body>
-</html>'''
+</html>"""

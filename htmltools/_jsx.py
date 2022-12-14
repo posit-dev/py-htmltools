@@ -5,32 +5,32 @@ that's an issue for HTML() and <script> tags, so using normal HTML tags inside J
 components may become unsupported in a future version (see #26 and #28)
 """
 
-from typing import (
-    Callable,
-    Iterable,
-    List,
-    Dict,
-    Mapping,
-    Union,
-    Optional,
-    Any,
-    cast,
-    Tuple,
-)
 import copy
 import re
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
 from ._core import (
+    HTML,
+    HTMLDependency,
+    MetadataNode,
     ScriptItem,
-    TagList,
-    TagAttrArg,
     Tag,
+    TagAttrArg,
     TagChild,
     TagChildArg,
     Tagifiable,
-    HTML,
-    MetadataNode,
-    HTMLDependency,
+    TagList,
 )
 from ._versions import versions
 
@@ -275,7 +275,9 @@ def _serialize_attr(x: object) -> str:
     if isinstance(x, Tag) or isinstance(x, JSXTag):
         return _render_react_js(x, 0, "\n")
     if isinstance(x, (list, tuple)):
-        return "[" + ", ".join([_serialize_attr(y) for y in cast(Iterable[Any], x)]) + "]"
+        return (
+            "[" + ", ".join([_serialize_attr(y) for y in cast(Iterable[Any], x)]) + "]"
+        )
     if isinstance(x, dict):
         x1: dict[str, Any] = x  # make pyright happy
         return "{" + ", ".join([f'"{y}": ' + _serialize_attr(x1[y]) for y in x1]) + "}"
@@ -383,9 +385,7 @@ class jsx(str):
         return jsx(res) if isinstance(other, jsx) else res
 
 
-def _lib_dependency(
-    pkg: str, script: ScriptItem, **kwargs: object
-) -> HTMLDependency:
+def _lib_dependency(pkg: str, script: ScriptItem, **kwargs: object) -> HTMLDependency:
     return HTMLDependency(
         name=pkg,
         version=versions[pkg],

@@ -3,23 +3,22 @@ import importlib
 import os
 import re
 import tempfile
-from typing import (
-    Any,
-    List,
-    NamedTuple,
-    Union,
-    TypeVar,
-    Hashable,
-    Dict,
-    Optional,
-    Iterable,
-)
-
 from contextlib import closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
 from socketserver import TCPServer
 from threading import Thread
+from typing import (
+    Any,
+    Dict,
+    Hashable,
+    Iterable,
+    List,
+    NamedTuple,
+    Optional,
+    TypeVar,
+    Union,
+)
 
 T = TypeVar("T")
 
@@ -134,7 +133,7 @@ def hash_deterministic(s: str) -> str:
     """
     Returns a deterministic hash of the given string.
     """
-    return hashlib.sha1(s.encode('utf-8')).hexdigest()
+    return hashlib.sha1(s.encode("utf-8")).hexdigest()
 
 
 class _HttpServerInfo(NamedTuple):

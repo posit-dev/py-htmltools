@@ -3,7 +3,7 @@
 import json
 import os
 import re
-from typing import List, Dict
+from typing import Dict, List
 from urllib.request import urlopen
 
 from tag_template import tag_template

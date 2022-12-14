@@ -1,22 +1,22 @@
 # pyright: reportMissingTypeStubs=false
 import os
-import sys
 import shutil
+import sys
 import tempfile
-from pathlib import Path
-from copy import copy, deepcopy
 import urllib.parse
 import webbrowser
+from copy import copy, deepcopy
+from pathlib import Path
 from typing import (
+    Any,
+    Dict,
     Iterable,
+    List,
+    Mapping,
     Optional,
     Sequence,
-    Union,
-    List,
-    Dict,
-    Mapping,
-    Any,
     TypeVar,
+    Union,
     cast,
 )
 
@@ -29,7 +29,7 @@ else:
     from typing_extensions import NotRequired, TypedDict
 
 if sys.version_info >= (3, 8):
-    from typing import SupportsIndex, Protocol, runtime_checkable, Literal
+    from typing import Literal, Protocol, SupportsIndex, runtime_checkable
 else:
     from typing_extensions import (
         SupportsIndex,
@@ -40,14 +40,10 @@ else:
 
 from packaging.version import Version
 
-
-from ._util import (
-    ensure_http_server,
-    package_dir,  # type: ignore
-    html_escape,  # type: ignore
-    flatten,  # type: ignore
-    hash_deterministic,
-)
+from ._util import flatten  # type: ignore
+from ._util import html_escape  # type: ignore
+from ._util import package_dir  # type: ignore
+from ._util import ensure_http_server, hash_deterministic
 
 __all__ = (
     "TagList",

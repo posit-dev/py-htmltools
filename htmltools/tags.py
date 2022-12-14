@@ -5,9 +5,9 @@
 Functions for creating HTML tags.
 """
 
-from typing import Optional, List
+from typing import List, Optional
 
-from ._core import Tag, TagChildArg, TagAttrArg
+from ._core import Tag, TagAttrArg, TagChildArg
 
 __all__ = (
     "p",
@@ -2635,5 +2635,3 @@ def template(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     """
 
     return Tag("template", *args, children=children, **kwargs)
-
-

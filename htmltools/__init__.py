@@ -1,43 +1,42 @@
 __version__ = "0.1.2"
 
+from . import svg, tags
 from ._core import (
-    TagList,
-    Tag,
-    HTMLDocument,
     HTML,
-    MetadataNode,
     HTMLDependency,
+    HTMLDocument,
+    MetadataNode,
     RenderedHTML,
+    Tag,
     TagAttrArg,
-    TagChildArg,
     TagChild,
+    TagChildArg,
     TagFunction,
     Tagifiable,
+    TagList,
     head_content,
 )
-from ._jsx import jsx, jsx_tag_create, JSXTag, JSXTagAttrArg
+from ._jsx import JSXTag, JSXTagAttrArg, jsx, jsx_tag_create
 from ._util import css
 from .tags import (
-    p,
+    a,
+    br,
+    code,
+    div,
+    em,
     h1,
     h2,
     h3,
     h4,
     h5,
     h6,
-    a,
-    br,
-    div,
-    span,
-    pre,
-    code,
-    img,
-    strong,
-    em,
     hr,
+    img,
+    p,
+    pre,
+    span,
+    strong,
 )
-from . import tags
-from . import svg
 
 __all__ = (
     "TagList",
