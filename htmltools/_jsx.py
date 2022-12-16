@@ -5,31 +5,32 @@ that's an issue for HTML() and <script> tags, so using normal HTML tags inside J
 components may become unsupported in a future version (see #26 and #28)
 """
 
-from typing import (
-    Callable,
-    Iterable,
-    List,
-    Dict,
-    Mapping,
-    Union,
-    Optional,
-    Any,
-    cast,
-    Tuple,
-)
 import copy
 import re
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
 from ._core import (
-    TagList,
-    TagAttrArg,
+    HTML,
+    HTMLDependency,
+    MetadataNode,
+    ScriptItem,
     Tag,
+    TagAttrArg,
     TagChild,
     TagChildArg,
     Tagifiable,
-    HTML,
-    MetadataNode,
-    HTMLDependency,
+    TagList,
 )
 from ._versions import versions
 
@@ -274,9 +275,12 @@ def _serialize_attr(x: object) -> str:
     if isinstance(x, Tag) or isinstance(x, JSXTag):
         return _render_react_js(x, 0, "\n")
     if isinstance(x, (list, tuple)):
-        return "[" + ", ".join([_serialize_attr(y) for y in x]) + "]"
+        return (
+            "[" + ", ".join([_serialize_attr(y) for y in cast(Iterable[Any], x)]) + "]"
+        )
     if isinstance(x, dict):
-        return "{" + ", ".join([f'"{y}": ' + _serialize_attr(x[y]) for y in x]) + "}"
+        x1: dict[str, Any] = x  # make pyright happy
+        return "{" + ", ".join([f'"{y}": ' + _serialize_attr(x1[y]) for y in x1]) + "}"
     if isinstance(x, bool):
         return str(x).lower()
     if isinstance(x, (jsx, int, float)):
@@ -295,7 +299,7 @@ def _serialize_style_attr(x: object) -> str:
         )
         x = dict(x)
     if isinstance(x, dict):
-        return _serialize_attr(x)
+        return _serialize_attr(cast(Dict[str, Any], x))
     else:
         raise TypeError("The style attribute must be a dict() or string.")
 
@@ -381,9 +385,7 @@ class jsx(str):
         return jsx(res) if isinstance(other, jsx) else res
 
 
-def _lib_dependency(
-    pkg: str, script: Dict[str, str], **kwargs: object
-) -> HTMLDependency:
+def _lib_dependency(pkg: str, script: ScriptItem, **kwargs: object) -> HTMLDependency:
     return HTMLDependency(
         name=pkg,
         version=versions[pkg],

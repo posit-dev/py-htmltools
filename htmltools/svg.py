@@ -5,9 +5,9 @@
 Functions for creating SVG tags.
 """
 
-from typing import Optional, List
+from typing import List, Optional
 
-from ._core import Tag, TagChildArg, TagAttrArg
+from ._core import Tag, TagAttrArg, TagChildArg
 
 
 def a(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
@@ -1526,5 +1526,3 @@ def view(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     """
 
     return Tag("view", *args, children=children, **kwargs)
-
-

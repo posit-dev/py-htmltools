@@ -3,23 +3,22 @@ import importlib
 import os
 import re
 import tempfile
-from typing import (
-    Any,
-    List,
-    NamedTuple,
-    Union,
-    TypeVar,
-    Hashable,
-    Dict,
-    Optional,
-    Iterable,
-)
-
 from contextlib import closing
 from http.server import SimpleHTTPRequestHandler
 from socket import socket
 from socketserver import TCPServer
 from threading import Thread
+from typing import (
+    Any,
+    Dict,
+    Hashable,
+    Iterable,
+    List,
+    NamedTuple,
+    Optional,
+    TypeVar,
+    Union,
+)
 
 T = TypeVar("T")
 
@@ -72,7 +71,7 @@ def css(collapse_: str = "", **kwargs: Union[str, float, None]) -> Optional[str]
 
 
 # Flatten a arbitrarily nested list and remove None. Does not alter input object.
-def _flatten(x: Iterable[Union[T, None]]) -> List[T]:
+def flatten(x: Iterable[Union[T, None]]) -> List[T]:
     result: List[T] = []
     _flatten_recurse(x, result)  # type: ignore
     return result
@@ -112,7 +111,7 @@ HTML_ATTRS_ESCAPE_TABLE = {
 }
 
 
-def _html_escape(text: str, attr: bool = False) -> str:
+def html_escape(text: str, attr: bool = False) -> str:
     table = HTML_ATTRS_ESCAPE_TABLE if attr else HTML_ESCAPE_TABLE
     if not re.search("|".join(table), text):
         return text
@@ -121,10 +120,15 @@ def _html_escape(text: str, attr: bool = False) -> str:
     return text
 
 
+# Backwards compatibility with faicons 0.2.1
+_html_escape = html_escape
+
 # similar to base::system.file()
-def _package_dir(package: str) -> str:
+def package_dir(package: str) -> str:
     with tempfile.TemporaryDirectory():
         pkg_file = importlib.import_module(".", package=package).__file__
+        if pkg_file is None:
+            raise ImportError(f"Couldn't load package {package}")
         return os.path.dirname(pkg_file)
 
 
@@ -132,7 +136,7 @@ def hash_deterministic(s: str) -> str:
     """
     Returns a deterministic hash of the given string.
     """
-    return hashlib.sha1(s.encode('utf-8')).hexdigest()
+    return hashlib.sha1(s.encode("utf-8")).hexdigest()
 
 
 class _HttpServerInfo(NamedTuple):

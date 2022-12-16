@@ -1,21 +1,22 @@
+# pyright: reportMissingTypeStubs=false
 import os
-import sys
 import shutil
+import sys
 import tempfile
-from pathlib import Path
-from copy import copy, deepcopy
 import urllib.parse
 import webbrowser
+from copy import copy, deepcopy
+from pathlib import Path
 from typing import (
+    Any,
+    Dict,
     Iterable,
+    List,
+    Mapping,
     Optional,
     Sequence,
-    Union,
-    List,
-    Dict,
-    Mapping,
-    Any,
     TypeVar,
+    Union,
     cast,
 )
 
@@ -28,7 +29,7 @@ else:
     from typing_extensions import NotRequired, TypedDict
 
 if sys.version_info >= (3, 8):
-    from typing import SupportsIndex, Protocol, runtime_checkable, Literal
+    from typing import Literal, Protocol, SupportsIndex, runtime_checkable
 else:
     from typing_extensions import (
         SupportsIndex,
@@ -39,14 +40,10 @@ else:
 
 from packaging.version import Version
 
-
-from ._util import (
-    ensure_http_server,
-    _package_dir,  # type: ignore
-    _html_escape,  # type: ignore
-    _flatten,  # type: ignore
-    hash_deterministic,
-)
+from ._util import flatten  # type: ignore
+from ._util import html_escape  # type: ignore
+from ._util import package_dir  # type: ignore
+from ._util import ensure_http_server, hash_deterministic
 
 __all__ = (
     "TagList",
@@ -437,9 +434,9 @@ class Tag:
         # As a workaround for Python not allowing for numerous keyword
         # arguments of the same name, we treat any dictionaries that appear
         # within children as attributes (i.e., treat them like kwargs).
-        arguments = _flatten(args)
+        arguments = flatten(args)
         if children:
-            arguments.extend(_flatten(children))
+            arguments.extend(flatten(children))
 
         attrs = [x for x in arguments if isinstance(x, dict)]
         self.attrs = TagAttrs(*attrs, **kwargs)
@@ -547,7 +544,7 @@ class Tag:
         # Write attributes
         for key, val in self.attrs.items():
             if not isinstance(val, HTML):
-                val = _html_escape(val, attr=True)
+                val = html_escape(val, attr=True)
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output
@@ -887,7 +884,7 @@ class HTML(str):
 # HTML dependencies
 # =============================================================================
 class HTMLDependencySource(TypedDict):
-    package: NotRequired[str]
+    package: NotRequired[Optional[str]]
     subdir: str
 
 
@@ -1089,7 +1086,7 @@ class HTMLDependency(MetadataNode):
         if pkg is None:
             source = os.path.realpath(src["subdir"])
         else:
-            source = os.path.join(_package_dir(pkg), src["subdir"])
+            source = os.path.join(package_dir(pkg), src["subdir"])
 
         href = self.name
         if include_version:
@@ -1277,7 +1274,7 @@ def head_content(*args: TagChildArg) -> HTMLDependency:
 # Convert a list of TagChildArg objects to a list of TagChild objects. Does not alter
 # input object.
 def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
-    result = _flatten(x)
+    result = flatten(x)
     for i, child in enumerate(result):
         if isinstance(child, (int, float)):
             result[i] = str(child)
@@ -1300,7 +1297,7 @@ def _tag_show(
 ) -> object:
     if renderer == "auto":
         try:
-            import IPython
+            import IPython  # type: ignore
 
             ipy = IPython.get_ipython()  # type: ignore
             renderer = "ipython" if ipy else "browser"
@@ -1309,7 +1306,7 @@ def _tag_show(
 
     # TODO: can we get htmlDependencies working in IPython?
     if renderer == "ipython":
-        from IPython.core.display import display_html
+        from IPython.core.display import display_html  # type: ignore
 
         # https://github.com/ipython/ipython/pull/10962
         return display_html(
@@ -1334,7 +1331,7 @@ def _normalize_text(txt: str) -> str:
     if isinstance(txt, HTML):
         return txt
     else:
-        return _html_escape(txt, attr=False)
+        return html_escape(txt, attr=False)
 
 
 def _equals_impl(x: Any, y: Any) -> bool:

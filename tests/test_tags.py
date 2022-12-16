@@ -1,10 +1,15 @@
-import os
 import copy
-from tempfile import TemporaryDirectory
-from typing import Any, Union, Callable
+import os
 import textwrap
+from tempfile import TemporaryDirectory
+from typing import Any, Callable, Union, cast
 
 from htmltools import *
+
+
+def cast_tag(x: Any) -> Tag:
+    assert isinstance(x, Tag)
+    return x
 
 
 def expect_html(x: Any, expected: str):
@@ -103,11 +108,11 @@ def test_tag_shallow_copy():
     )
     x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
     y = copy.copy(x)
-    y.children[0].children[0] = "HELLO"
-    y.children[0].attrs["prop"] = "VALUE"
+    cast_tag(y.children[0]).children[0] = "HELLO"
+    cast_tag(y.children[0]).attrs["prop"] = "VALUE"
     y.children[1] = "WORLD"
     y.attrs["class"] = "MYCLASS"
-    y.children[2].name = "A"
+    cast(HTMLDependency, y.children[2]).name = "A"
 
     # With a shallow copy(), the .attrs and .children are shallow copies, but if a
     # child is modified in place, then the the original child is modified as well.
@@ -116,14 +121,14 @@ def test_tag_shallow_copy():
     assert x.children is not y.children
     # If a mutable child is modified in place, both x and y see the changes.
     assert x.children[0] is y.children[0]
-    assert x.children[0].children[0] == "HELLO"
+    assert cast_tag(x.children[0]).children[0] == "HELLO"
     # Immutable children can't be changed in place.
     assert x.children[1] is not y.children[1]
     assert x.children[1] == "world"
     assert x.children[1] is not y.children[1]
     # An HTMLDependency is mutable, so it is modified in place.
-    assert x.children[2].name == "A"
-    assert y.children[2].name == "A"
+    assert cast(HTMLDependency, x.children[2]).name == "A"
+    assert cast(HTMLDependency, y.children[2]).name == "A"
     assert x.children[2] is y.children[2]
 
 
@@ -136,22 +141,22 @@ def test_tagify_deep_copy():
     x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
 
     y = x.tagify()
-    y.children[0].children[0] = "HELLO"
-    y.children[0].attrs["prop"] = "VALUE"
+    cast_tag(y.children[0]).children[0] = "HELLO"
+    cast_tag(y.children[0]).attrs["prop"] = "VALUE"
     y.children[1] = "WORLD"
     y.attrs["class"] = "MYCLASS"
-    y.children[2].name = "A"
+    cast(HTMLDependency, y.children[2]).name = "A"
 
     assert x.attrs == {"class": "myclass"}
     assert y.attrs == {"class": "MYCLASS"}
-    assert x.children[0].attrs == {"prop": "value"}
-    assert y.children[0].attrs == {"prop": "VALUE"}
-    assert x.children[0].children[0] == "hello"
-    assert y.children[0].children[0] == "HELLO"
+    assert cast_tag(x.children[0]).attrs == {"prop": "value"}
+    assert cast_tag(y.children[0]).attrs == {"prop": "VALUE"}
+    assert cast_tag(x.children[0]).children[0] == "hello"
+    assert cast_tag(y.children[0]).children[0] == "HELLO"
     assert x.children[1] == "world"
     assert y.children[1] == "WORLD"
-    assert x.children[2].name == "a"
-    assert y.children[2].name == "A"
+    assert cast(HTMLDependency, x.children[2]).name == "a"
+    assert cast(HTMLDependency, y.children[2]).name == "A"
     assert x.children[2] is not y.children[2]
 
 
@@ -331,9 +336,9 @@ def test_tag_walk():
 
     assert x.attrs.get("a") == "foo"
     assert x.children[0] == "HELLO "
-    assert x.children[1].name == "b"
-    assert x.children[1].attrs.get("a") == "foo"
-    assert x.children[1].children[0] == "WORLD"
+    assert cast_tag(x.children[1]).name == "b"
+    assert cast_tag(x.children[1]).attrs.get("a") == "foo"
+    assert cast_tag(x.children[1]).children[0] == "WORLD"
 
 
 def test_taglist_flatten():
