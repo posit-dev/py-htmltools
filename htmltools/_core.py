@@ -1091,7 +1091,7 @@ class HTMLDependency(MetadataNode):
         href = self.name
         if include_version:
             href += "-" + str(self.version)
-        href = os.path.join(lib_prefix, href) if lib_prefix else href
+        href = lib_prefix + "/" + href if lib_prefix else href
         return {"source": source, "href": href}
 
     def as_html_tags(
