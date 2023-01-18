@@ -1122,7 +1122,7 @@ class HTMLDependency(MetadataNode):
             href = urllib.parse.quote(s["href"])
             s.update(
                 {
-                    "href": os.path.join(paths["href"], href),
+                    "href": paths["href"] + "/" + href,
                     "rel": "stylesheet",
                 }
             )
@@ -1130,7 +1130,7 @@ class HTMLDependency(MetadataNode):
         scripts = deepcopy(self.script)
         for s in scripts:
             src = urllib.parse.quote(s["src"])
-            s.update({"src": os.path.join(paths["href"], src)})
+            s.update({"src": paths["href"] + "/" + src})
 
         head: Optional[str]
         if self.head is None:
