@@ -1,5 +1,6 @@
 # pyright: reportMissingTypeStubs=false
 import os
+import posixpath
 import shutil
 import sys
 import tempfile
@@ -1091,7 +1092,8 @@ class HTMLDependency(MetadataNode):
         href = self.name
         if include_version:
             href += "-" + str(self.version)
-        href = os.path.join(lib_prefix, href) if lib_prefix else href
+        if lib_prefix:
+            href = posixpath.join(lib_prefix, href)
         return {"source": source, "href": href}
 
     def as_html_tags(
@@ -1122,7 +1124,7 @@ class HTMLDependency(MetadataNode):
             href = urllib.parse.quote(s["href"])
             s.update(
                 {
-                    "href": os.path.join(paths["href"], href),
+                    "href": posixpath.join(paths["href"], href),
                     "rel": "stylesheet",
                 }
             )
@@ -1130,7 +1132,7 @@ class HTMLDependency(MetadataNode):
         scripts = deepcopy(self.script)
         for s in scripts:
             src = urllib.parse.quote(s["src"])
-            s.update({"src": os.path.join(paths["href"], src)})
+            s.update({"src": posixpath.join(paths["href"], src)})
 
         head: Optional[str]
         if self.head is None:
