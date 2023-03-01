@@ -1,4 +1,5 @@
 {
+    "ignore": ["build"],
     "typeCheckingMode": "basic",
     "strict": [
         "htmltools/",

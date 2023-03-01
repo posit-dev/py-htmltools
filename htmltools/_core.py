@@ -1,4 +1,7 @@
 # pyright: reportMissingTypeStubs=false
+
+from __future__ import annotations
+
 import os
 import posixpath
 import shutil
@@ -41,10 +44,13 @@ else:
 
 from packaging.version import Version
 
-from ._util import flatten  # type: ignore
-from ._util import html_escape  # type: ignore
-from ._util import package_dir  # type: ignore
-from ._util import ensure_http_server, hash_deterministic
+from ._util import (
+    ensure_http_server,
+    flatten,
+    hash_deterministic,
+    html_escape,
+    package_dir,
+)
 
 __all__ = (
     "TagList",
@@ -64,7 +70,7 @@ __all__ = (
 
 
 class RenderedHTML(TypedDict):
-    dependencies: List["HTMLDependency"]
+    dependencies: list["HTMLDependency"]
     html: str
 
 
@@ -95,7 +101,7 @@ TagChildArg = Union[
     "TagList",
     float,
     None,
-    Dict[str, TagAttrArg],  # i.e., tag attrbutes (e.g., {"id": "foo"})
+    "dict[str, TagAttrArg]",  # i.e., tag attrbutes (e.g., {"id": "foo"})
     Sequence["TagChildArg"],
 ]
 
@@ -104,7 +110,7 @@ TagChildArg = Union[
 # TagList, the children of the TagList must also be tagified.
 @runtime_checkable
 class Tagifiable(Protocol):
-    def tagify(self) -> Union["TagList", "Tag", MetadataNode, str]:
+    def tagify(self) -> "TagList | Tag | MetadataNode | str":
         ...
 
 
@@ -114,7 +120,7 @@ class TagFunction(Protocol):
     def __call__(
         self,
         *args: TagChildArg,
-        children: Optional[List[TagChildArg]] = None,
+        children: Optional[list[TagChildArg]] = None,
         **kwargs: TagAttrArg,
     ) -> "Tag":
         ...
@@ -150,7 +156,7 @@ class TagList(List[TagChild]):
 
         super().extend(_tagchildargs_to_tagchilds(x))
 
-    def append(self, *args: TagChildArg) -> None:  # type: ignore
+    def append(self, *args: TagChildArg) -> None:
         """
         Append tag children to the end of the list.
         """
@@ -263,7 +269,7 @@ class TagList(List[TagChild]):
                 line_prefix = eol
         return HTML(html_)
 
-    def get_dependencies(self, *, dedup: bool = True) -> List["HTMLDependency"]:
+    def get_dependencies(self, *, dedup: bool = True) -> list["HTMLDependency"]:
         """
         Get any dependencies needed to render the HTML.
 
@@ -273,7 +279,7 @@ class TagList(List[TagChild]):
             Whether to deduplicate the dependencies.
         """
 
-        deps: List[HTMLDependency] = []
+        deps: list[HTMLDependency] = []
         for x in self:
             if isinstance(x, HTMLDependency):
                 deps.append(x)
@@ -336,15 +342,11 @@ class TagAttrs(Dict[str, str]):
             nm = self._normalize_attr_name(name)
             super().__setitem__(nm, val)
 
-    # Note: typing is ignored because the type checker thinks this is an incompatible
-    # override. It's possible that we could find a way to override so that it's happy.
-    def update(  # type: ignore
-        self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg
-    ) -> None:
+    def update(self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg) -> None:
         if kwargs:
             args = args + (kwargs,)
 
-        attrz: Dict[str, Union[str, HTML]] = {}
+        attrz: dict[str, str | HTML] = {}
         for arg in args:
             for k, v in arg.items():
                 val = self._normalize_attr_value(v)
@@ -427,7 +429,7 @@ class Tag:
         self,
         _name: str,
         *args: TagChildArg,
-        children: Optional[List[TagChildArg]] = None,
+        children: Optional[list[TagChildArg]] = None,
         **kwargs: TagAttrArg,
     ) -> None:
         self.name = _name
@@ -608,7 +610,7 @@ class Tag:
             file, libdir=libdir, include_version=include_version
         )
 
-    def get_dependencies(self, dedup: bool = True) -> List["HTMLDependency"]:
+    def get_dependencies(self, dedup: bool = True) -> list["HTMLDependency"]:
         """
         Get any HTML dependencies.
         """
@@ -660,6 +662,7 @@ _VOID_TAG_NAMES = {
 
 _NO_ESCAPE_TAG_NAMES = {"script", "style"}
 
+
 # =============================================================================
 # HTMLDocument class
 # =============================================================================
@@ -686,7 +689,7 @@ class HTMLDocument:
         **kwargs: TagAttrArg,
     ) -> None:
         self._content: TagList = TagList(*args)
-        self._html_attr_args: Dict[str, TagAttrArg] = kwargs
+        self._html_attr_args: dict[str, TagAttrArg] = kwargs
 
     def __copy__(self) -> "HTMLDocument":
         cls = self.__class__
@@ -867,7 +870,7 @@ class HTML(str):
         return self.as_string()
 
     # HTML() + HTML() should return HTML()
-    def __add__(self, other: Union[str, "HTML"]) -> str:
+    def __add__(self, other: "str| HTML") -> str:
         res = str.__add__(self, other)
         return HTML(res) if isinstance(other, HTML) else res
 
@@ -1019,22 +1022,22 @@ class HTMLDependency(MetadataNode):
     name: str
     version: Version
     source: Optional[HTMLDependencySource]
-    script: List[ScriptItem]
-    stylesheet: List[StylesheetItem]
-    meta: List[MetaItem]
+    script: list[ScriptItem]
+    stylesheet: list[StylesheetItem]
+    meta: list[MetaItem]
     all_files: bool
     head: Optional[TagList]
 
     def __init__(
         self,
         name: str,
-        version: Union[str, Version],
+        version: str | Version,
         *,
         source: Optional[HTMLDependencySource] = None,
-        script: Union[ScriptItem, List[ScriptItem]] = [],
-        stylesheet: Union[StylesheetItem, List[StylesheetItem]] = [],
+        script: ScriptItem | list[ScriptItem] = [],
+        stylesheet: StylesheetItem | list[StylesheetItem] = [],
         all_files: bool = False,
-        meta: Union[MetaItem, List[MetaItem]] = [],
+        meta: MetaItem | list[MetaItem] = [],
         head: TagChildArg = None,
     ) -> None:
         self.name = name
@@ -1110,7 +1113,7 @@ class HTMLDependency(MetadataNode):
 
     def as_dict(
         self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Returns a dict of the dependency's attributes.
         """
@@ -1190,11 +1193,11 @@ class HTMLDependency(MetadataNode):
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
             shutil.copy2(src_file, target_file)
 
-    def _validate_dicts(self, ld: Iterable[object], req_attr: List[str] = []) -> None:
+    def _validate_dicts(self, ld: Iterable[object], req_attr: list[str] = []) -> None:
         for d in ld:
             self._validate_dict(d, req_attr)
 
-    def _validate_dict(self, d: object, req_attr: List[str] = []) -> None:
+    def _validate_dict(self, d: object, req_attr: list[str] = []) -> None:
         if not isinstance(d, dict):
             raise TypeError(
                 f"Expected dict, got {type(d)} for {d} in HTMLDependency "
@@ -1217,8 +1220,8 @@ class HTMLDependency(MetadataNode):
         return _equals_impl(self, other)
 
 
-def _resolve_dependencies(deps: List[HTMLDependency]) -> List[HTMLDependency]:
-    map: Dict[str, HTMLDependency] = {}
+def _resolve_dependencies(deps: list[HTMLDependency]) -> list[HTMLDependency]:
+    map: dict[str, HTMLDependency] = {}
     for dep in deps:
         if dep.name not in map:
             map[dep.name] = dep
@@ -1273,9 +1276,10 @@ def head_content(*args: TagChildArg) -> HTMLDependency:
 # Utility functions
 # =============================================================================
 
+
 # Convert a list of TagChildArg objects to a list of TagChild objects. Does not alter
 # input object.
-def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
+def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> list[TagChild]:
     result = flatten(x)
     for i, child in enumerate(result):
         if isinstance(child, (int, float)):
@@ -1290,30 +1294,34 @@ def _tagchildargs_to_tagchilds(x: Iterable[TagChildArg]) -> List[TagChild]:
     # objects, because None, int, float, and TagList objects have been removed. (Note
     # that the TagList objects that have been flattened are TagList which are NOT
     # tags.)
-    return cast(List[TagChild], result)
+    return cast("list[TagChild]", result)
 
 
 def _tag_show(
-    self: Union[TagList, "Tag"],
+    self: "TagList | Tag",
     renderer: Literal["auto", "ipython", "browser"] = "auto",
 ) -> object:
     if renderer == "auto":
         try:
-            import IPython  # type: ignore
+            import IPython  # pyright: ignore[reportUnknownVariableType]
 
-            ipy = IPython.get_ipython()  # type: ignore
+            ipy = (  # pyright: ignore[reportUnknownVariableType]
+                IPython.get_ipython()  # pyright: ignore[reportUnknownMemberType]
+            )
             renderer = "ipython" if ipy else "browser"
         except ImportError:
             renderer = "browser"
 
     # TODO: can we get htmlDependencies working in IPython?
     if renderer == "ipython":
-        from IPython.core.display import display_html  # type: ignore
+        from IPython.core.display import (
+            display_html,  # pyright: ignore[reportUnknownVariableType]
+        )
 
         # https://github.com/ipython/ipython/pull/10962
-        return display_html(
+        return display_html(  # pyright: ignore[reportUnknownVariableType]
             str(self), raw=True, metadata={"text/html": {"isolated": True}}
-        )  # type: ignore
+        )
 
     if renderer == "browser":
         tmpdir = tempfile.gettempdir()

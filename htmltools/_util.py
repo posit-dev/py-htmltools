@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hashlib
 import importlib
 import os
@@ -8,17 +10,7 @@ from http.server import SimpleHTTPRequestHandler
 from socket import socket
 from socketserver import TCPServer
 from threading import Thread
-from typing import (
-    Any,
-    Dict,
-    Hashable,
-    Iterable,
-    List,
-    NamedTuple,
-    Optional,
-    TypeVar,
-    Union,
-)
+from typing import Any, Hashable, Iterable, NamedTuple, Optional, TypeVar, Union
 
 T = TypeVar("T")
 
@@ -27,7 +19,7 @@ HashableT = TypeVar("HashableT", bound=Hashable)
 __all__ = ("css",)
 
 
-def css(collapse_: str = "", **kwargs: Union[str, float, None]) -> Optional[str]:
+def css(collapse_: str = "", **kwargs: str | float | None) -> Optional[str]:
     """
     CSS string helper
 
@@ -71,26 +63,26 @@ def css(collapse_: str = "", **kwargs: Union[str, float, None]) -> Optional[str]
 
 
 # Flatten a arbitrarily nested list and remove None. Does not alter input object.
-def flatten(x: Iterable[Union[T, None]]) -> List[T]:
-    result: List[T] = []
-    _flatten_recurse(x, result)  # type: ignore
+def flatten(x: Iterable[Union[T, None]]) -> list[T]:
+    result: list[T] = []
+    _flatten_recurse(x, result)
     return result
 
 
 # Having this separate function and passing along `result` is faster than defining
 # a closure inside of `flatten()` (and not passing `result`).
-def _flatten_recurse(x: Iterable[Union[T, None]], result: List[T]) -> None:
+def _flatten_recurse(x: Iterable[T | None], result: list[T]) -> None:
     for item in x:
         if isinstance(item, (list, tuple)):
             # Don't yet know how to specify recursive generic types, so we'll tell
             # the type checker to ignore this line.
-            _flatten_recurse(item, result)  # type: ignore
+            _flatten_recurse(item, result)  # pyright: ignore[reportUnknownArgumentType]
         elif item is not None:
             result.append(item)
 
 
 # similar to unique() in R (set() doesn't preserve order)
-def unique(x: List[HashableT]) -> List[HashableT]:
+def unique(x: list[HashableT]) -> list[HashableT]:
     # This implementation requires Python 3.7+. Starting with that version, dict
     # order is guaranteed to be the same as insertion order.
     return list(dict.fromkeys(x))
@@ -123,6 +115,7 @@ def html_escape(text: str, attr: bool = False) -> str:
 # Backwards compatibility with faicons 0.2.1
 _html_escape = html_escape
 
+
 # similar to base::system.file()
 def package_dir(package: str) -> str:
     with tempfile.TemporaryDirectory():
@@ -144,7 +137,7 @@ class _HttpServerInfo(NamedTuple):
     thread: Thread
 
 
-_http_servers: Dict[str, _HttpServerInfo] = {}
+_http_servers: dict[str, _HttpServerInfo] = {}
 
 
 def ensure_http_server(path: str) -> int:
@@ -168,7 +161,9 @@ def http_server(port: int, path: str):
         def __init__(self, *args: Any, **kwargs: Any):
             super().__init__(*args, directory=path, **kwargs)
 
-        def log_message(self, format, *args):  # type: ignore
+        def log_message(
+            self, format, *args  # pyright: ignore[reportMissingParameterType]
+        ):
             pass
 
     with TCPServer(("", port), Handler) as httpd:

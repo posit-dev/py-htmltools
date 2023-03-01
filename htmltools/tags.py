@@ -5,7 +5,9 @@
 Functions for creating HTML tags.
 """
 
-from typing import List, Optional
+from __future__ import annotations
+
+from typing import Optional
 
 from ._core import Tag, TagAttrArg, TagChildArg
 
@@ -29,7 +31,8 @@ __all__ = (
     "hr",
 )
 
-def html(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+
+def html(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <html> tag.
 
@@ -52,7 +55,7 @@ def html(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("html", *args, children=children, **kwargs)
 
 
-def base(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def base(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <base> tag.
 
@@ -75,7 +78,7 @@ def base(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("base", *args, children=children, **kwargs)
 
 
-def head(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def head(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <head> tag.
 
@@ -98,7 +101,7 @@ def head(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("head", *args, children=children, **kwargs)
 
 
-def link(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def link(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <link> tag.
 
@@ -122,7 +125,7 @@ def link(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("link", *args, children=children, **kwargs)
 
 
-def meta(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def meta(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <meta> tag.
 
@@ -145,7 +148,7 @@ def meta(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("meta", *args, children=children, **kwargs)
 
 
-def style(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def style(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <style> tag.
 
@@ -168,7 +171,7 @@ def style(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("style", *args, children=children, **kwargs)
 
 
-def title(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def title(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <title> tag.
 
@@ -191,7 +194,7 @@ def title(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("title", *args, children=children, **kwargs)
 
 
-def body(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def body(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <body> tag.
 
@@ -214,7 +217,7 @@ def body(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("body", *args, children=children, **kwargs)
 
 
-def address(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def address(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <address> tag.
 
@@ -237,7 +240,7 @@ def address(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("address", *args, children=children, **kwargs)
 
 
-def article(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def article(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <article> tag.
 
@@ -260,7 +263,7 @@ def article(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("article", *args, children=children, **kwargs)
 
 
-def aside(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def aside(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <aside> tag.
 
@@ -283,7 +286,7 @@ def aside(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("aside", *args, children=children, **kwargs)
 
 
-def footer(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def footer(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <footer> tag.
 
@@ -306,7 +309,7 @@ def footer(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("footer", *args, children=children, **kwargs)
 
 
-def header(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def header(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <header> tag.
 
@@ -329,7 +332,7 @@ def header(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("header", *args, children=children, **kwargs)
 
 
-def h1(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def h1(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <h1> tag.
 
@@ -352,7 +355,7 @@ def h1(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("h1", *args, children=children, **kwargs)
 
 
-def h2(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def h2(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <h2> tag.
 
@@ -375,7 +378,7 @@ def h2(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("h2", *args, children=children, **kwargs)
 
 
-def h3(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def h3(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <h3> tag.
 
@@ -398,7 +401,7 @@ def h3(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("h3", *args, children=children, **kwargs)
 
 
-def h4(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def h4(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <h4> tag.
 
@@ -421,7 +424,7 @@ def h4(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("h4", *args, children=children, **kwargs)
 
 
-def h5(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def h5(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <h5> tag.
 
@@ -444,7 +447,7 @@ def h5(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("h5", *args, children=children, **kwargs)
 
 
-def h6(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def h6(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <h6> tag.
 
@@ -467,7 +470,7 @@ def h6(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("h6", *args, children=children, **kwargs)
 
 
-def main(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def main(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <main> tag.
 
@@ -490,7 +493,7 @@ def main(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("main", *args, children=children, **kwargs)
 
 
-def nav(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def nav(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <nav> tag.
 
@@ -513,7 +516,7 @@ def nav(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("nav", *args, children=children, **kwargs)
 
 
-def section(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def section(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <section> tag.
 
@@ -536,7 +539,7 @@ def section(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("section", *args, children=children, **kwargs)
 
 
-def blockquote(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def blockquote(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <blockquote> tag.
 
@@ -559,7 +562,7 @@ def blockquote(*args: TagChildArg, children: Optional[List[TagChildArg]] = None,
     return Tag("blockquote", *args, children=children, **kwargs)
 
 
-def dd(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def dd(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <dd> tag.
 
@@ -582,7 +585,7 @@ def dd(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("dd", *args, children=children, **kwargs)
 
 
-def div(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def div(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <div> tag.
 
@@ -605,7 +608,7 @@ def div(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("div", *args, children=children, **kwargs)
 
 
-def dl(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def dl(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <dl> tag.
 
@@ -628,7 +631,7 @@ def dl(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("dl", *args, children=children, **kwargs)
 
 
-def dt(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def dt(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <dt> tag.
 
@@ -651,7 +654,7 @@ def dt(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("dt", *args, children=children, **kwargs)
 
 
-def figcaption(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def figcaption(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <figcaption> tag.
 
@@ -674,7 +677,7 @@ def figcaption(*args: TagChildArg, children: Optional[List[TagChildArg]] = None,
     return Tag("figcaption", *args, children=children, **kwargs)
 
 
-def figure(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def figure(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <figure> tag.
 
@@ -697,7 +700,7 @@ def figure(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("figure", *args, children=children, **kwargs)
 
 
-def hr(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def hr(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <hr> tag.
 
@@ -720,7 +723,7 @@ def hr(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("hr", *args, children=children, **kwargs)
 
 
-def li(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def li(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <li> tag.
 
@@ -743,7 +746,7 @@ def li(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("li", *args, children=children, **kwargs)
 
 
-def menu(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def menu(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <menu> tag.
 
@@ -766,7 +769,7 @@ def menu(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("menu", *args, children=children, **kwargs)
 
 
-def ol(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def ol(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <ol> tag.
 
@@ -789,7 +792,7 @@ def ol(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("ol", *args, children=children, **kwargs)
 
 
-def p(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def p(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <p> tag.
 
@@ -812,7 +815,7 @@ def p(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs
     return Tag("p", *args, children=children, **kwargs)
 
 
-def pre(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def pre(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <pre> tag.
 
@@ -835,7 +838,7 @@ def pre(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("pre", *args, children=children, **kwargs)
 
 
-def ul(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def ul(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <ul> tag.
 
@@ -858,7 +861,7 @@ def ul(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("ul", *args, children=children, **kwargs)
 
 
-def a(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def a(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <a> tag.
 
@@ -881,7 +884,7 @@ def a(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs
     return Tag("a", *args, children=children, **kwargs)
 
 
-def abbr(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def abbr(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <abbr> tag.
 
@@ -904,7 +907,7 @@ def abbr(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("abbr", *args, children=children, **kwargs)
 
 
-def b(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def b(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <b> tag.
 
@@ -927,7 +930,7 @@ def b(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs
     return Tag("b", *args, children=children, **kwargs)
 
 
-def bdi(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def bdi(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <bdi> tag.
 
@@ -950,7 +953,7 @@ def bdi(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("bdi", *args, children=children, **kwargs)
 
 
-def bdo(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def bdo(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <bdo> tag.
 
@@ -973,7 +976,7 @@ def bdo(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("bdo", *args, children=children, **kwargs)
 
 
-def br(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def br(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <br> tag.
 
@@ -996,7 +999,7 @@ def br(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("br", *args, children=children, **kwargs)
 
 
-def cite(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def cite(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <cite> tag.
 
@@ -1019,7 +1022,7 @@ def cite(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("cite", *args, children=children, **kwargs)
 
 
-def code(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def code(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <code> tag.
 
@@ -1042,7 +1045,7 @@ def code(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("code", *args, children=children, **kwargs)
 
 
-def data(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def data(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <data> tag.
 
@@ -1065,7 +1068,7 @@ def data(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("data", *args, children=children, **kwargs)
 
 
-def dfn(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def dfn(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <dfn> tag.
 
@@ -1088,7 +1091,7 @@ def dfn(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("dfn", *args, children=children, **kwargs)
 
 
-def em(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def em(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <em> tag.
 
@@ -1111,7 +1114,7 @@ def em(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("em", *args, children=children, **kwargs)
 
 
-def i(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def i(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <i> tag.
 
@@ -1134,7 +1137,7 @@ def i(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs
     return Tag("i", *args, children=children, **kwargs)
 
 
-def kbd(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def kbd(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <kbd> tag.
 
@@ -1157,7 +1160,7 @@ def kbd(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("kbd", *args, children=children, **kwargs)
 
 
-def mark(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def mark(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <mark> tag.
 
@@ -1180,7 +1183,7 @@ def mark(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("mark", *args, children=children, **kwargs)
 
 
-def q(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def q(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <q> tag.
 
@@ -1203,7 +1206,7 @@ def q(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs
     return Tag("q", *args, children=children, **kwargs)
 
 
-def rp(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def rp(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <rp> tag.
 
@@ -1226,7 +1229,7 @@ def rp(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("rp", *args, children=children, **kwargs)
 
 
-def rt(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def rt(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <rt> tag.
 
@@ -1249,7 +1252,7 @@ def rt(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("rt", *args, children=children, **kwargs)
 
 
-def ruby(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def ruby(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <ruby> tag.
 
@@ -1272,7 +1275,7 @@ def ruby(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("ruby", *args, children=children, **kwargs)
 
 
-def s(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def s(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <s> tag.
 
@@ -1295,7 +1298,7 @@ def s(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs
     return Tag("s", *args, children=children, **kwargs)
 
 
-def samp(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def samp(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <samp> tag.
 
@@ -1318,7 +1321,7 @@ def samp(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("samp", *args, children=children, **kwargs)
 
 
-def small(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def small(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <small> tag.
 
@@ -1341,7 +1344,7 @@ def small(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("small", *args, children=children, **kwargs)
 
 
-def span(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def span(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <span> tag.
 
@@ -1364,7 +1367,7 @@ def span(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("span", *args, children=children, **kwargs)
 
 
-def strong(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def strong(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <strong> tag.
 
@@ -1387,7 +1390,7 @@ def strong(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("strong", *args, children=children, **kwargs)
 
 
-def sub(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def sub(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <sub> tag.
 
@@ -1410,7 +1413,7 @@ def sub(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("sub", *args, children=children, **kwargs)
 
 
-def sup(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def sup(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <sup> tag.
 
@@ -1433,7 +1436,7 @@ def sup(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("sup", *args, children=children, **kwargs)
 
 
-def time(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def time(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <time> tag.
 
@@ -1456,7 +1459,7 @@ def time(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("time", *args, children=children, **kwargs)
 
 
-def u(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def u(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <u> tag.
 
@@ -1479,7 +1482,7 @@ def u(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs
     return Tag("u", *args, children=children, **kwargs)
 
 
-def var(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def var(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <var> tag.
 
@@ -1502,7 +1505,7 @@ def var(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("var", *args, children=children, **kwargs)
 
 
-def wbr(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def wbr(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <wbr> tag.
 
@@ -1525,7 +1528,7 @@ def wbr(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("wbr", *args, children=children, **kwargs)
 
 
-def area(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def area(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <area> tag.
 
@@ -1548,7 +1551,7 @@ def area(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("area", *args, children=children, **kwargs)
 
 
-def audio(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def audio(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <audio> tag.
 
@@ -1571,7 +1574,7 @@ def audio(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("audio", *args, children=children, **kwargs)
 
 
-def img(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def img(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <img> tag.
 
@@ -1594,7 +1597,7 @@ def img(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("img", *args, children=children, **kwargs)
 
 
-def map(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def map(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <map> tag.
 
@@ -1617,7 +1620,7 @@ def map(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("map", *args, children=children, **kwargs)
 
 
-def track(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def track(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <track> tag.
 
@@ -1640,7 +1643,7 @@ def track(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("track", *args, children=children, **kwargs)
 
 
-def video(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def video(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <video> tag.
 
@@ -1663,7 +1666,7 @@ def video(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("video", *args, children=children, **kwargs)
 
 
-def embed(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def embed(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <embed> tag.
 
@@ -1686,7 +1689,7 @@ def embed(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("embed", *args, children=children, **kwargs)
 
 
-def iframe(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def iframe(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <iframe> tag.
 
@@ -1709,7 +1712,7 @@ def iframe(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("iframe", *args, children=children, **kwargs)
 
 
-def object(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def object(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <object> tag.
 
@@ -1732,7 +1735,7 @@ def object(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("object", *args, children=children, **kwargs)
 
 
-def param(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def param(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <param> tag.
 
@@ -1755,7 +1758,7 @@ def param(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("param", *args, children=children, **kwargs)
 
 
-def picture(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def picture(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <picture> tag.
 
@@ -1778,7 +1781,7 @@ def picture(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("picture", *args, children=children, **kwargs)
 
 
-def portal(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def portal(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <portal> tag.
 
@@ -1801,7 +1804,7 @@ def portal(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("portal", *args, children=children, **kwargs)
 
 
-def source(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def source(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <source> tag.
 
@@ -1824,7 +1827,7 @@ def source(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("source", *args, children=children, **kwargs)
 
 
-def svg(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def svg(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <svg> tag.
 
@@ -1851,7 +1854,7 @@ def svg(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("svg", *args, children=children, **kwargs)
 
 
-def math(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def math(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <math> tag.
 
@@ -1878,7 +1881,7 @@ def math(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("math", *args, children=children, **kwargs)
 
 
-def canvas(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def canvas(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <canvas> tag.
 
@@ -1901,7 +1904,7 @@ def canvas(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("canvas", *args, children=children, **kwargs)
 
 
-def noscript(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def noscript(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <noscript> tag.
 
@@ -1924,7 +1927,7 @@ def noscript(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("noscript", *args, children=children, **kwargs)
 
 
-def script(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def script(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <script> tag.
 
@@ -1947,7 +1950,7 @@ def script(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("script", *args, children=children, **kwargs)
 
 
-def ins(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def ins(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <ins> tag.
 
@@ -1970,7 +1973,7 @@ def ins(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("ins", *args, children=children, **kwargs)
 
 
-def caption(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def caption(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <caption> tag.
 
@@ -1993,7 +1996,7 @@ def caption(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("caption", *args, children=children, **kwargs)
 
 
-def col(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def col(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <col> tag.
 
@@ -2016,7 +2019,7 @@ def col(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("col", *args, children=children, **kwargs)
 
 
-def colgroup(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def colgroup(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <colgroup> tag.
 
@@ -2039,7 +2042,7 @@ def colgroup(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("colgroup", *args, children=children, **kwargs)
 
 
-def table(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def table(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <table> tag.
 
@@ -2062,7 +2065,7 @@ def table(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("table", *args, children=children, **kwargs)
 
 
-def tbody(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def tbody(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <tbody> tag.
 
@@ -2085,7 +2088,7 @@ def tbody(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("tbody", *args, children=children, **kwargs)
 
 
-def td(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def td(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <td> tag.
 
@@ -2108,7 +2111,7 @@ def td(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("td", *args, children=children, **kwargs)
 
 
-def tfoot(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def tfoot(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <tfoot> tag.
 
@@ -2131,7 +2134,7 @@ def tfoot(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("tfoot", *args, children=children, **kwargs)
 
 
-def th(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def th(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <th> tag.
 
@@ -2154,7 +2157,7 @@ def th(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("th", *args, children=children, **kwargs)
 
 
-def thead(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def thead(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <thead> tag.
 
@@ -2177,7 +2180,7 @@ def thead(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("thead", *args, children=children, **kwargs)
 
 
-def tr(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def tr(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <tr> tag.
 
@@ -2200,7 +2203,7 @@ def tr(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwarg
     return Tag("tr", *args, children=children, **kwargs)
 
 
-def button(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def button(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <button> tag.
 
@@ -2223,7 +2226,7 @@ def button(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("button", *args, children=children, **kwargs)
 
 
-def datalist(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def datalist(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <datalist> tag.
 
@@ -2246,7 +2249,7 @@ def datalist(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("datalist", *args, children=children, **kwargs)
 
 
-def fieldset(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def fieldset(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <fieldset> tag.
 
@@ -2269,7 +2272,7 @@ def fieldset(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("fieldset", *args, children=children, **kwargs)
 
 
-def form(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def form(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <form> tag.
 
@@ -2292,7 +2295,7 @@ def form(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("form", *args, children=children, **kwargs)
 
 
-def input(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def input(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <input> tag.
 
@@ -2315,7 +2318,7 @@ def input(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("input", *args, children=children, **kwargs)
 
 
-def label(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def label(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <label> tag.
 
@@ -2338,7 +2341,7 @@ def label(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("label", *args, children=children, **kwargs)
 
 
-def legend(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def legend(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <legend> tag.
 
@@ -2361,7 +2364,7 @@ def legend(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("legend", *args, children=children, **kwargs)
 
 
-def meter(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def meter(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <meter> tag.
 
@@ -2384,7 +2387,7 @@ def meter(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("meter", *args, children=children, **kwargs)
 
 
-def optgroup(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def optgroup(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <optgroup> tag.
 
@@ -2407,7 +2410,7 @@ def optgroup(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("optgroup", *args, children=children, **kwargs)
 
 
-def option(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def option(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <option> tag.
 
@@ -2430,7 +2433,7 @@ def option(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("option", *args, children=children, **kwargs)
 
 
-def output(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def output(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <output> tag.
 
@@ -2453,7 +2456,7 @@ def output(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("output", *args, children=children, **kwargs)
 
 
-def progress(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def progress(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <progress> tag.
 
@@ -2476,7 +2479,7 @@ def progress(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("progress", *args, children=children, **kwargs)
 
 
-def select(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def select(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <select> tag.
 
@@ -2499,7 +2502,7 @@ def select(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("select", *args, children=children, **kwargs)
 
 
-def textarea(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def textarea(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <textarea> tag.
 
@@ -2522,7 +2525,7 @@ def textarea(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("textarea", *args, children=children, **kwargs)
 
 
-def details(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def details(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <details> tag.
 
@@ -2545,7 +2548,7 @@ def details(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("details", *args, children=children, **kwargs)
 
 
-def dialog(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def dialog(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <dialog> tag.
 
@@ -2568,7 +2571,7 @@ def dialog(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("dialog", *args, children=children, **kwargs)
 
 
-def summary(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def summary(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <summary> tag.
 
@@ -2591,7 +2594,7 @@ def summary(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("summary", *args, children=children, **kwargs)
 
 
-def slot(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def slot(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <slot> tag.
 
@@ -2614,7 +2617,7 @@ def slot(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("slot", *args, children=children, **kwargs)
 
 
-def template(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def template(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <template> tag.
 

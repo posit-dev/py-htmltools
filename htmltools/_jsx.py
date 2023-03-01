@@ -4,21 +4,11 @@ components. Although JSXTag currently allows for HTML tags on attributes and chi
 that's an issue for HTML() and <script> tags, so using normal HTML tags inside JSX
 components may become unsupported in a future version (see #26 and #28)
 """
+from __future__ import annotations
 
 import copy
 import re
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Dict, Iterable, Mapping, Optional, cast
 
 from ._core import (
     HTML,
@@ -57,16 +47,12 @@ class JSXTagAttrs(Dict[str, object]):
         nm = self._normalize_attr_name(name)
         super().__setitem__(nm, value)
 
-    # Note: typing is ignored because the type checker thinks this is an incompatible
-    # override. It's possible that we could find a way to override so that it's happy.
-    def update(  # type: ignore
-        self, __m: Mapping[str, object] = {}, **kwargs: object
-    ) -> None:
+    def update(self, __m: Mapping[str, object] = {}, **kwargs: object) -> None:
         self._update(__m)
         self._update(kwargs)
 
     def _update(self, __m: Mapping[str, object]) -> None:
-        attrs: Dict[str, object] = {}
+        attrs: dict[str, object] = {}
         for key, val in __m.items():
             attrs[self._normalize_attr_name(key)] = val
         super().update(**attrs)
@@ -96,11 +82,10 @@ class JSXTag:
         self,
         _name: str,
         *args: TagChildArg,
-        allowedProps: Optional[List[str]] = None,
-        children: Optional[List[TagChildArg]] = None,
+        allowedProps: Optional[list[str]] = None,
+        children: Optional[list[TagChildArg]] = None,
         **kwargs: object,
     ) -> None:
-
         pieces = _name.split(".")
         if pieces[-1][:1] != pieces[-1][:1].upper():
             raise NotImplementedError("JSX tags must be start with a capital letter.")
@@ -126,7 +111,7 @@ class JSXTag:
         self.children.append(*args)
 
     def tagify(self) -> Tag:
-        metadata_nodes: List[MetadataNode] = []
+        metadata_nodes: list[MetadataNode] = []
 
         # This function is recursively applied to the attributes and children. It does
         # two things: For attrs/children that are Tagifiable but NOT Tags or JSXTags, it
@@ -294,7 +279,7 @@ def _serialize_style_attr(x: object) -> str:
     # Parse CSS strings into a dict (because React requires it)
     if isinstance(x, str):
         x = cast(
-            List[Tuple[str, str]],
+            "list[tuple[str, str]]",
             [tuple(y.split(":")) for y in x.split(";") if re.search(":", y)],
         )
         x = dict(x)
@@ -305,7 +290,7 @@ def _serialize_style_attr(x: object) -> str:
 
 
 def jsx_tag_create(
-    name: str, allowedProps: Optional[List[str]] = None
+    name: str, allowedProps: Optional[list[str]] = None
 ) -> Callable[..., JSXTag]:
     """
     Create a function that creates a JSXTag object.
@@ -341,7 +326,7 @@ def jsx_tag_create(
 
     def create_tag(
         *args: TagChildArg,
-        children: Optional[List[TagChildArg]] = None,
+        children: Optional[list[TagChildArg]] = None,
         **kwargs: TagAttrArg,
     ) -> JSXTag:
         return JSXTag(
@@ -377,10 +362,12 @@ class jsx(str):
     """
 
     def __new__(cls, *args: str) -> "jsx":
-        return super().__new__(cls, "\n".join(args))
+        return super().__new__(  # pyright: ignore[reportGeneralTypeIssues]
+            cls, "\n".join(args)
+        )
 
     # jsx() + jsx() should return jsx()
-    def __add__(self, other: Union[str, "jsx"]) -> str:
+    def __add__(self, other: "str | jsx") -> str:
         res = str.__add__(self, other)
         return jsx(res) if isinstance(other, jsx) else res
 

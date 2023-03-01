@@ -5,12 +5,14 @@
 Functions for creating SVG tags.
 """
 
-from typing import List, Optional
+from __future__ import annotations
+
+from typing import Optional
 
 from ._core import Tag, TagAttrArg, TagChildArg
 
 
-def a(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def a(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <a> tag.
 
@@ -33,7 +35,7 @@ def a(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs
     return Tag("a", *args, children=children, **kwargs)
 
 
-def animate(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def animate(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <animate> tag.
 
@@ -56,7 +58,7 @@ def animate(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("animate", *args, children=children, **kwargs)
 
 
-def animateMotion(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def animateMotion(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <animateMotion> tag.
 
@@ -79,7 +81,7 @@ def animateMotion(*args: TagChildArg, children: Optional[List[TagChildArg]] = No
     return Tag("animateMotion", *args, children=children, **kwargs)
 
 
-def animateTransform(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def animateTransform(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <animateTransform> tag.
 
@@ -102,7 +104,7 @@ def animateTransform(*args: TagChildArg, children: Optional[List[TagChildArg]] =
     return Tag("animateTransform", *args, children=children, **kwargs)
 
 
-def circle(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def circle(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <circle> tag.
 
@@ -125,7 +127,7 @@ def circle(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("circle", *args, children=children, **kwargs)
 
 
-def clipPath(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def clipPath(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <clipPath> tag.
 
@@ -148,7 +150,7 @@ def clipPath(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("clipPath", *args, children=children, **kwargs)
 
 
-def defs(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def defs(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <defs> tag.
 
@@ -171,7 +173,7 @@ def defs(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("defs", *args, children=children, **kwargs)
 
 
-def desc(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def desc(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <desc> tag.
 
@@ -194,7 +196,7 @@ def desc(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("desc", *args, children=children, **kwargs)
 
 
-def discard(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def discard(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <discard> tag.
 
@@ -217,7 +219,7 @@ def discard(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("discard", *args, children=children, **kwargs)
 
 
-def ellipse(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def ellipse(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <ellipse> tag.
 
@@ -240,7 +242,7 @@ def ellipse(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("ellipse", *args, children=children, **kwargs)
 
 
-def feBlend(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feBlend(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feBlend> tag.
 
@@ -263,7 +265,7 @@ def feBlend(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("feBlend", *args, children=children, **kwargs)
 
 
-def feColorMatrix(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feColorMatrix(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feColorMatrix> tag.
 
@@ -286,7 +288,7 @@ def feColorMatrix(*args: TagChildArg, children: Optional[List[TagChildArg]] = No
     return Tag("feColorMatrix", *args, children=children, **kwargs)
 
 
-def feComponentTransfer(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feComponentTransfer(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feComponentTransfer> tag.
 
@@ -309,7 +311,7 @@ def feComponentTransfer(*args: TagChildArg, children: Optional[List[TagChildArg]
     return Tag("feComponentTransfer", *args, children=children, **kwargs)
 
 
-def feComposite(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feComposite(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feComposite> tag.
 
@@ -332,7 +334,7 @@ def feComposite(*args: TagChildArg, children: Optional[List[TagChildArg]] = None
     return Tag("feComposite", *args, children=children, **kwargs)
 
 
-def feConvolveMatrix(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feConvolveMatrix(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feConvolveMatrix> tag.
 
@@ -355,7 +357,7 @@ def feConvolveMatrix(*args: TagChildArg, children: Optional[List[TagChildArg]] =
     return Tag("feConvolveMatrix", *args, children=children, **kwargs)
 
 
-def feDiffuseLighting(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feDiffuseLighting(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feDiffuseLighting> tag.
 
@@ -378,7 +380,7 @@ def feDiffuseLighting(*args: TagChildArg, children: Optional[List[TagChildArg]] 
     return Tag("feDiffuseLighting", *args, children=children, **kwargs)
 
 
-def feDisplacementMap(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feDisplacementMap(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feDisplacementMap> tag.
 
@@ -401,7 +403,7 @@ def feDisplacementMap(*args: TagChildArg, children: Optional[List[TagChildArg]] 
     return Tag("feDisplacementMap", *args, children=children, **kwargs)
 
 
-def feDistantLight(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feDistantLight(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feDistantLight> tag.
 
@@ -424,7 +426,7 @@ def feDistantLight(*args: TagChildArg, children: Optional[List[TagChildArg]] = N
     return Tag("feDistantLight", *args, children=children, **kwargs)
 
 
-def feDropShadow(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feDropShadow(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feDropShadow> tag.
 
@@ -447,7 +449,7 @@ def feDropShadow(*args: TagChildArg, children: Optional[List[TagChildArg]] = Non
     return Tag("feDropShadow", *args, children=children, **kwargs)
 
 
-def feFlood(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feFlood(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feFlood> tag.
 
@@ -470,7 +472,7 @@ def feFlood(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("feFlood", *args, children=children, **kwargs)
 
 
-def feFuncA(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feFuncA(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feFuncA> tag.
 
@@ -493,7 +495,7 @@ def feFuncA(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("feFuncA", *args, children=children, **kwargs)
 
 
-def feFuncB(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feFuncB(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feFuncB> tag.
 
@@ -516,7 +518,7 @@ def feFuncB(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("feFuncB", *args, children=children, **kwargs)
 
 
-def feFuncG(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feFuncG(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feFuncG> tag.
 
@@ -539,7 +541,7 @@ def feFuncG(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("feFuncG", *args, children=children, **kwargs)
 
 
-def feFuncR(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feFuncR(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feFuncR> tag.
 
@@ -562,7 +564,7 @@ def feFuncR(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("feFuncR", *args, children=children, **kwargs)
 
 
-def feGaussianBlur(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feGaussianBlur(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feGaussianBlur> tag.
 
@@ -585,7 +587,7 @@ def feGaussianBlur(*args: TagChildArg, children: Optional[List[TagChildArg]] = N
     return Tag("feGaussianBlur", *args, children=children, **kwargs)
 
 
-def feImage(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feImage(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feImage> tag.
 
@@ -608,7 +610,7 @@ def feImage(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("feImage", *args, children=children, **kwargs)
 
 
-def feMerge(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feMerge(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feMerge> tag.
 
@@ -631,7 +633,7 @@ def feMerge(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("feMerge", *args, children=children, **kwargs)
 
 
-def feMergeNode(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feMergeNode(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feMergeNode> tag.
 
@@ -654,7 +656,7 @@ def feMergeNode(*args: TagChildArg, children: Optional[List[TagChildArg]] = None
     return Tag("feMergeNode", *args, children=children, **kwargs)
 
 
-def feMorphology(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feMorphology(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feMorphology> tag.
 
@@ -677,7 +679,7 @@ def feMorphology(*args: TagChildArg, children: Optional[List[TagChildArg]] = Non
     return Tag("feMorphology", *args, children=children, **kwargs)
 
 
-def feOffset(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feOffset(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feOffset> tag.
 
@@ -700,7 +702,7 @@ def feOffset(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("feOffset", *args, children=children, **kwargs)
 
 
-def fePointLight(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def fePointLight(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <fePointLight> tag.
 
@@ -723,7 +725,7 @@ def fePointLight(*args: TagChildArg, children: Optional[List[TagChildArg]] = Non
     return Tag("fePointLight", *args, children=children, **kwargs)
 
 
-def feSpecularLighting(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feSpecularLighting(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feSpecularLighting> tag.
 
@@ -746,7 +748,7 @@ def feSpecularLighting(*args: TagChildArg, children: Optional[List[TagChildArg]]
     return Tag("feSpecularLighting", *args, children=children, **kwargs)
 
 
-def feSpotLight(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feSpotLight(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feSpotLight> tag.
 
@@ -769,7 +771,7 @@ def feSpotLight(*args: TagChildArg, children: Optional[List[TagChildArg]] = None
     return Tag("feSpotLight", *args, children=children, **kwargs)
 
 
-def feTile(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feTile(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feTile> tag.
 
@@ -792,7 +794,7 @@ def feTile(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("feTile", *args, children=children, **kwargs)
 
 
-def feTurbulence(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def feTurbulence(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <feTurbulence> tag.
 
@@ -815,7 +817,7 @@ def feTurbulence(*args: TagChildArg, children: Optional[List[TagChildArg]] = Non
     return Tag("feTurbulence", *args, children=children, **kwargs)
 
 
-def filter(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def filter(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <filter> tag.
 
@@ -838,7 +840,7 @@ def filter(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("filter", *args, children=children, **kwargs)
 
 
-def foreignObject(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def foreignObject(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <foreignObject> tag.
 
@@ -861,7 +863,7 @@ def foreignObject(*args: TagChildArg, children: Optional[List[TagChildArg]] = No
     return Tag("foreignObject", *args, children=children, **kwargs)
 
 
-def g(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def g(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <g> tag.
 
@@ -884,7 +886,7 @@ def g(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs
     return Tag("g", *args, children=children, **kwargs)
 
 
-def hatch(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def hatch(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <hatch> tag.
 
@@ -907,7 +909,7 @@ def hatch(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("hatch", *args, children=children, **kwargs)
 
 
-def hatchpath(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def hatchpath(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <hatchpath> tag.
 
@@ -930,7 +932,7 @@ def hatchpath(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, 
     return Tag("hatchpath", *args, children=children, **kwargs)
 
 
-def image(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def image(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <image> tag.
 
@@ -953,7 +955,7 @@ def image(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("image", *args, children=children, **kwargs)
 
 
-def line(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def line(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <line> tag.
 
@@ -976,7 +978,7 @@ def line(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("line", *args, children=children, **kwargs)
 
 
-def linearGradient(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def linearGradient(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <linearGradient> tag.
 
@@ -999,7 +1001,7 @@ def linearGradient(*args: TagChildArg, children: Optional[List[TagChildArg]] = N
     return Tag("linearGradient", *args, children=children, **kwargs)
 
 
-def marker(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def marker(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <marker> tag.
 
@@ -1022,7 +1024,7 @@ def marker(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("marker", *args, children=children, **kwargs)
 
 
-def mask(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def mask(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <mask> tag.
 
@@ -1045,7 +1047,7 @@ def mask(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("mask", *args, children=children, **kwargs)
 
 
-def metadata(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def metadata(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <metadata> tag.
 
@@ -1068,7 +1070,7 @@ def metadata(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("metadata", *args, children=children, **kwargs)
 
 
-def mpath(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def mpath(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <mpath> tag.
 
@@ -1091,7 +1093,7 @@ def mpath(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("mpath", *args, children=children, **kwargs)
 
 
-def path(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def path(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <path> tag.
 
@@ -1114,7 +1116,7 @@ def path(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("path", *args, children=children, **kwargs)
 
 
-def pattern(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def pattern(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <pattern> tag.
 
@@ -1137,7 +1139,7 @@ def pattern(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("pattern", *args, children=children, **kwargs)
 
 
-def polygon(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def polygon(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <polygon> tag.
 
@@ -1160,7 +1162,7 @@ def polygon(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **
     return Tag("polygon", *args, children=children, **kwargs)
 
 
-def polyline(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def polyline(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <polyline> tag.
 
@@ -1183,7 +1185,7 @@ def polyline(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("polyline", *args, children=children, **kwargs)
 
 
-def radialGradient(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def radialGradient(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <radialGradient> tag.
 
@@ -1206,7 +1208,7 @@ def radialGradient(*args: TagChildArg, children: Optional[List[TagChildArg]] = N
     return Tag("radialGradient", *args, children=children, **kwargs)
 
 
-def rect(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def rect(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <rect> tag.
 
@@ -1229,7 +1231,7 @@ def rect(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("rect", *args, children=children, **kwargs)
 
 
-def script(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def script(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <script> tag.
 
@@ -1252,7 +1254,7 @@ def script(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("script", *args, children=children, **kwargs)
 
 
-def set(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def set(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <set> tag.
 
@@ -1275,7 +1277,7 @@ def set(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("set", *args, children=children, **kwargs)
 
 
-def stop(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def stop(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <stop> tag.
 
@@ -1298,7 +1300,7 @@ def stop(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("stop", *args, children=children, **kwargs)
 
 
-def style(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def style(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <style> tag.
 
@@ -1321,7 +1323,7 @@ def style(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("style", *args, children=children, **kwargs)
 
 
-def svg(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def svg(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <svg> tag.
 
@@ -1344,7 +1346,7 @@ def svg(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("svg", *args, children=children, **kwargs)
 
 
-def switch(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def switch(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <switch> tag.
 
@@ -1367,7 +1369,7 @@ def switch(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("switch", *args, children=children, **kwargs)
 
 
-def symbol(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def symbol(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <symbol> tag.
 
@@ -1390,7 +1392,7 @@ def symbol(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **k
     return Tag("symbol", *args, children=children, **kwargs)
 
 
-def text(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def text(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <text> tag.
 
@@ -1413,7 +1415,7 @@ def text(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwa
     return Tag("text", *args, children=children, **kwargs)
 
 
-def textPath(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def textPath(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <textPath> tag.
 
@@ -1436,7 +1438,7 @@ def textPath(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, *
     return Tag("textPath", *args, children=children, **kwargs)
 
 
-def title(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def title(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <title> tag.
 
@@ -1459,7 +1461,7 @@ def title(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("title", *args, children=children, **kwargs)
 
 
-def tspan(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def tspan(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <tspan> tag.
 
@@ -1482,7 +1484,7 @@ def tspan(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kw
     return Tag("tspan", *args, children=children, **kwargs)
 
 
-def use(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def use(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <use> tag.
 
@@ -1505,7 +1507,7 @@ def use(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwar
     return Tag("use", *args, children=children, **kwargs)
 
 
-def view(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def view(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <view> tag.
 

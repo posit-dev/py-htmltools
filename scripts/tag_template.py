@@ -1,5 +1,5 @@
 tag_template = '''
-def {name}(*args: TagChildArg, children: Optional[List[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
+def {name}(*args: TagChildArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrArg) -> Tag:
     """
     Create a <{name}> tag.
 
