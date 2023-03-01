@@ -1,4 +1,4 @@
-# pyright: reportMissingTypeStubs=false
+# pyright: reportMissingTypeStubs=false, reportMissingImports=false
 
 from __future__ import annotations
 
