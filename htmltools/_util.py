@@ -125,6 +125,10 @@ def package_dir(package: str) -> str:
         return os.path.dirname(pkg_file)
 
 
+# Backwards compatibility with shinywidgets 0.1.4
+_package_dir = package_dir
+
+
 def hash_deterministic(s: str) -> str:
     """
     Returns a deterministic hash of the given string.
