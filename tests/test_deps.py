@@ -113,7 +113,7 @@ def test_script_input():
     assert dep1 == dep2
     # Make sure repeated calls to as_html() repeatedly encode
     test = TagList([dep1, dep2])
-    for i in range(2):
+    for _ in range(2):
         assert HTMLDocument(test).render()["html"] == textwrap.dedent(
             """\
             <!DOCTYPE html>
