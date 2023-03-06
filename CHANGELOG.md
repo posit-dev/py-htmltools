@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+### New features
+
+
+### Bug fixes
+
+* Removed default argument values which were mutable objects.
+
+### Other changes
+
+* Moved packages from requirements-dev.txt to setup.cfg.
+
 
 ## [0.1.4] - 2023-03-01
 
