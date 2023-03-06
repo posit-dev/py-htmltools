@@ -1034,22 +1034,26 @@ class HTMLDependency(MetadataNode):
         version: str | Version,
         *,
         source: Optional[HTMLDependencySource] = None,
-        script: ScriptItem | list[ScriptItem] = [],
-        stylesheet: StylesheetItem | list[StylesheetItem] = [],
+        script: Optional[ScriptItem | list[ScriptItem]] = None,
+        stylesheet: Optional[StylesheetItem | list[StylesheetItem]] = None,
         all_files: bool = False,
-        meta: MetaItem | list[MetaItem] = [],
+        meta: Optional[MetaItem | list[MetaItem]] = None,
         head: TagChildArg = None,
     ) -> None:
         self.name = name
         self.version = Version(version) if isinstance(version, str) else version
         self.source = source
 
-        if isinstance(script, dict):
+        if script is None:
+            script = []
+        elif isinstance(script, dict):
             script = [script]
         self._validate_dicts(script, ["src"])
         self.script = script
 
-        if isinstance(stylesheet, dict):
+        if stylesheet is None:
+            stylesheet = []
+        elif isinstance(stylesheet, dict):
             stylesheet = [stylesheet]
         self._validate_dicts(stylesheet, ["href"])
         self.stylesheet = stylesheet
@@ -1059,7 +1063,9 @@ class HTMLDependency(MetadataNode):
             if "rel" not in s:
                 s["rel"] = "stylesheet"
 
-        if isinstance(meta, dict):
+        if meta is None:
+            meta = []
+        elif isinstance(meta, dict):
             meta = [meta]
         self._validate_dicts(meta, ["name", "content"])
         self.meta = meta
@@ -1193,11 +1199,11 @@ class HTMLDependency(MetadataNode):
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
             shutil.copy2(src_file, target_file)
 
-    def _validate_dicts(self, ld: Iterable[object], req_attr: list[str] = []) -> None:
+    def _validate_dicts(self, ld: Iterable[object], req_attr: list[str]) -> None:
         for d in ld:
             self._validate_dict(d, req_attr)
 
-    def _validate_dict(self, d: object, req_attr: list[str] = []) -> None:
+    def _validate_dict(self, d: object, req_attr: list[str]) -> None:
         if not isinstance(d, dict):
             raise TypeError(
                 f"Expected dict, got {type(d)} for {d} in HTMLDependency "

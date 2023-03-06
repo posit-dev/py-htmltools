@@ -47,8 +47,9 @@ class JSXTagAttrs(Dict[str, object]):
         nm = self._normalize_attr_name(name)
         super().__setitem__(nm, value)
 
-    def update(self, __m: Mapping[str, object] = {}, **kwargs: object) -> None:
-        self._update(__m)
+    def update(self, *args: Mapping[str, object], **kwargs: object) -> None:
+        for arg in args:
+            self._update(arg)
         self._update(kwargs)
 
     def _update(self, __m: Mapping[str, object]) -> None:
