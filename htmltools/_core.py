@@ -60,6 +60,7 @@ __all__ = (
     "MetadataNode",
     "HTMLDependency",
     "RenderedHTML",
+    "TagAttrArg",
     "TagAttrValue",
     "TagChild",
     "TagChildArg",
