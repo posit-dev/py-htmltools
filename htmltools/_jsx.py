@@ -17,8 +17,8 @@ from ._core import (
     ScriptItem,
     Tag,
     TagAttrArg,
-    TagChild,
     TagChildArg,
+    TagChildItem,
     Tagifiable,
     TagList,
 )
@@ -207,7 +207,7 @@ def _walk_attrs_and_children(x: Any, fn: Callable[[Any], Any]) -> Any:
 # Return a string representing the rendered HTML for the given JSXTag object. The
 # metadata_nodes object collects MetadataNode objects in the tree, and is altered by
 # reference as a side-effect of this function.
-def _render_react_js(x: TagChild, indent: int, eol: str) -> str:
+def _render_react_js(x: TagChildItem, indent: int, eol: str) -> str:
     indent_str = "  " * indent
 
     if isinstance(x, MetadataNode):

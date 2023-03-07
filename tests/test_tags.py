@@ -4,6 +4,8 @@ import textwrap
 from tempfile import TemporaryDirectory
 from typing import Any, Callable, Union, cast
 
+import pytest
+
 from htmltools import *
 
 
@@ -64,6 +66,10 @@ def test_basic_tag_api():
     x5.insert(0, span())
     expect_html(x5, "<span></span>\n<a></a>")
 
+    # children can't contain dictionaries
+    with pytest.raises(TypeError):
+        div({"class": "foo"}, children=[{"class_": "bar"}], class_="baz")  # type: ignore
+
 
 def test_tag_attrs_update():
     # Update with dict
@@ -86,11 +92,9 @@ def test_tag_multiple_repeated_attrs():
     x = div({"class": "foo", "class_": "bar"}, class_="baz")
     y = div({"class": "foo"}, {"class_": "bar"}, class_="baz")
     z = div({"class": "foo"}, {"class": "bar"}, class_="baz")
-    w = div({"class": "foo"}, children=[{"class_": "bar"}], class_="baz")
     assert x.attrs == {"class": "foo bar baz"}
     assert y.attrs == {"class": "foo bar baz"}
     assert z.attrs == {"class": "foo bar baz"}
-    assert w.attrs == {"class": "foo bar baz"}
     x.attrs.update({"class": "bap", "class_": "bas"}, class_="bat")
     assert x.attrs == {"class": "bap bas bat"}
     x.attrs.update({"class": HTML("&")}, class_=HTML("<"))
@@ -100,6 +104,19 @@ def test_tag_multiple_repeated_attrs():
     # but it'd be good to change this behavior if we can manage to change it
     # in general https://github.com/rstudio/py-htmltools/issues/15
     assert str(x) == '<div class="&amp; &lt;"></div>'
+
+
+def test_tag_call():
+    x = div("a")
+    x({"id": "b"}, "c", class_="d")
+    assert x.attrs == {"id": "b", "class": "d"}
+    assert str(x) == textwrap.dedent(
+        """\
+        <div id="b" class="d">
+          a
+          c
+        </div>"""
+    )
 
 
 def test_tag_shallow_copy():
@@ -303,7 +320,9 @@ def test_tag_str():
 # * Provide a `_walk` function that doesn't mutate the tree. It would return `None`, and
 #   `fn` should return `None`. This could be useful when `fn` just collects things from
 #   the tree.
-def _walk_mutate(x: TagChild, fn: Callable[[TagChild], TagChild]) -> TagChild:
+def _walk_mutate(
+    x: TagChildItem, fn: Callable[[TagChildItem], TagChildItem]
+) -> TagChildItem:
     x = fn(x)
     if isinstance(x, Tag):
         for i, child in enumerate(x.children):
@@ -319,7 +338,7 @@ def test_tag_walk():
     x = div("hello ", tags.i("world"))
     y = div("The value of x is: ", x)
 
-    def alter(x: TagChild) -> TagChild:
+    def alter(x: TagChildItem) -> TagChildItem:
         if isinstance(x, str):
             return x.upper()
         elif isinstance(x, Tag):
