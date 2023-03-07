@@ -62,6 +62,7 @@ __all__ = (
     "RenderedHTML",
     "TagAttrArg",
     "TagArg",
+    "TagChild",
     "TagChildArg",
     "TagChildItem",
     "TagFunction",
@@ -117,6 +118,11 @@ TagArg = Union[
     TagChildArg,
     dict[str, TagAttrArg],  # i.e., tag attrbutes (e.g., {"id": "foo"})
 ]
+
+# This is not used anywhere in this code base, but is exported in the current version of
+# htmltools for backwards compatibility, so existing versions of Shiny which import it
+# able to load. It will be removed in a future version.
+TagChild = TagChildItem
 
 
 # Objects with tagify() methods are considered Tagifiable. Note that an object returns a
