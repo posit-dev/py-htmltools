@@ -66,7 +66,22 @@ def test_basic_tag_api():
     x5.insert(0, span())
     expect_html(x5, "<span></span>\n<a></a>")
 
-    # children can't contain dictionaries
+
+def test_tag_list_dict():
+    # Dictionaries allowed at top level
+    x1 = div("a", {"b": "B"}, "c")
+    assert x1.attrs == {"b": "B"}
+    assert str(x1) == '<div b="B">\n  a\n  c\n</div>'
+
+    # List args can't contain dictionaries
+    with pytest.raises(TypeError):
+        div(["a", {"b": "B"}], "c")  # type: ignore
+
+    # Nested list args can't contain dictionaries
+    with pytest.raises(TypeError):
+        div(["a", ["b", {"c": "C"}]], "d")  # type: ignore
+
+    # `children` can't contain dictionaries
     with pytest.raises(TypeError):
         div({"class": "foo"}, children=[{"class_": "bar"}], class_="baz")  # type: ignore
 

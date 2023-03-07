@@ -458,14 +458,12 @@ class Tag:
     ) -> None:
         self.name = _name
 
-        arguments = flatten(args)
-
-        attrs = [x for x in arguments if isinstance(x, dict)]
+        attrs = [x for x in args if isinstance(x, dict)]
         self.attrs = TagAttrs(*attrs, **kwargs)
 
         if children is None:
             children = []
-        kids = [x for x in arguments if not isinstance(x, dict)]
+        kids = [x for x in args if not isinstance(x, dict)]
         self.children = TagList(*kids, *children)
 
     def __call__(
