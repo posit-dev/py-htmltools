@@ -37,11 +37,10 @@ def test_basic_tag_api():
     ]
     props = dict(class_="foo", for_="bar", id="baz", bool="")
     x1 = div(*children, **props)
-    x2 = div(**props)(*children)
-    x3 = div()
-    x3.append(*children)
-    x3.attrs.update(**props)
-    assert x1 == x2 == x3
+    x2 = div()
+    x2.append(*children)
+    x2.attrs.update(**props)
+    assert x1 == x2
     assert x1.attrs["id"] == "baz"
     assert x1.attrs["bool"] == ""
     assert str(x1) == textwrap.dedent(
@@ -60,10 +59,10 @@ def test_basic_tag_api():
     x1.add_class("bar")
     assert x1.attrs["class"] == "foo bar"
     assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing")
-    x4 = TagList()
-    x4.append(a())
-    x4.insert(0, span())
-    expect_html(x4, "<span></span>\n<a></a>")
+    x3 = TagList()
+    x3.append(a())
+    x3.insert(0, span())
+    expect_html(x3, "<span></span>\n<a></a>")
 
 
 def test_tag_list_dict():
@@ -118,13 +117,6 @@ def test_tag_multiple_repeated_attrs():
     # but it'd be good to change this behavior if we can manage to change it
     # in general https://github.com/rstudio/py-htmltools/issues/15
     assert str(x) == '<div class="&amp; &lt;"></div>'
-
-
-def test_tag_call():
-    x = div("a")
-    x({"id": "b"}, "c", class_="d")
-    assert x.attrs == {"id": "b", "class": "d"}
-    assert str(x) == '<div id="b" class="d">\n  a\n  c\n</div>'
 
 
 def test_tag_shallow_copy():

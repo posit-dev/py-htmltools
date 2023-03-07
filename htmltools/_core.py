@@ -454,17 +454,6 @@ class Tag:
         kids = [x for x in args if not isinstance(x, dict)]
         self.children = TagList(*kids)
 
-    def __call__(self, *args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> "Tag":
-        arguments = flatten(args)
-
-        attrs = [x for x in arguments if isinstance(x, dict)]
-        self.attrs.update(*attrs, **kwargs)
-
-        kids = [x for x in arguments if not isinstance(x, dict)]
-        self.children.extend(kids)
-
-        return self
-
     def __copy__(self: TagT) -> TagT:
         cls = self.__class__
         cp = cls.__new__(cls)
