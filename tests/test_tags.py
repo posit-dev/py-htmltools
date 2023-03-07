@@ -315,8 +315,7 @@ def test_tag_str():
 # Note that if we were to export this function (perhaps in a class method), some other
 # possible variants are:
 # * Instead of one `fn`, take `pre` and `post` functions.
-# * Allow functions that return `TagChildArg`, and then flatten/convert those to
-#   `TagChild`.
+# * Allow functions that return `TagChild`, and then flatten/convert those to `TagNode`.
 # * Provide a `_walk` function that doesn't mutate the tree. It would return `None`, and
 #   `fn` should return `None`. This could be useful when `fn` just collects things from
 #   the tree.
