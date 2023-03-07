@@ -136,7 +136,6 @@ class TagFunction(Protocol):
     def __call__(
         self,
         *args: TagChildArg | TagAttrArg,
-        children: Optional[list[TagChildArg]] = None,
         **kwargs: TagAttrValue,
     ) -> "Tag":
         ...
