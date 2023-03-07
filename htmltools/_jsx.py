@@ -25,34 +25,36 @@ from ._versions import versions
 
 # CPS 6/8/2022: this module is currently too experimental to be recommended for use.
 # It's not clear that it's worth the effort to support it, and if we do, we may want to
-# remove the ability to nest HTML() and <script> tags inside JSXTag/JSXTagAttrArg
+# remove the ability to nest HTML() and <script> tags inside JSXTag/JSXTagAttrValue
 __all__ = (
     # "jsx",
     # "jsx_tag_create",
     # "JSXTag",
-    # "JSXTagAttrArg",
+    # "JSXTagAttrValue",
 )
 
 # A JSX tag attribute can be anything.
-JSXTagAttrArg = object
+JSXTagAttrValue = object
 
 
-class JSXTagAttrs(Dict[str, object]):
-    def __init__(self, **kwargs: object) -> None:
+class JSXTagAttrDict(Dict[str, JSXTagAttrValue]):
+    def __init__(self, **kwargs: JSXTagAttrValue) -> None:
         super().__init__()
         self.update(**kwargs)
 
-    def __setitem__(self, name: str, value: object) -> None:
+    def __setitem__(self, name: str, value: JSXTagAttrValue) -> None:
         nm = self._normalize_attr_name(name)
         super().__setitem__(nm, value)
 
-    def update(self, *args: Mapping[str, object], **kwargs: object) -> None:
+    def update(
+        self, *args: Mapping[str, JSXTagAttrValue], **kwargs: JSXTagAttrValue
+    ) -> None:
         for arg in args:
             self._update(arg)
         self._update(kwargs)
 
-    def _update(self, __m: Mapping[str, object]) -> None:
-        attrs: dict[str, object] = {}
+    def _update(self, __m: Mapping[str, JSXTagAttrValue]) -> None:
+        attrs: dict[str, JSXTagAttrValue] = {}
         for key, val in __m.items():
             attrs[self._normalize_attr_name(key)] = val
         super().update(**attrs)
@@ -83,8 +85,7 @@ class JSXTag:
         _name: str,
         *args: TagNode,
         allowedProps: Optional[list[str]] = None,
-        children: Optional[list[TagNode]] = None,
-        **kwargs: object,
+        **kwargs: JSXTagAttrValue,
     ) -> None:
         pieces = _name.split(".")
         if pieces[-1][:1] != pieces[-1][:1].upper():
@@ -97,12 +98,8 @@ class JSXTag:
 
         self.name: str = _name
         # Unlike HTML tags, JSX tag attributes can be anything.
-        self.attrs: JSXTagAttrs = JSXTagAttrs(**kwargs)
-        self.children: TagList = TagList()
-
-        self.children.extend(args)
-        if children:
-            self.children.extend(children)
+        self.attrs: JSXTagAttrDict = JSXTagAttrDict(**kwargs)
+        self.children: TagList = TagList(*args)
 
     def extend(self, x: Iterable[TagNode]) -> None:
         self.children.extend(x)
@@ -324,12 +321,9 @@ def jsx_tag_create(
 
     def create_tag(
         *args: TagNode,
-        children: Optional[list[TagNode]] = None,
         **kwargs: TagAttrValue,
     ) -> JSXTag:
-        return JSXTag(
-            name, *args, allowedProps=allowedProps, children=children, **kwargs
-        )
+        return JSXTag(name, *args, allowedProps=allowedProps, **kwargs)
 
     create_tag.__name__ = name
 
