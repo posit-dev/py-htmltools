@@ -164,16 +164,14 @@ class JSXTag:
 
         return Tag(
             "script",
-            type="text/javascript",
-            data_needs_render=True,
-            children=[
-                HTML("\n" + js + "\n"),
-                _lib_dependency("react", script={"src": "react.production.min.js"}),
-                _lib_dependency(
-                    "react-dom", script={"src": "react-dom.production.min.js"}
-                ),
-                *metadata_nodes,
-            ],
+            {
+                "type": "text/javascript",
+                "data_needs_render": True,
+            },
+            HTML("\n" + js + "\n"),
+            _lib_dependency("react", script={"src": "react.production.min.js"}),
+            _lib_dependency("react-dom", script={"src": "react-dom.production.min.js"}),
+            *metadata_nodes,
         )
 
     def __str__(self) -> str:

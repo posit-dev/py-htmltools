@@ -422,8 +422,6 @@ class Tag:
         The tag's name.
     *args
         Children for the tag.
-    children
-        Children for the tag.
     **kwargs
         Attributes for the tag.
 
@@ -453,7 +451,6 @@ class Tag:
         self,
         _name: str,
         *args: TagChildArg | TagAttrArg,
-        children: Optional[list[TagChildArg]] = None,
         **kwargs: TagAttrValue,
     ) -> None:
         self.name = _name
@@ -461,10 +458,8 @@ class Tag:
         attrs = [x for x in args if isinstance(x, dict)]
         self.attrs = TagAttrs(*attrs, **kwargs)
 
-        if children is None:
-            children = []
         kids = [x for x in args if not isinstance(x, dict)]
-        self.children = TagList(*kids, *children)
+        self.children = TagList(*kids)
 
     def __call__(
         self, *args: TagChildArg | TagAttrArg, **kwargs: TagAttrValue

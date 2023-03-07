@@ -37,12 +37,11 @@ def test_basic_tag_api():
     ]
     props = dict(class_="foo", for_="bar", id="baz", bool="")
     x1 = div(*children, **props)
-    x2 = div(**props, children=children)
-    x3 = div(**props)(*children)
-    x4 = div()
-    x4.append(*children)
-    x4.attrs.update(**props)
-    assert x1 == x2 == x3 == x4
+    x2 = div(**props)(*children)
+    x3 = div()
+    x3.append(*children)
+    x3.attrs.update(**props)
+    assert x1 == x2 == x3
     assert x1.attrs["id"] == "baz"
     assert x1.attrs["bool"] == ""
     assert str(x1) == textwrap.dedent(
@@ -61,10 +60,10 @@ def test_basic_tag_api():
     x1.add_class("bar")
     assert x1.attrs["class"] == "foo bar"
     assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing")
-    x5 = TagList()
-    x5.append(a())
-    x5.insert(0, span())
-    expect_html(x5, "<span></span>\n<a></a>")
+    x4 = TagList()
+    x4.append(a())
+    x4.insert(0, span())
+    expect_html(x4, "<span></span>\n<a></a>")
 
 
 def test_tag_list_dict():

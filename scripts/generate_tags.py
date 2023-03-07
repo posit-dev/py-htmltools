@@ -8,7 +8,7 @@ import re
 from urllib.request import urlopen
 
 tag_template = '''
-def {name}(*args: TagChildArg | TagAttrArg, children: Optional[list[TagChildArg]] = None, **kwargs: TagAttrValue) -> Tag:
+def {name}(*args: TagChildArg | TagAttrArg, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <{name}> tag.
 
@@ -18,8 +18,6 @@ def {name}(*args: TagChildArg | TagAttrArg, children: Optional[list[TagChildArg]
     ----------
     *args
         Child elements to this tag.
-    children
-        Child elements to this tag.
     **kwargs
         Attributes to this tag.
 
@@ -28,7 +26,7 @@ def {name}(*args: TagChildArg | TagAttrArg, children: Optional[list[TagChildArg]
     Tag
     """
 
-    return Tag("{name}", *args, children=children, **kwargs)
+    return Tag("{name}", *args, **kwargs)
 '''
 
 
@@ -68,8 +66,6 @@ Functions for creating HTML tags.
 
 from __future__ import annotations
 
-from typing import Optional
-
 from ._core import Tag, TagAttrArg, TagAttrValue, TagChildArg
 
 __all__ = (
@@ -102,8 +98,6 @@ Functions for creating SVG tags.
 """
 
 from __future__ import annotations
-
-from typing import Optional
 
 from ._core import Tag, TagAttrArg, TagAttrValue, TagChildArg
 {svg_tag_code}'''
