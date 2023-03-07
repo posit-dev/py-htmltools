@@ -8,7 +8,7 @@ import re
 from urllib.request import urlopen
 
 tag_template = '''
-def {name}(*args: TagChildArg | TagAttrArg, **kwargs: TagAttrValue) -> Tag:
+def {name}(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <{name}> tag.
 
@@ -66,7 +66,7 @@ Functions for creating HTML tags.
 
 from __future__ import annotations
 
-from ._core import Tag, TagAttrArg, TagAttrValue, TagChildArg
+from ._core import Tag, TagAttrs, TagAttrValue, TagChild
 
 __all__ = (
     "p",
@@ -99,7 +99,7 @@ Functions for creating SVG tags.
 
 from __future__ import annotations
 
-from ._core import Tag, TagAttrArg, TagAttrValue, TagChildArg
+from ._core import Tag, TagAttrs, TagAttrValue, TagChild
 {svg_tag_code}'''
 
 html_src_file = os.path.join(os.path.dirname(__file__), "../htmltools/tags.py")

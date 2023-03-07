@@ -17,10 +17,9 @@ from ._core import (
     ScriptItem,
     Tag,
     TagAttrValue,
-    TagChildArg,
-    TagChildItem,
     Tagifiable,
     TagList,
+    TagNode,
 )
 from ._versions import versions
 
@@ -82,9 +81,9 @@ class JSXTag:
     def __init__(
         self,
         _name: str,
-        *args: TagChildArg,
+        *args: TagNode,
         allowedProps: Optional[list[str]] = None,
-        children: Optional[list[TagChildArg]] = None,
+        children: Optional[list[TagNode]] = None,
         **kwargs: object,
     ) -> None:
         pieces = _name.split(".")
@@ -105,10 +104,10 @@ class JSXTag:
         if children:
             self.children.extend(children)
 
-    def extend(self, x: Iterable[TagChildArg]) -> None:
+    def extend(self, x: Iterable[TagNode]) -> None:
         self.children.extend(x)
 
-    def append(self, *args: TagChildArg) -> None:
+    def append(self, *args: TagNode) -> None:
         self.children.append(*args)
 
     def tagify(self) -> Tag:
@@ -205,7 +204,7 @@ def _walk_attrs_and_children(x: Any, fn: Callable[[Any], Any]) -> Any:
 # Return a string representing the rendered HTML for the given JSXTag object. The
 # metadata_nodes object collects MetadataNode objects in the tree, and is altered by
 # reference as a side-effect of this function.
-def _render_react_js(x: TagChildItem, indent: int, eol: str) -> str:
+def _render_react_js(x: TagNode, indent: int, eol: str) -> str:
     indent_str = "  " * indent
 
     if isinstance(x, MetadataNode):
@@ -324,8 +323,8 @@ def jsx_tag_create(
     """
 
     def create_tag(
-        *args: TagChildArg,
-        children: Optional[list[TagChildArg]] = None,
+        *args: TagNode,
+        children: Optional[list[TagNode]] = None,
         **kwargs: TagAttrValue,
     ) -> JSXTag:
         return JSXTag(

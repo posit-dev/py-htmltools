@@ -28,9 +28,9 @@ from typing import (
 # they should both come from the same typing module.
 # https://peps.python.org/pep-0655/#usage-in-python-3-11
 if sys.version_info >= (3, 11):
-    from typing import Never, NotRequired, TypedDict
+    from typing import NotRequired, TypedDict
 else:
-    from typing_extensions import Never, NotRequired, TypedDict
+    from typing_extensions import NotRequired, TypedDict
 
 if sys.version_info >= (3, 8):
     from typing import Literal, Protocol, SupportsIndex, runtime_checkable
@@ -60,11 +60,10 @@ __all__ = (
     "MetadataNode",
     "HTMLDependency",
     "RenderedHTML",
-    "TagAttrArg",
+    "TagAttrs",
     "TagAttrValue",
     "TagChild",
-    "TagChildArg",
-    "TagChildItem",
+    "TagNode",
     "TagFunction",
     "Tagifiable",
     "head_content",
@@ -97,29 +96,23 @@ TagAttrValue = Union[str, float, bool, None]
 
 # For dictionaries of tag attributes (e.g., {"id": "foo"}), which can be passed as
 # unnamed arguments to Tag functions like ``div()``.
-TagAttrArg = Dict[str, TagAttrValue]
+TagAttrs = Dict[str, TagAttrValue]
 
-# Types of objects that can be a child of a Tag. Equivalently, these are the valid
-# elements of a TagList. Note that this type is the internal representation of items
-# in a TagList; the user-facing type is TagChildArg.
-TagChildItem = Union["Tagifiable", "Tag", MetadataNode, str]
+# Types of objects that can be a node in a Tag tree. Equivalently, these are the valid
+# elements of a TagList. Note that this type represents the internal structure of items
+# in a TagList; the user-facing type is TagChild.
+TagNode = Union["Tagifiable", "Tag", MetadataNode, str]
 
 # Types of objects that can be passed as children to Tag functions like ``div()``. The
 # Tag functions and the TagList() constructor can accept these as unnamed arguments;
-# they will be normalized to TagChildItem objects.
-TagChildArg = Union[
-    TagChildItem,
+# they will be flattened and normalized to TagNode objects.
+TagChild = Union[
+    TagNode,
     "TagList",
     float,
     None,
-    Sequence["TagChildArg"],
+    Sequence["TagChild"],
 ]
-
-
-# This is not used anywhere in this code base, but is exported in the current version of
-# htmltools for backwards compatibility, so existing versions of Shiny which import it
-# able to load. It will be removed in a future version.
-TagChild = Never
 
 
 # Objects with tagify() methods are considered Tagifiable. Note that an object returns a
@@ -135,7 +128,7 @@ class Tagifiable(Protocol):
 class TagFunction(Protocol):
     def __call__(
         self,
-        *args: TagChildArg | TagAttrArg,
+        *args: TagChild | TagAttrs,
         **kwargs: TagAttrValue,
     ) -> "Tag":
         ...
@@ -144,7 +137,7 @@ class TagFunction(Protocol):
 # =============================================================================
 # TagList class
 # =============================================================================
-class TagList(List[TagChildItem]):
+class TagList(List[TagNode]):
     """
     Create an HTML tag list (i.e., a fragment of HTML)
 
@@ -161,29 +154,29 @@ class TagList(List[TagChildItem]):
     <div id="foo" class="bar"></div>
     """
 
-    def __init__(self, *args: TagChildArg) -> None:
-        super().__init__(_tagchildargs_to_tagchilditems(args))
+    def __init__(self, *args: TagChild) -> None:
+        super().__init__(_tagchilds_to_tagnodes(args))
 
-    def extend(self, x: Iterable[TagChildArg]) -> None:
+    def extend(self, x: Iterable[TagChild]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
 
-        super().extend(_tagchildargs_to_tagchilditems(x))
+        super().extend(_tagchilds_to_tagnodes(x))
 
-    def append(self, *args: TagChildArg) -> None:
+    def append(self, *args: TagChild) -> None:
         """
         Append tag children to the end of the list.
         """
 
         self.extend(args)
 
-    def insert(self, index: SupportsIndex, x: TagChildArg) -> None:
+    def insert(self, index: SupportsIndex, x: TagChild) -> None:
         """
         Insert tag children before a given index.
         """
 
-        self[index:index] = _tagchildargs_to_tagchilditems([x])
+        self[index:index] = _tagchilds_to_tagnodes([x])
 
     def tagify(self) -> "TagList":
         """
@@ -201,7 +194,7 @@ class TagList(List[TagChildItem]):
                 tagified_child = child.tagify()
                 if isinstance(tagified_child, TagList):
                     # If the Tagifiable object returned a TagList, flatten it into this one.
-                    cp[i : i + 1] = _tagchildargs_to_tagchilditems(tagified_child)
+                    cp[i : i + 1] = _tagchilds_to_tagnodes(tagified_child)
                 else:
                     cp[i] = tagified_child
 
@@ -330,9 +323,9 @@ class TagList(List[TagChildItem]):
 
 
 # =============================================================================
-# TagAttrs class
+# TagAttrDict class
 # =============================================================================
-class TagAttrs(Dict[str, str]):
+class TagAttrDict(Dict[str, str]):
     """
     A dictionary-like object that can be used to store attributes for a tag. All
     attribute values will be stored as strings.
@@ -410,7 +403,7 @@ class Tag:
     The HTML tag class.
 
     A Tag object consists of a name, attributes, and children. The name is a string, the
-    attributes are held in a TagAttrs object, and the children are held in a TagList
+    attributes are held in a TagAttrDict object, and the children are held in a TagList
     object.
 
     This class usually should not be instantiated directly. Instead, use the tag wrapper
@@ -444,26 +437,24 @@ class Tag:
     """
 
     name: str
-    attrs: TagAttrs
+    attrs: TagAttrDict
     children: TagList
 
     def __init__(
         self,
         _name: str,
-        *args: TagChildArg | TagAttrArg,
+        *args: TagChild | TagAttrs,
         **kwargs: TagAttrValue,
     ) -> None:
         self.name = _name
 
         attrs = [x for x in args if isinstance(x, dict)]
-        self.attrs = TagAttrs(*attrs, **kwargs)
+        self.attrs = TagAttrDict(*attrs, **kwargs)
 
         kids = [x for x in args if not isinstance(x, dict)]
         self.children = TagList(*kids)
 
-    def __call__(
-        self, *args: TagChildArg | TagAttrArg, **kwargs: TagAttrValue
-    ) -> "Tag":
+    def __call__(self, *args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> "Tag":
         arguments = flatten(args)
 
         attrs = [x for x in arguments if isinstance(x, dict)]
@@ -483,21 +474,21 @@ class Tag:
         cp.__dict__.update(new_dict)
         return cp
 
-    def insert(self, index: SupportsIndex, x: TagChildArg) -> None:
+    def insert(self, index: SupportsIndex, x: TagChild) -> None:
         """
         Insert tag children before a given index.
         """
 
         self.children.insert(index, x)
 
-    def extend(self, x: Iterable[TagChildArg]) -> None:
+    def extend(self, x: Iterable[TagChild]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
 
         self.children.extend(x)
 
-    def append(self, *args: TagChildArg) -> None:
+    def append(self, *args: TagChild) -> None:
         """
         Append tag children to the end of the list.
         """
@@ -707,7 +698,7 @@ class HTMLDocument:
 
     def __init__(
         self,
-        *args: TagChildArg,
+        *args: TagChild,
         **kwargs: TagAttrValue,
     ) -> None:
         self._content: TagList = TagList(*args)
@@ -722,7 +713,7 @@ class HTMLDocument:
         cp.__dict__.update(new_dict)
         return cp
 
-    def append(self, *args: TagChildArg) -> None:
+    def append(self, *args: TagChild) -> None:
         """
         Add children to the document.
 
@@ -1060,7 +1051,7 @@ class HTMLDependency(MetadataNode):
         stylesheet: Optional[StylesheetItem | list[StylesheetItem]] = None,
         all_files: bool = False,
         meta: Optional[MetaItem | list[MetaItem]] = None,
-        head: TagChildArg = None,
+        head: TagChild = None,
     ) -> None:
         self.name = name
         self.version = Version(version) if isinstance(version, str) else version
@@ -1260,7 +1251,7 @@ def _resolve_dependencies(deps: list[HTMLDependency]) -> list[HTMLDependency]:
     return list(map.values())
 
 
-def head_content(*args: TagChildArg) -> HTMLDependency:
+def head_content(*args: TagChild) -> HTMLDependency:
     """
     Place content in the ``<head>`` of the HTML document.
 
@@ -1305,9 +1296,9 @@ def head_content(*args: TagChildArg) -> HTMLDependency:
 # =============================================================================
 
 
-# Convert a list of TagChildArg objects to a list of TagChildItem objects. Does not
-# alter input object.
-def _tagchildargs_to_tagchilditems(x: Iterable[TagChildArg]) -> list[TagChildItem]:
+# Convert a list of TagChild objects to a list of TagNode objects. Does not alter input
+# object.
+def _tagchilds_to_tagnodes(x: Iterable[TagChild]) -> list[TagNode]:
     result = flatten(x)
     for i, item in enumerate(result):
         if isinstance(item, (int, float)):
@@ -1318,10 +1309,10 @@ def _tagchildargs_to_tagchilditems(x: Iterable[TagChildArg]) -> list[TagChildIte
                 + "Consider calling str() on this value before treating it as a tag item."
             )
 
-    # At this point, we know that all items in result must be valid TagChildItem
+    # At this point, we know that all items in result must be valid TagNode
     # objects, because None, int, float, and TagList objects have been removed. (Note
     # that the TagList objects that have been flattened are TagList which are NOT tags.)
-    return cast("list[TagChildItem]", result)
+    return cast("list[TagNode]", result)
 
 
 def _tag_show(

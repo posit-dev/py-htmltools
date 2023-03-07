@@ -328,9 +328,7 @@ def test_tag_str():
 # * Provide a `_walk` function that doesn't mutate the tree. It would return `None`, and
 #   `fn` should return `None`. This could be useful when `fn` just collects things from
 #   the tree.
-def _walk_mutate(
-    x: TagChildItem, fn: Callable[[TagChildItem], TagChildItem]
-) -> TagChildItem:
+def _walk_mutate(x: TagNode, fn: Callable[[TagNode], TagNode]) -> TagNode:
     x = fn(x)
     if isinstance(x, Tag):
         for i, child in enumerate(x.children):
@@ -346,7 +344,7 @@ def test_tag_walk():
     x = div("hello ", tags.i("world"))
     y = div("The value of x is: ", x)
 
-    def alter(x: TagChildItem) -> TagChildItem:
+    def alter(x: TagNode) -> TagNode:
         if isinstance(x, str):
             return x.upper()
         elif isinstance(x, Tag):
