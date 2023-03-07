@@ -17,7 +17,6 @@ from ._core import (
     TagNode,
     head_content,
 )
-from ._jsx import JSXTag, JSXTagAttrArg, jsx, jsx_tag_create
 from ._util import css
 from .tags import (
     a,
@@ -56,10 +55,6 @@ __all__ = (
     "TagList",
     "TagNode",
     "head_content",
-    "jsx",
-    "jsx_tag_create",
-    "JSXTag",
-    "JSXTagAttrArg",
     "css",
     "a",
     "br",
