@@ -28,9 +28,9 @@ from typing import (
 # they should both come from the same typing module.
 # https://peps.python.org/pep-0655/#usage-in-python-3-11
 if sys.version_info >= (3, 11):
-    from typing import NotRequired, TypedDict
+    from typing import Never, NotRequired, TypedDict
 else:
-    from typing_extensions import NotRequired, TypedDict
+    from typing_extensions import Never, NotRequired, TypedDict
 
 if sys.version_info >= (3, 8):
     from typing import Literal, Protocol, SupportsIndex, runtime_checkable
@@ -119,7 +119,7 @@ TagChildArg = Union[
 # This is not used anywhere in this code base, but is exported in the current version of
 # htmltools for backwards compatibility, so existing versions of Shiny which import it
 # able to load. It will be removed in a future version.
-TagChild = TagChildItem
+TagChild = Never
 
 
 # Objects with tagify() methods are considered Tagifiable. Note that an object returns a
