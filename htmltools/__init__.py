@@ -1,6 +1,8 @@
 __version__ = "0.1.4.9001"
 
 from . import svg, tags
+from ._core import TagAttrArg  # pyright: ignore[reportUnusedImport]  # noqa: F401
+from ._core import TagChildArg  # pyright: ignore[reportUnusedImport]  # noqa: F401
 from ._core import (
     HTML,
     HTMLDependency,

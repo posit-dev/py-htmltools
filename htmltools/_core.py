@@ -28,9 +28,9 @@ from typing import (
 # they should both come from the same typing module.
 # https://peps.python.org/pep-0655/#usage-in-python-3-11
 if sys.version_info >= (3, 11):
-    from typing import NotRequired, TypedDict
+    from typing import Never, NotRequired, TypedDict
 else:
-    from typing_extensions import NotRequired, TypedDict
+    from typing_extensions import Never, NotRequired, TypedDict
 
 if sys.version_info >= (3, 8):
     from typing import Literal, Protocol, SupportsIndex, runtime_checkable
@@ -113,6 +113,13 @@ TagChild = Union[
     None,
     Sequence["TagChild"],
 ]
+
+
+# These two types existed in htmltools 0.14.0 and earlier. They are here so that
+# existing versions of Shiny will be able to load, but users of those existing packages
+# will see type errors, which should encourage them to upgrade Shiny.
+TagChildArg = Never
+TagAttrArg = Never
 
 
 # Objects with tagify() methods are considered Tagifiable. Note that an object returns a
