@@ -4,6 +4,8 @@ import textwrap
 from tempfile import TemporaryDirectory
 from typing import Any, Callable, Union, cast
 
+import pytest
+
 from htmltools import *
 
 
@@ -35,12 +37,10 @@ def test_basic_tag_api():
     ]
     props = dict(class_="foo", for_="bar", id="baz", bool="")
     x1 = div(*children, **props)
-    x2 = div(**props, children=children)
-    x3 = div(**props)(*children)
-    x4 = div()
-    x4.append(*children)
-    x4.attrs.update(**props)
-    assert x1 == x2 == x3 == x4
+    x2 = div()
+    x2.append(*children)
+    x2.attrs.update(**props)
+    assert x1 == x2
     assert x1.attrs["id"] == "baz"
     assert x1.attrs["bool"] == ""
     assert str(x1) == textwrap.dedent(
@@ -59,10 +59,29 @@ def test_basic_tag_api():
     x1.add_class("bar")
     assert x1.attrs["class"] == "foo bar"
     assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing")
-    x5 = TagList()
-    x5.append(a())
-    x5.insert(0, span())
-    expect_html(x5, "<span></span>\n<a></a>")
+    x3 = TagList()
+    x3.append(a())
+    x3.insert(0, span())
+    expect_html(x3, "<span></span>\n<a></a>")
+
+
+def test_tag_list_dict():
+    # Dictionaries allowed at top level
+    x1 = div("a", {"b": "B"}, "c")
+    assert x1.attrs == {"b": "B"}
+    assert str(x1) == '<div b="B">\n  a\n  c\n</div>'
+
+    # List args can't contain dictionaries
+    with pytest.raises(TypeError):
+        div(["a", {"b": "B"}], "c")  # type: ignore
+
+    # Nested list args can't contain dictionaries
+    with pytest.raises(TypeError):
+        div(["a", ["b", {"c": "C"}]], "d")  # type: ignore
+
+    # `children` can't contain dictionaries
+    with pytest.raises(TypeError):
+        div({"class": "foo"}, children=[{"class_": "bar"}], class_="baz")  # type: ignore
 
 
 def test_tag_attrs_update():
@@ -86,11 +105,9 @@ def test_tag_multiple_repeated_attrs():
     x = div({"class": "foo", "class_": "bar"}, class_="baz")
     y = div({"class": "foo"}, {"class_": "bar"}, class_="baz")
     z = div({"class": "foo"}, {"class": "bar"}, class_="baz")
-    w = div({"class": "foo"}, children=[{"class_": "bar"}], class_="baz")
     assert x.attrs == {"class": "foo bar baz"}
     assert y.attrs == {"class": "foo bar baz"}
     assert z.attrs == {"class": "foo bar baz"}
-    assert w.attrs == {"class": "foo bar baz"}
     x.attrs.update({"class": "bap", "class_": "bas"}, class_="bat")
     assert x.attrs == {"class": "bap bas bat"}
     x.attrs.update({"class": HTML("&")}, class_=HTML("<"))
@@ -298,12 +315,11 @@ def test_tag_str():
 # Note that if we were to export this function (perhaps in a class method), some other
 # possible variants are:
 # * Instead of one `fn`, take `pre` and `post` functions.
-# * Allow functions that return `TagChildArg`, and then flatten/convert those to
-#   `TagChild`.
+# * Allow functions that return `TagChild`, and then flatten/convert those to `TagNode`.
 # * Provide a `_walk` function that doesn't mutate the tree. It would return `None`, and
 #   `fn` should return `None`. This could be useful when `fn` just collects things from
 #   the tree.
-def _walk_mutate(x: TagChild, fn: Callable[[TagChild], TagChild]) -> TagChild:
+def _walk_mutate(x: TagNode, fn: Callable[[TagNode], TagNode]) -> TagNode:
     x = fn(x)
     if isinstance(x, Tag):
         for i, child in enumerate(x.children):
@@ -319,7 +335,7 @@ def test_tag_walk():
     x = div("hello ", tags.i("world"))
     y = div("The value of x is: ", x)
 
-    def alter(x: TagChild) -> TagChild:
+    def alter(x: TagNode) -> TagNode:
         if isinstance(x, str):
             return x.upper()
         elif isinstance(x, Tag):

@@ -1,6 +1,8 @@
-__version__ = "0.1.4.9000"
+__version__ = "0.1.4.9001"
 
 from . import svg, tags
+from ._core import TagAttrArg  # pyright: ignore[reportUnusedImport]  # noqa: F401
+from ._core import TagChildArg  # pyright: ignore[reportUnusedImport]  # noqa: F401
 from ._core import (
     HTML,
     HTMLDependency,
@@ -8,15 +10,15 @@ from ._core import (
     MetadataNode,
     RenderedHTML,
     Tag,
-    TagAttrArg,
+    TagAttrs,
+    TagAttrValue,
     TagChild,
-    TagChildArg,
     TagFunction,
     Tagifiable,
     TagList,
+    TagNode,
     head_content,
 )
-from ._jsx import JSXTag, JSXTagAttrArg, jsx, jsx_tag_create
 from ._util import css
 from .tags import (
     a,
@@ -39,41 +41,38 @@ from .tags import (
 )
 
 __all__ = (
-    "TagList",
-    "Tag",
-    "HTMLDocument",
+    "svg",
+    "tags",
     "HTML",
-    "MetadataNode",
     "HTMLDependency",
+    "HTMLDocument",
+    "MetadataNode",
     "RenderedHTML",
-    "TagAttrArg",
-    "TagChildArg",
+    "Tag",
+    "TagAttrs",
+    "TagAttrValue",
     "TagChild",
     "TagFunction",
     "Tagifiable",
+    "TagList",
+    "TagNode",
     "head_content",
-    "jsx",
-    "jsx_tag_create",
-    "JSXTag",
-    "JSXTagAttrArg",
     "css",
-    "p",
+    "a",
+    "br",
+    "code",
+    "div",
+    "em",
     "h1",
     "h2",
     "h3",
     "h4",
     "h5",
     "h6",
-    "a",
-    "br",
-    "div",
-    "span",
-    "pre",
-    "code",
-    "img",
-    "strong",
-    "em",
     "hr",
-    "tags",
-    "svg",
+    "img",
+    "p",
+    "pre",
+    "span",
+    "strong",
 )
