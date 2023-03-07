@@ -60,8 +60,7 @@ __all__ = (
     "MetadataNode",
     "HTMLDependency",
     "RenderedHTML",
-    "TagAttrArg",
-    "TagArg",
+    "TagAttrValue",
     "TagChild",
     "TagChildArg",
     "TagChildItem",
@@ -93,7 +92,11 @@ TagT = TypeVar("TagT", bound="Tag")
 
 # Types that can be passed in as attributes to Tag functions. These values will be
 # converted to strings before being stored as tag attributes.
-TagAttrArg = Union[str, float, bool, None]
+TagAttrValue = Union[str, float, bool, None]
+
+# For dictionaries of tag attributes (e.g., {"id": "foo"}), which can be passed as
+# unnamed arguments to Tag functions like ``div()``.
+TagAttrArg = Dict[str, TagAttrValue]
 
 # Types of objects that can be a child of a Tag. Equivalently, these are the valid
 # elements of a TagList. Note that this type is the internal representation of items
@@ -108,16 +111,9 @@ TagChildArg = Union[
     "TagList",
     float,
     None,
-    Sequence["TagArg"],
+    Sequence["TagChildArg"],
 ]
 
-# Types that can be passed as unnamed args to Tag functions like ``div()``. The
-# TagChildArg items will be flattened and stored as as children of the Tag. The
-# dictionary items will be stored as Tag attributes.
-TagArg = Union[
-    TagChildArg,
-    dict[str, TagAttrArg],  # i.e., tag attrbutes (e.g., {"id": "foo"})
-]
 
 # This is not used anywhere in this code base, but is exported in the current version of
 # htmltools for backwards compatibility, so existing versions of Shiny which import it
@@ -138,9 +134,9 @@ class Tagifiable(Protocol):
 class TagFunction(Protocol):
     def __call__(
         self,
-        *args: TagArg,
+        *args: TagChildArg | TagAttrArg,
         children: Optional[list[TagChildArg]] = None,
-        **kwargs: TagAttrArg,
+        **kwargs: TagAttrValue,
     ) -> "Tag":
         ...
 
@@ -351,17 +347,19 @@ class TagAttrs(Dict[str, str]):
         More attributes.
     """
 
-    def __init__(self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg) -> None:
+    def __init__(
+        self, *args: Mapping[str, TagAttrValue], **kwargs: TagAttrValue
+    ) -> None:
         super().__init__()
         self.update(*args, **kwargs)
 
-    def __setitem__(self, name: str, value: TagAttrArg) -> None:
+    def __setitem__(self, name: str, value: TagAttrValue) -> None:
         val = self._normalize_attr_value(value)
         if val is not None:
             nm = self._normalize_attr_name(name)
             super().__setitem__(nm, val)
 
-    def update(self, *args: Mapping[str, TagAttrArg], **kwargs: TagAttrArg) -> None:
+    def update(self, *args: Mapping[str, TagAttrValue], **kwargs: TagAttrValue) -> None:
         if kwargs:
             args = args + (kwargs,)
 
@@ -389,7 +387,7 @@ class TagAttrs(Dict[str, str]):
         return x.replace("_", "-")
 
     @staticmethod
-    def _normalize_attr_value(x: TagAttrArg) -> Optional[str]:
+    def _normalize_attr_value(x: TagAttrValue) -> Optional[str]:
         if x is None or x is False:
             return None
         if x is True:
@@ -454,9 +452,9 @@ class Tag:
     def __init__(
         self,
         _name: str,
-        *args: TagArg,
+        *args: TagChildArg | TagAttrArg,
         children: Optional[list[TagChildArg]] = None,
-        **kwargs: TagAttrArg,
+        **kwargs: TagAttrValue,
     ) -> None:
         self.name = _name
 
@@ -470,7 +468,9 @@ class Tag:
         kids = [x for x in arguments if not isinstance(x, dict)]
         self.children = TagList(*kids, *children)
 
-    def __call__(self, *args: TagArg, **kwargs: TagAttrArg) -> "Tag":
+    def __call__(
+        self, *args: TagChildArg | TagAttrArg, **kwargs: TagAttrValue
+    ) -> "Tag":
         arguments = flatten(args)
 
         attrs = [x for x in arguments if isinstance(x, dict)]
@@ -715,10 +715,10 @@ class HTMLDocument:
     def __init__(
         self,
         *args: TagChildArg,
-        **kwargs: TagAttrArg,
+        **kwargs: TagAttrValue,
     ) -> None:
         self._content: TagList = TagList(*args)
-        self._html_attr_args: dict[str, TagAttrArg] = kwargs
+        self._html_attr_args: dict[str, TagAttrValue] = kwargs
 
     def __copy__(self) -> "HTMLDocument":
         cls = self.__class__

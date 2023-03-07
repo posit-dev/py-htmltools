@@ -16,7 +16,7 @@ from ._core import (
     MetadataNode,
     ScriptItem,
     Tag,
-    TagAttrArg,
+    TagAttrValue,
     TagChildArg,
     TagChildItem,
     Tagifiable,
@@ -328,7 +328,7 @@ def jsx_tag_create(
     def create_tag(
         *args: TagChildArg,
         children: Optional[list[TagChildArg]] = None,
-        **kwargs: TagAttrArg,
+        **kwargs: TagAttrValue,
     ) -> JSXTag:
         return JSXTag(
             name, *args, allowedProps=allowedProps, children=children, **kwargs

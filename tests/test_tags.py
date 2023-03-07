@@ -110,13 +110,7 @@ def test_tag_call():
     x = div("a")
     x({"id": "b"}, "c", class_="d")
     assert x.attrs == {"id": "b", "class": "d"}
-    assert str(x) == textwrap.dedent(
-        """\
-        <div id="b" class="d">
-          a
-          c
-        </div>"""
-    )
+    assert str(x) == '<div id="b" class="d">\n  a\n  c\n</div>'
 
 
 def test_tag_shallow_copy():
