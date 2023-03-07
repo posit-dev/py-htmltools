@@ -1,4 +1,4 @@
-__version__ = "0.1.4.9000"
+__version__ = "0.1.4.9001"
 
 from . import svg, tags
 from ._core import (
