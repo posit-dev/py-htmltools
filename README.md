@@ -8,6 +8,12 @@ Tools for creating, manipulating, and writing HTML from Python.
 pip install htmltools
 ```
 
+To install the latest development version from this repository:
+
+```sh
+pip install https://github.com/rstudio/py-htmltools/tarball/main
+```
+
 ## Development
 
 If you want to do development on htmltools for Python:
