@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### New features
 
+* Changed types hints for `Tag` functions. The new types are `TagChild`, `TagNode`, `TagAttrValue`, and `TagAttrs`. (#51)
+
+* Add public-facing `html_escape` function.
 
 ### Bug fixes
 
