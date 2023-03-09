@@ -19,7 +19,7 @@ from ._core import (
     TagNode,
     head_content,
 )
-from ._util import css
+from ._util import css, html_escape
 from .tags import (
     a,
     br,
@@ -58,6 +58,7 @@ __all__ = (
     "TagNode",
     "head_content",
     "css",
+    "html_escape",
     "a",
     "br",
     "code",
