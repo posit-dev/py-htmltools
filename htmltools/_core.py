@@ -901,6 +901,10 @@ class HTMLDependencySource(TypedDict):
     subdir: str
 
 
+class HTMLDependencyUrl(TypedDict):
+    href: str
+
+
 class SourcePathMapping(TypedDict):
     source: str
     href: str
@@ -1030,7 +1034,7 @@ class HTMLDependency(MetadataNode):
 
     name: str
     version: Version
-    source: Optional[HTMLDependencySource]
+    source: Optional[HTMLDependencySource | HTMLDependencyUrl]
     script: list[ScriptItem]
     stylesheet: list[StylesheetItem]
     meta: list[MetaItem]
@@ -1042,7 +1046,7 @@ class HTMLDependency(MetadataNode):
         name: str,
         version: str | Version,
         *,
-        source: Optional[HTMLDependencySource] = None,
+        source: Optional[HTMLDependencySource | HTMLDependencyUrl] = None,
         script: Optional[ScriptItem | list[ScriptItem]] = None,
         stylesheet: Optional[StylesheetItem | list[StylesheetItem]] = None,
         all_files: bool = False,
@@ -1051,6 +1055,16 @@ class HTMLDependency(MetadataNode):
     ) -> None:
         self.name = name
         self.version = Version(version) if isinstance(version, str) else version
+
+        if source is not None:
+            if not isinstance(source, dict):  # type: ignore
+                raise TypeError(
+                    f"Expected `source=` to be a dict (or `None`), but got {type(source)}"
+                )
+            if not (("href" in source) or ("subdir" in source)):
+                raise TypeError(
+                    "Expected `source=` to have either `subdir` [and `package`] key or `href` key."
+                )
         self.source = source
 
         if script is None:
@@ -1101,6 +1115,10 @@ class HTMLDependency(MetadataNode):
         if src is None:
             return {"source": "", "href": ""}
 
+        if "href" in src:
+            src = cast(HTMLDependencyUrl, src)
+            return {"source": "", "href": src["href"]}
+
         pkg = src.get("package", None)
         if pkg is None:
             source = os.path.realpath(src["subdir"])
@@ -1133,16 +1151,19 @@ class HTMLDependency(MetadataNode):
         Returns a dict of the dependency's attributes.
         """
 
-        paths = self.source_path_map(
+        # The paths["source"] is the absolute path to the source directory.
+        # This may be empty if the dependency is a URL.
+        # Only use `source_path_map()["href"]`!
+        source_href = self.source_path_map(
             lib_prefix=lib_prefix, include_version=include_version
-        )
+        )["href"]
 
         stylesheets = deepcopy(self.stylesheet)
         for s in stylesheets:
             href = urllib.parse.quote(s["href"])
             s.update(
                 {
-                    "href": posixpath.join(paths["href"], href),
+                    "href": posixpath.join(source_href, href),
                     "rel": "stylesheet",
                 }
             )
@@ -1150,7 +1171,7 @@ class HTMLDependency(MetadataNode):
         scripts = deepcopy(self.script)
         for s in scripts:
             src = urllib.parse.quote(s["src"])
-            s.update({"src": posixpath.join(paths["href"], src)})
+            s.update({"src": posixpath.join(source_href, src)})
 
         head: Optional[str]
         if self.head is None:
