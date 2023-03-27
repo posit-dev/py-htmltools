@@ -3,15 +3,31 @@ import textwrap
 from htmltools import *
 
 
+def test_init_errors():
+    HTMLDependency("a", "1.1", source=None)
+
+    try:
+        HTMLDependency("a", "1.1", source=4)  # type: ignore
+    except TypeError as e:
+        assert "to be a dict" in str(e)
+
+    try:
+        HTMLDependency("a", "1.1", source={"not": "valid"})  # type: ignore
+    except TypeError as e:
+        assert "to have either" in str(e)
+
+
 def test_dep_resolution():
     a1_1 = HTMLDependency("a", "1.1", source={"subdir": "foo"}, script={"src": "a1.js"})
-    a1_2 = HTMLDependency("a", "1.2", source={"subdir": "foo"}, script={"src": "a2.js"})
+    a1_2 = HTMLDependency(
+        "a", "1.2", source={"href": "http://a.test.com"}, script={"src": "a2.js"}
+    )
     a1_2_1 = HTMLDependency(
         "a", "1.2.1", source={"subdir": "foo"}, script={"src": "a3.js"}
     )
     b1_9 = HTMLDependency("b", "1.9", source={"subdir": "foo"}, script={"src": "b1.js"})
     b1_10 = HTMLDependency(
-        "b", "1.10", source={"subdir": "foo"}, script={"src": "b2.js"}
+        "b", "1.10", source={"href": "http://b.test.com"}, script={"src": "b2.js"}
     )
     c1_0 = HTMLDependency("c", "1.0", source={"subdir": "foo"}, script={"src": "c1.js"})
     test = TagList(a1_1, b1_9, b1_10, a1_2, a1_2_1, b1_9, b1_10, c1_0)
@@ -23,7 +39,7 @@ def test_dep_resolution():
             <meta charset="utf-8"/>
             <script type="application/html-dependencies">a[1.2.1];b[1.10];c[1.0]</script>
             <script src="a-1.2.1/a3.js"></script>
-            <script src="b-1.10/b2.js"></script>
+            <script src="http://b.test.com/b2.js"></script>
             <script src="c-1.0/c1.js"></script>
           </head>
           <body></body>
@@ -38,7 +54,7 @@ def test_dep_resolution():
             <meta charset="utf-8"/>
             <script type="application/html-dependencies">a[1.2.1];b[1.10];c[1.0]</script>
             <script src="libfoo/a-1.2.1/a3.js"></script>
-            <script src="libfoo/b-1.10/b2.js"></script>
+            <script src="http://b.test.com/b2.js"></script>
             <script src="libfoo/c-1.0/c1.js"></script>
           </head>
           <body></body>
@@ -65,7 +81,9 @@ def test_inline_deps(snapshot):
 
 def test_append_deps():
     a1_1 = HTMLDependency("a", "1.1", source={"subdir": "foo"}, script={"src": "a1.js"})
-    a1_2 = HTMLDependency("a", "1.2", source={"subdir": "foo"}, script={"src": "a2.js"})
+    a1_2 = HTMLDependency(
+        "a", "1.2", source={"href": "http://foo.com"}, script={"src": "a2.js"}
+    )
     b1_0 = HTMLDependency("b", "1.0", source={"subdir": "foo"}, script={"src": "b1.js"})
 
     expected_result = textwrap.dedent(
@@ -75,7 +93,7 @@ def test_append_deps():
           <head>
             <meta charset="utf-8"/>
             <script type="application/html-dependencies">a[1.2];b[1.0]</script>
-            <script src="a-1.2/a2.js"></script>
+            <script src="http://foo.com/a2.js"></script>
             <script src="b-1.0/b1.js"></script>
           </head>
           <body>
@@ -186,7 +204,7 @@ def test_meta_output():
     assert combined_html.find('<meta name="y" content="y-value"/>') != -1
 
 
-def test_as_dict():
+def test_source_dep_as_dict():
     a = HTMLDependency(
         "a",
         "1.0",
@@ -194,7 +212,6 @@ def test_as_dict():
         script={"src": "a1.js"},
         meta={"name": "viewport", "content": "width=device-width, initial-scale=1"},
     )
-
     assert a.as_dict() == {
         "name": "a",
         "version": "1.0",
@@ -220,6 +237,52 @@ def test_as_dict():
         "stylesheet": [
             {"href": "b-2.0/b1.css", "rel": "stylesheet"},
             {"href": "b-2.0/b2.css", "rel": "stylesheet"},
+        ],
+        "meta": [],
+        "head": "<script>1 && 1</script>",
+    }
+
+
+def test_url_dep_as_dict():
+    u = HTMLDependency(
+        "u",
+        "1.1",
+        source={"href": "https://example.com"},
+        script={"src": "u1.js"},
+        stylesheet={"href": "u1.css"},
+        meta={"name": "viewport", "content": "width=device-width, initial-scale=1"},
+    )
+    assert u.as_dict() == {
+        "name": "u",
+        "version": "1.1",
+        "script": [{"src": "https://example.com/u1.js"}],
+        "stylesheet": [{"href": "https://example.com/u1.css", "rel": "stylesheet"}],
+        "meta": [
+            {"name": "viewport", "content": "width=device-width, initial-scale=1"}
+        ],
+        "head": None,
+    }
+
+    v = HTMLDependency(
+        "v",
+        "2.1",
+        source={"href": "https://test.com/subdir/trailing/slash/"},
+        stylesheet=[{"href": "v1.css"}, {"href": "v2.css"}],
+        head=tags.script("1 && 1"),
+    )
+    assert v.as_dict(lib_prefix=None) == {
+        "name": "v",
+        "version": "2.1",
+        "script": [],
+        "stylesheet": [
+            {
+                "href": "https://test.com/subdir/trailing/slash/v1.css",
+                "rel": "stylesheet",
+            },
+            {
+                "href": "https://test.com/subdir/trailing/slash/v2.css",
+                "rel": "stylesheet",
+            },
         ],
         "meta": [],
         "head": "<script>1 && 1</script>",
