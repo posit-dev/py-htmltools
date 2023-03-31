@@ -149,7 +149,7 @@ def test_html_document_html_input():
 def test_html_document_head_hoisting():
     doc = HTMLDocument(
         div(
-            "Hello,",
+            "Hello, ",
             head_content(
                 tags.script("alert('1')"),
                 tags.style("span {color: red;}"),
@@ -172,8 +172,7 @@ def test_html_document_head_hoisting():
           </head>
           <body>
             <div>
-              Hello,
-              <span>world</span>
+              Hello, <span>world</span>
             </div>
           </body>
         </html>"""
