@@ -256,16 +256,23 @@ class TagList(List[TagNode]):
         """
 
         html_ = ""
-        line_prefix = ""
+        first_child = True
+
         for child in self:
+            if isinstance(child, MetadataNode):
+                continue
+
+            if first_child:
+                first_child = False
+            else:
+                html_ += eol
+
             if isinstance(child, Tag):
                 # Note that we don't pass _escape_strings along, because that should
                 # only be set to True when <script> and <style> tags call
                 # self.children.get_html_string(), and those tags don't have children to
                 # recurse into.
-                html_ += line_prefix + child.get_html_string(indent, eol)
-            elif isinstance(child, MetadataNode):
-                continue
+                html_ += child.get_html_string(indent, eol)
             elif isinstance(child, Tagifiable):
                 raise RuntimeError(
                     "Encountered a non-tagified object. x.tagify() must be called before x.render()"
@@ -273,12 +280,10 @@ class TagList(List[TagNode]):
             else:
                 # If we get here, x must be a string.
                 if _escape_strings:
-                    html_ += line_prefix + ("  " * indent) + _normalize_text(child)
+                    html_ += ("  " * indent) + _normalize_text(child)
                 else:
-                    html_ += line_prefix + ("  " * indent) + child
+                    html_ += ("  " * indent) + child
 
-            if line_prefix == "":
-                line_prefix = eol
         return HTML(html_)
 
     def get_dependencies(self, *, dedup: bool = True) -> list["HTMLDependency"]:
