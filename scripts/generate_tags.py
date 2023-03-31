@@ -28,6 +28,9 @@ _INLINE_TAG_NAMES = {
     "map",
     "object",
     "output",
+    # <pre> is technically a block tag, but we want to avoid adding in any extra
+    # whitespace, so we'll treat it like an inline tag.
+    "pre",
     "q",
     "samp",
     # Technically, <script> is considered inline, but in practice it doesn't seem worth
@@ -48,7 +51,7 @@ _INLINE_TAG_NAMES = {
 
 
 tag_template = '''
-def {name}(*args: TagChild | TagAttrs, _inline: bool = {inline}, **kwargs: TagAttrValue) -> Tag:
+def {name}(*args: TagChild | TagAttrs, _add_ws: bool = {add_ws}, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <{name}> tag.
 
@@ -68,7 +71,7 @@ def {name}(*args: TagChild | TagAttrs, _inline: bool = {inline}, **kwargs: TagAt
     Tag
     """
 
-    return Tag("{name}", *args, _inline=_inline, **kwargs)
+    return Tag("{name}", *args, _add_ws=_add_ws, **kwargs)
 '''
 
 
@@ -89,7 +92,7 @@ def generate_tag_code(url: str) -> str:
 
         code += "\n" + tag_template.format(
             name=x["name"],
-            inline=str(x["name"] in _INLINE_TAG_NAMES),
+            add_ws=str(x["name"] not in _INLINE_TAG_NAMES),
             desc=x["desc"],
         )
     return code

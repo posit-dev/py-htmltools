@@ -246,7 +246,7 @@ class TagList(List[TagNode]):
         indent: int = 0,
         eol: str = "\n",
         *,
-        inline_context: bool = False,
+        add_ws: bool = True,
         _escape_strings: bool = True,
     ) -> "HTML":
         """
@@ -262,7 +262,7 @@ class TagList(List[TagNode]):
 
         html_ = ""
         first_child = True
-        prev_was_inline = inline_context
+        prev_was_add_ws = add_ws
 
         for child in self:
             if isinstance(child, MetadataNode):
@@ -270,13 +270,13 @@ class TagList(List[TagNode]):
 
             # True if the previous and current node are inline; False otherwise. This
             # affects whether or not we add whitespace and indentation.
-            prev_and_current_inline = prev_was_inline and (
-                (isinstance(child, Tag) and child.inline) or isinstance(child, str)
+            prev_or_current_add_ws = prev_was_add_ws or (
+                (isinstance(child, Tag) and child.add_ws)
             )
 
             if first_child:
                 first_child = False
-            elif not prev_and_current_inline:
+            elif prev_or_current_add_ws:
                 html_ += eol
 
             if isinstance(child, Tag):
@@ -284,12 +284,12 @@ class TagList(List[TagNode]):
                 # only be set to True when <script> and <style> tags call
                 # self.children.get_html_string(), and those tags don't have children to
                 # recurse into.
-                if prev_and_current_inline:
-                    html_ += child.get_html_string(0, "")
-                else:
+                if prev_or_current_add_ws:
                     html_ += child.get_html_string(indent, eol)
+                else:
+                    html_ += child.get_html_string(0, "")
 
-                prev_was_inline = child.inline
+                prev_was_add_ws = child.add_ws
 
             elif isinstance(child, Tagifiable):
                 raise RuntimeError(
@@ -298,7 +298,7 @@ class TagList(List[TagNode]):
 
             else:
                 # If we get here, x must be a string.
-                if not prev_was_inline:
+                if prev_was_add_ws:
                     html_ += "  " * indent
 
                 if _escape_strings:
@@ -306,7 +306,7 @@ class TagList(List[TagNode]):
                 else:
                     html_ += child
 
-                prev_was_inline = True
+                prev_was_add_ws = False
 
         return HTML(html_)
 
@@ -473,7 +473,7 @@ class Tag:
     """
 
     name: str
-    inline: bool
+    add_ws: bool
     attrs: TagAttrDict
     children: TagList
 
@@ -481,11 +481,11 @@ class Tag:
         self,
         _name: str,
         *args: TagChild | TagAttrs,
-        _inline: bool = False,
+        _add_ws: bool = True,
         **kwargs: TagAttrValue,
     ) -> None:
         self.name = _name
-        self.inline = _inline
+        self.add_ws = _add_ws
 
         attrs = [x for x in args if isinstance(x, dict)]
         self.attrs = TagAttrDict(*attrs, **kwargs)
@@ -612,17 +612,17 @@ class Tag:
                 return HTML(html_ + _normalize_text(children[0]) + close)
 
         # Write children
-        if not self.inline:
+        if self.add_ws:
             html_ += eol
 
         html_ += self.children.get_html_string(
             indent=indent + 1,
             eol=eol,
-            inline_context=self.inline,
+            add_ws=self.add_ws,
             _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES),
         )
 
-        if not self.inline:
+        if self.add_ws:
             html_ += eol + indent_str
 
         return HTML(html_ + close)
