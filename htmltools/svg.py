@@ -10,7 +10,7 @@ from __future__ import annotations
 from ._core import Tag, TagAttrs, TagAttrValue, TagChild
 
 
-def a(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def a(*args: TagChild | TagAttrs, _inline: bool = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <a> tag.
 
@@ -20,6 +20,8 @@ def a(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -28,10 +30,10 @@ def a(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("a", *args, **kwargs)
+    return Tag("a", *args, _inline=_inline, **kwargs)
 
 
-def animate(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def animate(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <animate> tag.
 
@@ -41,6 +43,8 @@ def animate(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -49,10 +53,10 @@ def animate(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("animate", *args, **kwargs)
+    return Tag("animate", *args, _inline=_inline, **kwargs)
 
 
-def animateMotion(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def animateMotion(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <animateMotion> tag.
 
@@ -62,6 +66,8 @@ def animateMotion(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -70,10 +76,10 @@ def animateMotion(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("animateMotion", *args, **kwargs)
+    return Tag("animateMotion", *args, _inline=_inline, **kwargs)
 
 
-def animateTransform(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def animateTransform(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <animateTransform> tag.
 
@@ -83,6 +89,8 @@ def animateTransform(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -91,10 +99,10 @@ def animateTransform(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("animateTransform", *args, **kwargs)
+    return Tag("animateTransform", *args, _inline=_inline, **kwargs)
 
 
-def circle(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def circle(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <circle> tag.
 
@@ -104,6 +112,8 @@ def circle(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -112,10 +122,10 @@ def circle(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("circle", *args, **kwargs)
+    return Tag("circle", *args, _inline=_inline, **kwargs)
 
 
-def clipPath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def clipPath(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <clipPath> tag.
 
@@ -125,6 +135,8 @@ def clipPath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -133,10 +145,10 @@ def clipPath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("clipPath", *args, **kwargs)
+    return Tag("clipPath", *args, _inline=_inline, **kwargs)
 
 
-def defs(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def defs(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <defs> tag.
 
@@ -146,6 +158,8 @@ def defs(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -154,10 +168,10 @@ def defs(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("defs", *args, **kwargs)
+    return Tag("defs", *args, _inline=_inline, **kwargs)
 
 
-def desc(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def desc(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <desc> tag.
 
@@ -167,6 +181,8 @@ def desc(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -175,10 +191,10 @@ def desc(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("desc", *args, **kwargs)
+    return Tag("desc", *args, _inline=_inline, **kwargs)
 
 
-def discard(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def discard(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <discard> tag.
 
@@ -188,6 +204,8 @@ def discard(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -196,10 +214,10 @@ def discard(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("discard", *args, **kwargs)
+    return Tag("discard", *args, _inline=_inline, **kwargs)
 
 
-def ellipse(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def ellipse(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <ellipse> tag.
 
@@ -209,6 +227,8 @@ def ellipse(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -217,10 +237,10 @@ def ellipse(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("ellipse", *args, **kwargs)
+    return Tag("ellipse", *args, _inline=_inline, **kwargs)
 
 
-def feBlend(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feBlend(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feBlend> tag.
 
@@ -230,6 +250,8 @@ def feBlend(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -238,10 +260,10 @@ def feBlend(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feBlend", *args, **kwargs)
+    return Tag("feBlend", *args, _inline=_inline, **kwargs)
 
 
-def feColorMatrix(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feColorMatrix(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feColorMatrix> tag.
 
@@ -251,6 +273,8 @@ def feColorMatrix(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -259,10 +283,10 @@ def feColorMatrix(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feColorMatrix", *args, **kwargs)
+    return Tag("feColorMatrix", *args, _inline=_inline, **kwargs)
 
 
-def feComponentTransfer(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feComponentTransfer(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feComponentTransfer> tag.
 
@@ -272,6 +296,8 @@ def feComponentTransfer(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> T
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -280,10 +306,10 @@ def feComponentTransfer(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> T
     Tag
     """
 
-    return Tag("feComponentTransfer", *args, **kwargs)
+    return Tag("feComponentTransfer", *args, _inline=_inline, **kwargs)
 
 
-def feComposite(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feComposite(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feComposite> tag.
 
@@ -293,6 +319,8 @@ def feComposite(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -301,10 +329,10 @@ def feComposite(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feComposite", *args, **kwargs)
+    return Tag("feComposite", *args, _inline=_inline, **kwargs)
 
 
-def feConvolveMatrix(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feConvolveMatrix(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feConvolveMatrix> tag.
 
@@ -314,6 +342,8 @@ def feConvolveMatrix(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -322,10 +352,10 @@ def feConvolveMatrix(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feConvolveMatrix", *args, **kwargs)
+    return Tag("feConvolveMatrix", *args, _inline=_inline, **kwargs)
 
 
-def feDiffuseLighting(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feDiffuseLighting(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feDiffuseLighting> tag.
 
@@ -335,6 +365,8 @@ def feDiffuseLighting(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -343,10 +375,10 @@ def feDiffuseLighting(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag
     Tag
     """
 
-    return Tag("feDiffuseLighting", *args, **kwargs)
+    return Tag("feDiffuseLighting", *args, _inline=_inline, **kwargs)
 
 
-def feDisplacementMap(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feDisplacementMap(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feDisplacementMap> tag.
 
@@ -356,6 +388,8 @@ def feDisplacementMap(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -364,10 +398,10 @@ def feDisplacementMap(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag
     Tag
     """
 
-    return Tag("feDisplacementMap", *args, **kwargs)
+    return Tag("feDisplacementMap", *args, _inline=_inline, **kwargs)
 
 
-def feDistantLight(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feDistantLight(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feDistantLight> tag.
 
@@ -377,6 +411,8 @@ def feDistantLight(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -385,10 +421,10 @@ def feDistantLight(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feDistantLight", *args, **kwargs)
+    return Tag("feDistantLight", *args, _inline=_inline, **kwargs)
 
 
-def feDropShadow(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feDropShadow(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feDropShadow> tag.
 
@@ -398,6 +434,8 @@ def feDropShadow(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -406,10 +444,10 @@ def feDropShadow(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feDropShadow", *args, **kwargs)
+    return Tag("feDropShadow", *args, _inline=_inline, **kwargs)
 
 
-def feFlood(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feFlood(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feFlood> tag.
 
@@ -419,6 +457,8 @@ def feFlood(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -427,10 +467,10 @@ def feFlood(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feFlood", *args, **kwargs)
+    return Tag("feFlood", *args, _inline=_inline, **kwargs)
 
 
-def feFuncA(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feFuncA(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feFuncA> tag.
 
@@ -440,6 +480,8 @@ def feFuncA(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -448,10 +490,10 @@ def feFuncA(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feFuncA", *args, **kwargs)
+    return Tag("feFuncA", *args, _inline=_inline, **kwargs)
 
 
-def feFuncB(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feFuncB(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feFuncB> tag.
 
@@ -461,6 +503,8 @@ def feFuncB(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -469,10 +513,10 @@ def feFuncB(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feFuncB", *args, **kwargs)
+    return Tag("feFuncB", *args, _inline=_inline, **kwargs)
 
 
-def feFuncG(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feFuncG(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feFuncG> tag.
 
@@ -482,6 +526,8 @@ def feFuncG(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -490,10 +536,10 @@ def feFuncG(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feFuncG", *args, **kwargs)
+    return Tag("feFuncG", *args, _inline=_inline, **kwargs)
 
 
-def feFuncR(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feFuncR(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feFuncR> tag.
 
@@ -503,6 +549,8 @@ def feFuncR(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -511,10 +559,10 @@ def feFuncR(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feFuncR", *args, **kwargs)
+    return Tag("feFuncR", *args, _inline=_inline, **kwargs)
 
 
-def feGaussianBlur(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feGaussianBlur(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feGaussianBlur> tag.
 
@@ -524,6 +572,8 @@ def feGaussianBlur(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -532,10 +582,10 @@ def feGaussianBlur(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feGaussianBlur", *args, **kwargs)
+    return Tag("feGaussianBlur", *args, _inline=_inline, **kwargs)
 
 
-def feImage(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feImage(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feImage> tag.
 
@@ -545,6 +595,8 @@ def feImage(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -553,10 +605,10 @@ def feImage(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feImage", *args, **kwargs)
+    return Tag("feImage", *args, _inline=_inline, **kwargs)
 
 
-def feMerge(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feMerge(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feMerge> tag.
 
@@ -566,6 +618,8 @@ def feMerge(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -574,10 +628,10 @@ def feMerge(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feMerge", *args, **kwargs)
+    return Tag("feMerge", *args, _inline=_inline, **kwargs)
 
 
-def feMergeNode(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feMergeNode(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feMergeNode> tag.
 
@@ -587,6 +641,8 @@ def feMergeNode(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -595,10 +651,10 @@ def feMergeNode(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feMergeNode", *args, **kwargs)
+    return Tag("feMergeNode", *args, _inline=_inline, **kwargs)
 
 
-def feMorphology(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feMorphology(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feMorphology> tag.
 
@@ -608,6 +664,8 @@ def feMorphology(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -616,10 +674,10 @@ def feMorphology(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feMorphology", *args, **kwargs)
+    return Tag("feMorphology", *args, _inline=_inline, **kwargs)
 
 
-def feOffset(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feOffset(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feOffset> tag.
 
@@ -629,6 +687,8 @@ def feOffset(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -637,10 +697,10 @@ def feOffset(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feOffset", *args, **kwargs)
+    return Tag("feOffset", *args, _inline=_inline, **kwargs)
 
 
-def fePointLight(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def fePointLight(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <fePointLight> tag.
 
@@ -650,6 +710,8 @@ def fePointLight(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -658,10 +720,10 @@ def fePointLight(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("fePointLight", *args, **kwargs)
+    return Tag("fePointLight", *args, _inline=_inline, **kwargs)
 
 
-def feSpecularLighting(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feSpecularLighting(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feSpecularLighting> tag.
 
@@ -671,6 +733,8 @@ def feSpecularLighting(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Ta
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -679,10 +743,10 @@ def feSpecularLighting(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Ta
     Tag
     """
 
-    return Tag("feSpecularLighting", *args, **kwargs)
+    return Tag("feSpecularLighting", *args, _inline=_inline, **kwargs)
 
 
-def feSpotLight(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feSpotLight(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feSpotLight> tag.
 
@@ -692,6 +756,8 @@ def feSpotLight(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -700,10 +766,10 @@ def feSpotLight(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feSpotLight", *args, **kwargs)
+    return Tag("feSpotLight", *args, _inline=_inline, **kwargs)
 
 
-def feTile(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feTile(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feTile> tag.
 
@@ -713,6 +779,8 @@ def feTile(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -721,10 +789,10 @@ def feTile(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feTile", *args, **kwargs)
+    return Tag("feTile", *args, _inline=_inline, **kwargs)
 
 
-def feTurbulence(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def feTurbulence(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feTurbulence> tag.
 
@@ -734,6 +802,8 @@ def feTurbulence(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -742,10 +812,10 @@ def feTurbulence(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("feTurbulence", *args, **kwargs)
+    return Tag("feTurbulence", *args, _inline=_inline, **kwargs)
 
 
-def filter(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def filter(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <filter> tag.
 
@@ -755,6 +825,8 @@ def filter(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -763,10 +835,10 @@ def filter(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("filter", *args, **kwargs)
+    return Tag("filter", *args, _inline=_inline, **kwargs)
 
 
-def foreignObject(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def foreignObject(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <foreignObject> tag.
 
@@ -776,6 +848,8 @@ def foreignObject(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -784,10 +858,10 @@ def foreignObject(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("foreignObject", *args, **kwargs)
+    return Tag("foreignObject", *args, _inline=_inline, **kwargs)
 
 
-def g(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def g(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <g> tag.
 
@@ -797,6 +871,8 @@ def g(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -805,10 +881,10 @@ def g(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("g", *args, **kwargs)
+    return Tag("g", *args, _inline=_inline, **kwargs)
 
 
-def hatch(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def hatch(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <hatch> tag.
 
@@ -818,6 +894,8 @@ def hatch(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -826,10 +904,10 @@ def hatch(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("hatch", *args, **kwargs)
+    return Tag("hatch", *args, _inline=_inline, **kwargs)
 
 
-def hatchpath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def hatchpath(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <hatchpath> tag.
 
@@ -839,6 +917,8 @@ def hatchpath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -847,10 +927,10 @@ def hatchpath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("hatchpath", *args, **kwargs)
+    return Tag("hatchpath", *args, _inline=_inline, **kwargs)
 
 
-def image(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def image(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <image> tag.
 
@@ -860,6 +940,8 @@ def image(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -868,10 +950,10 @@ def image(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("image", *args, **kwargs)
+    return Tag("image", *args, _inline=_inline, **kwargs)
 
 
-def line(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def line(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <line> tag.
 
@@ -881,6 +963,8 @@ def line(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -889,10 +973,10 @@ def line(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("line", *args, **kwargs)
+    return Tag("line", *args, _inline=_inline, **kwargs)
 
 
-def linearGradient(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def linearGradient(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <linearGradient> tag.
 
@@ -902,6 +986,8 @@ def linearGradient(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -910,10 +996,10 @@ def linearGradient(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("linearGradient", *args, **kwargs)
+    return Tag("linearGradient", *args, _inline=_inline, **kwargs)
 
 
-def marker(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def marker(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <marker> tag.
 
@@ -923,6 +1009,8 @@ def marker(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -931,10 +1019,10 @@ def marker(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("marker", *args, **kwargs)
+    return Tag("marker", *args, _inline=_inline, **kwargs)
 
 
-def mask(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def mask(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <mask> tag.
 
@@ -944,6 +1032,8 @@ def mask(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -952,10 +1042,10 @@ def mask(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("mask", *args, **kwargs)
+    return Tag("mask", *args, _inline=_inline, **kwargs)
 
 
-def metadata(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def metadata(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <metadata> tag.
 
@@ -965,6 +1055,8 @@ def metadata(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -973,10 +1065,10 @@ def metadata(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("metadata", *args, **kwargs)
+    return Tag("metadata", *args, _inline=_inline, **kwargs)
 
 
-def mpath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def mpath(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <mpath> tag.
 
@@ -986,6 +1078,8 @@ def mpath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -994,10 +1088,10 @@ def mpath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("mpath", *args, **kwargs)
+    return Tag("mpath", *args, _inline=_inline, **kwargs)
 
 
-def path(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def path(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <path> tag.
 
@@ -1007,6 +1101,8 @@ def path(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1015,10 +1111,10 @@ def path(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("path", *args, **kwargs)
+    return Tag("path", *args, _inline=_inline, **kwargs)
 
 
-def pattern(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def pattern(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <pattern> tag.
 
@@ -1028,6 +1124,8 @@ def pattern(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1036,10 +1134,10 @@ def pattern(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("pattern", *args, **kwargs)
+    return Tag("pattern", *args, _inline=_inline, **kwargs)
 
 
-def polygon(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def polygon(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <polygon> tag.
 
@@ -1049,6 +1147,8 @@ def polygon(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1057,10 +1157,10 @@ def polygon(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("polygon", *args, **kwargs)
+    return Tag("polygon", *args, _inline=_inline, **kwargs)
 
 
-def polyline(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def polyline(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <polyline> tag.
 
@@ -1070,6 +1170,8 @@ def polyline(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1078,10 +1180,10 @@ def polyline(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("polyline", *args, **kwargs)
+    return Tag("polyline", *args, _inline=_inline, **kwargs)
 
 
-def radialGradient(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def radialGradient(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <radialGradient> tag.
 
@@ -1091,6 +1193,8 @@ def radialGradient(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1099,10 +1203,10 @@ def radialGradient(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("radialGradient", *args, **kwargs)
+    return Tag("radialGradient", *args, _inline=_inline, **kwargs)
 
 
-def rect(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def rect(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <rect> tag.
 
@@ -1112,6 +1216,8 @@ def rect(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1120,10 +1226,10 @@ def rect(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("rect", *args, **kwargs)
+    return Tag("rect", *args, _inline=_inline, **kwargs)
 
 
-def script(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def script(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <script> tag.
 
@@ -1133,6 +1239,8 @@ def script(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1141,10 +1249,10 @@ def script(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("script", *args, **kwargs)
+    return Tag("script", *args, _inline=_inline, **kwargs)
 
 
-def set(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def set(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <set> tag.
 
@@ -1154,6 +1262,8 @@ def set(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1162,10 +1272,10 @@ def set(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("set", *args, **kwargs)
+    return Tag("set", *args, _inline=_inline, **kwargs)
 
 
-def stop(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def stop(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <stop> tag.
 
@@ -1175,6 +1285,8 @@ def stop(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1183,10 +1295,10 @@ def stop(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("stop", *args, **kwargs)
+    return Tag("stop", *args, _inline=_inline, **kwargs)
 
 
-def style(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def style(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <style> tag.
 
@@ -1196,6 +1308,8 @@ def style(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1204,10 +1318,10 @@ def style(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("style", *args, **kwargs)
+    return Tag("style", *args, _inline=_inline, **kwargs)
 
 
-def svg(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def svg(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <svg> tag.
 
@@ -1217,6 +1331,8 @@ def svg(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1225,10 +1341,10 @@ def svg(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("svg", *args, **kwargs)
+    return Tag("svg", *args, _inline=_inline, **kwargs)
 
 
-def switch(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def switch(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <switch> tag.
 
@@ -1238,6 +1354,8 @@ def switch(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1246,10 +1364,10 @@ def switch(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("switch", *args, **kwargs)
+    return Tag("switch", *args, _inline=_inline, **kwargs)
 
 
-def symbol(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def symbol(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <symbol> tag.
 
@@ -1259,6 +1377,8 @@ def symbol(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1267,10 +1387,10 @@ def symbol(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("symbol", *args, **kwargs)
+    return Tag("symbol", *args, _inline=_inline, **kwargs)
 
 
-def text(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def text(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <text> tag.
 
@@ -1280,6 +1400,8 @@ def text(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1288,10 +1410,10 @@ def text(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("text", *args, **kwargs)
+    return Tag("text", *args, _inline=_inline, **kwargs)
 
 
-def textPath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def textPath(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <textPath> tag.
 
@@ -1301,6 +1423,8 @@ def textPath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1309,10 +1433,10 @@ def textPath(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("textPath", *args, **kwargs)
+    return Tag("textPath", *args, _inline=_inline, **kwargs)
 
 
-def title(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def title(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <title> tag.
 
@@ -1322,6 +1446,8 @@ def title(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1330,10 +1456,10 @@ def title(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("title", *args, **kwargs)
+    return Tag("title", *args, _inline=_inline, **kwargs)
 
 
-def tspan(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def tspan(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <tspan> tag.
 
@@ -1343,6 +1469,8 @@ def tspan(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1351,10 +1479,10 @@ def tspan(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("tspan", *args, **kwargs)
+    return Tag("tspan", *args, _inline=_inline, **kwargs)
 
 
-def use(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def use(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <use> tag.
 
@@ -1364,6 +1492,8 @@ def use(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1372,10 +1502,10 @@ def use(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("use", *args, **kwargs)
+    return Tag("use", *args, _inline=_inline, **kwargs)
 
 
-def view(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def view(*args: TagChild | TagAttrs, _inline: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <view> tag.
 
@@ -1385,6 +1515,8 @@ def view(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -1393,4 +1525,4 @@ def view(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("view", *args, **kwargs)
+    return Tag("view", *args, _inline=_inline, **kwargs)

@@ -449,6 +449,7 @@ class Tag:
     """
 
     name: str
+    inline: bool
     attrs: TagAttrDict
     children: TagList
 
@@ -456,9 +457,11 @@ class Tag:
         self,
         _name: str,
         *args: TagChild | TagAttrs,
+        _inline: bool = False,
         **kwargs: TagAttrValue,
     ) -> None:
         self.name = _name
+        self.inline = _inline
 
         attrs = [x for x in args if isinstance(x, dict)]
         self.attrs = TagAttrDict(*attrs, **kwargs)

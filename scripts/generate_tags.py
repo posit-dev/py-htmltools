@@ -7,8 +7,48 @@ import os
 import re
 from urllib.request import urlopen
 
+_INLINE_TAG_NAMES = {
+    "a",
+    "abbr",
+    "acronym",
+    "b",
+    "bdo",
+    "big",
+    "br",
+    "button",
+    "cite",
+    "code",
+    "dfn",
+    "em",
+    "i",
+    "img",
+    "input",
+    "kbd",
+    "label",
+    "map",
+    "object",
+    "output",
+    "q",
+    "samp",
+    # Technically, <script> is considered inline, but in practice it doesn't seem worth
+    # treating it this way since the current tag writing logic will inline any tag that
+    # has at least one inline tag, meaning that the <head> tag will be inlined in most
+    # cases.
+    "select",
+    "small",
+    "span",
+    "strong",
+    "sub",
+    "sup",
+    "textarea",
+    "time",
+    "tt",
+    "var",
+}
+
+
 tag_template = '''
-def {name}(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def {name}(*args: TagChild | TagAttrs, _inline: bool = {inline}, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <{name}> tag.
 
@@ -18,6 +58,8 @@ def {name}(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _inline
+        Whether this tag should be rendered as an inline tag.
     **kwargs
         Attributes to this tag.
 
@@ -26,7 +68,7 @@ def {name}(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     Tag
     """
 
-    return Tag("{name}", *args, **kwargs)
+    return Tag("{name}", *args, _inline=_inline, **kwargs)
 '''
 
 
@@ -45,7 +87,11 @@ def generate_tag_code(url: str) -> str:
         if "\n" in x["desc"]:
             x["desc"] = re.sub("\n\\s+", "\n    ", x["desc"])
 
-        code += "\n" + tag_template.format(name=x["name"], desc=x["desc"])
+        code += "\n" + tag_template.format(
+            name=x["name"],
+            inline=str(x["name"] in _INLINE_TAG_NAMES),
+            desc=x["desc"],
+        )
     return code
 
 
