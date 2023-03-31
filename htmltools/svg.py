@@ -20,14 +20,18 @@ def a(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue)
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("a", *args, _add_ws=_add_ws, **kwargs)
@@ -43,14 +47,18 @@ def animate(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("animate", *args, _add_ws=_add_ws, **kwargs)
@@ -66,14 +74,18 @@ def animateMotion(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Ta
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("animateMotion", *args, _add_ws=_add_ws, **kwargs)
@@ -89,14 +101,18 @@ def animateTransform(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs:
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("animateTransform", *args, _add_ws=_add_ws, **kwargs)
@@ -112,14 +128,18 @@ def circle(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("circle", *args, _add_ws=_add_ws, **kwargs)
@@ -135,14 +155,18 @@ def clipPath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("clipPath", *args, _add_ws=_add_ws, **kwargs)
@@ -158,14 +182,18 @@ def defs(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("defs", *args, _add_ws=_add_ws, **kwargs)
@@ -181,14 +209,18 @@ def desc(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("desc", *args, _add_ws=_add_ws, **kwargs)
@@ -204,14 +236,18 @@ def discard(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("discard", *args, _add_ws=_add_ws, **kwargs)
@@ -227,14 +263,18 @@ def ellipse(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("ellipse", *args, _add_ws=_add_ws, **kwargs)
@@ -250,14 +290,18 @@ def feBlend(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feBlend", *args, _add_ws=_add_ws, **kwargs)
@@ -273,14 +317,18 @@ def feColorMatrix(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Ta
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feColorMatrix", *args, _add_ws=_add_ws, **kwargs)
@@ -296,14 +344,18 @@ def feComponentTransfer(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwar
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feComponentTransfer", *args, _add_ws=_add_ws, **kwargs)
@@ -319,14 +371,18 @@ def feComposite(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagA
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feComposite", *args, _add_ws=_add_ws, **kwargs)
@@ -342,14 +398,18 @@ def feConvolveMatrix(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs:
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feConvolveMatrix", *args, _add_ws=_add_ws, **kwargs)
@@ -365,14 +425,18 @@ def feDiffuseLighting(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feDiffuseLighting", *args, _add_ws=_add_ws, **kwargs)
@@ -388,14 +452,18 @@ def feDisplacementMap(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feDisplacementMap", *args, _add_ws=_add_ws, **kwargs)
@@ -411,14 +479,18 @@ def feDistantLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feDistantLight", *args, _add_ws=_add_ws, **kwargs)
@@ -434,14 +506,18 @@ def feDropShadow(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feDropShadow", *args, _add_ws=_add_ws, **kwargs)
@@ -457,14 +533,18 @@ def feFlood(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feFlood", *args, _add_ws=_add_ws, **kwargs)
@@ -480,14 +560,18 @@ def feFuncA(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feFuncA", *args, _add_ws=_add_ws, **kwargs)
@@ -503,14 +587,18 @@ def feFuncB(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feFuncB", *args, _add_ws=_add_ws, **kwargs)
@@ -526,14 +614,18 @@ def feFuncG(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feFuncG", *args, _add_ws=_add_ws, **kwargs)
@@ -549,14 +641,18 @@ def feFuncR(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feFuncR", *args, _add_ws=_add_ws, **kwargs)
@@ -572,14 +668,18 @@ def feGaussianBlur(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feGaussianBlur", *args, _add_ws=_add_ws, **kwargs)
@@ -595,14 +695,18 @@ def feImage(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feImage", *args, _add_ws=_add_ws, **kwargs)
@@ -618,14 +722,18 @@ def feMerge(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feMerge", *args, _add_ws=_add_ws, **kwargs)
@@ -641,14 +749,18 @@ def feMergeNode(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagA
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feMergeNode", *args, _add_ws=_add_ws, **kwargs)
@@ -664,14 +776,18 @@ def feMorphology(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feMorphology", *args, _add_ws=_add_ws, **kwargs)
@@ -687,14 +803,18 @@ def feOffset(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feOffset", *args, _add_ws=_add_ws, **kwargs)
@@ -710,14 +830,18 @@ def fePointLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("fePointLight", *args, _add_ws=_add_ws, **kwargs)
@@ -733,14 +857,18 @@ def feSpecularLighting(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwarg
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feSpecularLighting", *args, _add_ws=_add_ws, **kwargs)
@@ -756,14 +884,18 @@ def feSpotLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagA
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feSpotLight", *args, _add_ws=_add_ws, **kwargs)
@@ -779,14 +911,18 @@ def feTile(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feTile", *args, _add_ws=_add_ws, **kwargs)
@@ -802,14 +938,18 @@ def feTurbulence(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("feTurbulence", *args, _add_ws=_add_ws, **kwargs)
@@ -825,14 +965,18 @@ def filter(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("filter", *args, _add_ws=_add_ws, **kwargs)
@@ -848,14 +992,18 @@ def foreignObject(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Ta
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("foreignObject", *args, _add_ws=_add_ws, **kwargs)
@@ -871,14 +1019,18 @@ def g(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) 
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("g", *args, _add_ws=_add_ws, **kwargs)
@@ -894,14 +1046,18 @@ def hatch(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("hatch", *args, _add_ws=_add_ws, **kwargs)
@@ -917,14 +1073,18 @@ def hatchpath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAtt
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("hatchpath", *args, _add_ws=_add_ws, **kwargs)
@@ -940,14 +1100,18 @@ def image(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("image", *args, _add_ws=_add_ws, **kwargs)
@@ -963,14 +1127,18 @@ def line(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("line", *args, _add_ws=_add_ws, **kwargs)
@@ -986,14 +1154,18 @@ def linearGradient(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("linearGradient", *args, _add_ws=_add_ws, **kwargs)
@@ -1009,14 +1181,18 @@ def marker(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("marker", *args, _add_ws=_add_ws, **kwargs)
@@ -1032,14 +1208,18 @@ def mask(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("mask", *args, _add_ws=_add_ws, **kwargs)
@@ -1055,14 +1235,18 @@ def metadata(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("metadata", *args, _add_ws=_add_ws, **kwargs)
@@ -1078,14 +1262,18 @@ def mpath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("mpath", *args, _add_ws=_add_ws, **kwargs)
@@ -1101,14 +1289,18 @@ def path(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("path", *args, _add_ws=_add_ws, **kwargs)
@@ -1124,14 +1316,18 @@ def pattern(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("pattern", *args, _add_ws=_add_ws, **kwargs)
@@ -1147,14 +1343,18 @@ def polygon(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("polygon", *args, _add_ws=_add_ws, **kwargs)
@@ -1170,14 +1370,18 @@ def polyline(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("polyline", *args, _add_ws=_add_ws, **kwargs)
@@ -1193,14 +1397,18 @@ def radialGradient(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("radialGradient", *args, _add_ws=_add_ws, **kwargs)
@@ -1216,14 +1424,18 @@ def rect(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("rect", *args, _add_ws=_add_ws, **kwargs)
@@ -1239,14 +1451,18 @@ def script(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("script", *args, _add_ws=_add_ws, **kwargs)
@@ -1262,14 +1478,18 @@ def set(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("set", *args, _add_ws=_add_ws, **kwargs)
@@ -1285,14 +1505,18 @@ def stop(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("stop", *args, _add_ws=_add_ws, **kwargs)
@@ -1308,14 +1532,18 @@ def style(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("style", *args, _add_ws=_add_ws, **kwargs)
@@ -1331,14 +1559,18 @@ def svg(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("svg", *args, _add_ws=_add_ws, **kwargs)
@@ -1354,14 +1586,18 @@ def switch(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("switch", *args, _add_ws=_add_ws, **kwargs)
@@ -1377,14 +1613,18 @@ def symbol(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("symbol", *args, _add_ws=_add_ws, **kwargs)
@@ -1400,14 +1640,18 @@ def text(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("text", *args, _add_ws=_add_ws, **kwargs)
@@ -1423,14 +1667,18 @@ def textPath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("textPath", *args, _add_ws=_add_ws, **kwargs)
@@ -1446,14 +1694,18 @@ def title(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("title", *args, _add_ws=_add_ws, **kwargs)
@@ -1469,14 +1721,18 @@ def tspan(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("tspan", *args, _add_ws=_add_ws, **kwargs)
@@ -1492,14 +1748,18 @@ def use(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("use", *args, _add_ws=_add_ws, **kwargs)
@@ -1515,14 +1775,18 @@ def view(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("view", *args, _add_ws=_add_ws, **kwargs)

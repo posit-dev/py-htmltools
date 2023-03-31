@@ -451,6 +451,8 @@ class Tag:
         The tag's name.
     *args
         Children for the tag.
+    _add_ws
+        Whether to add whitespace surrounding the tag.
     **kwargs
         Attributes for the tag.
 
@@ -462,6 +464,26 @@ class Tag:
         The tag's attributes.
     children
         The tag's children.
+
+    Note
+    ----
+    The `_add_ws` parameter controls whether whitespace is added around the tag. By
+    default, tag functions for block elements (like `div()` and `p()`) set this to
+    `True`, and tag functions for inline elements (like `span()` and `a()`) set this to
+    `False`.
+
+    When a tag with `_add_ws=True` is rendered to HTML, whitespace (including
+    indentation) is add before the opening tag (like `<div>`), after the closing tag
+    (like `</div>`), and also between the opening tag and its first child. This usually
+    results in formatting that is easier to read.
+
+    The only times that whitespace is not added around tags is when two sibling tags
+    have `_add_ws=False`, or when a tag and its first child both have `_add_ws=False`.
+    Bare strings are treated as children with `_add_ws=False`.
+
+    If you need fine control over whitespace in the output HTML, you can create tags
+    with `_add_ws=False` and manually add whitespace, like `div("\n", span("a"),
+    _add_ws=False)`.
 
     Example
     --------

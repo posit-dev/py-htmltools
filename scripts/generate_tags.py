@@ -61,14 +61,18 @@ def {name}(*args: TagChild | TagAttrs, _add_ws: bool = {add_ws}, **kwargs: TagAt
     ----------
     *args
         Child elements to this tag.
-    _inline
-        Whether this tag should be rendered as an inline tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
     return Tag("{name}", *args, _add_ws=_add_ws, **kwargs)
