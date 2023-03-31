@@ -370,6 +370,8 @@ def test_tag_inline():
     )
 
 
+# This set of tests is commented out because we're not currently enforcing any
+# particular behavior for invalid inline/block nesting.
 # def test_tag_inline_invalid():
 #     # This set of tests is for invalid inline/block nesting. Normally, block tags can
 #     # contain inline or block tags, but inline tags can only contain inline tags.
