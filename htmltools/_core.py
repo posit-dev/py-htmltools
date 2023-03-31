@@ -242,7 +242,12 @@ class TagList(List[TagNode]):
         return {"dependencies": deps, "html": cp.get_html_string()}
 
     def get_html_string(
-        self, indent: int = 0, eol: str = "\n", *, _escape_strings: bool = True
+        self,
+        indent: int = 0,
+        eol: str = "\n",
+        *,
+        inline_context: bool = False,
+        _escape_strings: bool = True,
     ) -> "HTML":
         """
         Return the HTML string for this tag list.
@@ -257,14 +262,21 @@ class TagList(List[TagNode]):
 
         html_ = ""
         first_child = True
+        prev_was_inline = inline_context
 
         for child in self:
             if isinstance(child, MetadataNode):
                 continue
 
+            # True if the previous and current node are inline; False otherwise. This
+            # affects whether or not we add whitespace and indentation.
+            prev_and_current_inline = prev_was_inline and (
+                (isinstance(child, Tag) and child.inline) or isinstance(child, str)
+            )
+
             if first_child:
                 first_child = False
-            else:
+            elif not prev_and_current_inline:
                 html_ += eol
 
             if isinstance(child, Tag):
@@ -272,17 +284,29 @@ class TagList(List[TagNode]):
                 # only be set to True when <script> and <style> tags call
                 # self.children.get_html_string(), and those tags don't have children to
                 # recurse into.
-                html_ += child.get_html_string(indent, eol)
+                if prev_and_current_inline:
+                    html_ += child.get_html_string(0, "")
+                else:
+                    html_ += child.get_html_string(indent, eol)
+
+                prev_was_inline = child.inline
+
             elif isinstance(child, Tagifiable):
                 raise RuntimeError(
                     "Encountered a non-tagified object. x.tagify() must be called before x.render()"
                 )
+
             else:
                 # If we get here, x must be a string.
+                if not prev_was_inline:
+                    html_ += "  " * indent
+
                 if _escape_strings:
-                    html_ += ("  " * indent) + _normalize_text(child)
+                    html_ += _normalize_text(child)
                 else:
-                    html_ += ("  " * indent) + child
+                    html_ += child
+
+                prev_was_inline = True
 
         return HTML(html_)
 
@@ -588,12 +612,20 @@ class Tag:
                 return HTML(html_ + _normalize_text(children[0]) + close)
 
         # Write children
-        # TODO: inline elements should eat ws?
-        html_ += eol
+        if not self.inline:
+            html_ += eol
+
         html_ += self.children.get_html_string(
-            indent + 1, eol, _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES)
+            indent=indent + 1,
+            eol=eol,
+            inline_context=self.inline,
+            _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES),
         )
-        return HTML(html_ + eol + indent_str + close)
+
+        if not self.inline:
+            html_ += eol + indent_str
+
+        return HTML(html_ + close)
 
     def render(self) -> RenderedHTML:
         """
