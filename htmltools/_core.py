@@ -452,7 +452,7 @@ class Tag:
     *args
         Children for the tag.
     _add_ws
-        Whether to add whitespace surrounding the tag.
+        Whether to add whitespace surrounding the tag (see Note for details).
     **kwargs
         Attributes for the tag.
 
@@ -467,13 +467,12 @@ class Tag:
 
     Note
     ----
-    The `_add_ws` parameter controls whether whitespace is added around the tag. By
-    default, tag functions for block elements (like `div()` and `p()`) set this to
-    `True`, and tag functions for inline elements (like `span()` and `a()`) set this to
-    `False`.
+    The `_add_ws` parameter controls whether whitespace is added around the tag. Inline
+    tags (like `span()` and `a()`) default to  `False` and block tags (like `div()` and
+    `p()`) default to `True`.
 
     When a tag with `_add_ws=True` is rendered to HTML, whitespace (including
-    indentation) is add before the opening tag (like `<div>`), after the closing tag
+    indentation) is added before the opening tag (like `<div>`), after the closing tag
     (like `</div>`), and also between the opening tag and its first child. This usually
     results in formatting that is easier to read.
 
