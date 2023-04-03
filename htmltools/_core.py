@@ -242,7 +242,12 @@ class TagList(List[TagNode]):
         return {"dependencies": deps, "html": cp.get_html_string()}
 
     def get_html_string(
-        self, indent: int = 0, eol: str = "\n", *, _escape_strings: bool = True
+        self,
+        indent: int = 0,
+        eol: str = "\n",
+        *,
+        add_ws: bool = True,
+        _escape_strings: bool = True,
     ) -> "HTML":
         """
         Return the HTML string for this tag list.
@@ -253,32 +258,61 @@ class TagList(List[TagNode]):
             Number of spaces to indent each line of the HTML.
         eol
             End-of-line character(s).
+        add_ws:
+            Whether to add whitespace between the opening tag and the first child. If
+            either this is True, or the child's add_ws attribute is True, then
+            whitespace will be added; if they are both False, then no whitespace will be
+            added.
         """
 
         html_ = ""
-        line_prefix = ""
+        first_child = True
+        prev_was_add_ws = add_ws
+
         for child in self:
+            if isinstance(child, MetadataNode):
+                continue
+
+            # True if the previous and current node are inline; False otherwise. This
+            # affects whether or not we add whitespace and indentation.
+            prev_or_current_add_ws = prev_was_add_ws or (
+                (isinstance(child, Tag) and child.add_ws)
+            )
+
+            if first_child:
+                first_child = False
+            elif prev_or_current_add_ws:
+                html_ += eol
+
             if isinstance(child, Tag):
                 # Note that we don't pass _escape_strings along, because that should
                 # only be set to True when <script> and <style> tags call
                 # self.children.get_html_string(), and those tags don't have children to
                 # recurse into.
-                html_ += line_prefix + child.get_html_string(indent, eol)
-            elif isinstance(child, MetadataNode):
-                continue
+                if prev_or_current_add_ws:
+                    html_ += child.get_html_string(indent, eol)
+                else:
+                    html_ += child.get_html_string(0, "")
+
+                prev_was_add_ws = child.add_ws
+
             elif isinstance(child, Tagifiable):
                 raise RuntimeError(
                     "Encountered a non-tagified object. x.tagify() must be called before x.render()"
                 )
+
             else:
                 # If we get here, x must be a string.
-                if _escape_strings:
-                    html_ += line_prefix + ("  " * indent) + _normalize_text(child)
-                else:
-                    html_ += line_prefix + ("  " * indent) + child
+                if prev_was_add_ws:
+                    html_ += "  " * indent
 
-            if line_prefix == "":
-                line_prefix = eol
+                if _escape_strings:
+                    html_ += _normalize_text(child)
+                else:
+                    html_ += child
+
+                prev_was_add_ws = False
+
         return HTML(html_)
 
     def get_dependencies(self, *, dedup: bool = True) -> list["HTMLDependency"]:
@@ -422,6 +456,8 @@ class Tag:
         The tag's name.
     *args
         Children for the tag.
+    _add_ws
+        Whether to add whitespace surrounding the tag (see Note for details).
     **kwargs
         Attributes for the tag.
 
@@ -434,6 +470,25 @@ class Tag:
     children
         The tag's children.
 
+    Note
+    ----
+    The `_add_ws` parameter controls whether whitespace is added around the tag. Inline
+    tags (like `span()` and `a()`) default to  `False` and block tags (like `div()` and
+    `p()`) default to `True`.
+
+    When a tag with `_add_ws=True` is rendered to HTML, whitespace (including
+    indentation) is added before the opening tag (like `<div>`), after the closing tag
+    (like `</div>`), and also between the opening tag and its first child. This usually
+    results in formatting that is easier to read.
+
+    The only times that whitespace is not added around tags is when two sibling tags
+    have `_add_ws=False`, or when a tag and its first child both have `_add_ws=False`.
+    Bare strings are treated as children with `_add_ws=False`.
+
+    If you need fine control over whitespace in the output HTML, you can create tags
+    with `_add_ws=False` and manually add whitespace, like `div("\n", span("a"),
+    _add_ws=False)`.
+
     Example
     --------
     >>> from htmltools import div
@@ -444,6 +499,7 @@ class Tag:
     """
 
     name: str
+    add_ws: bool
     attrs: TagAttrDict
     children: TagList
 
@@ -451,9 +507,11 @@ class Tag:
         self,
         _name: str,
         *args: TagChild | TagAttrs,
+        _add_ws: bool = True,
         **kwargs: TagAttrValue,
     ) -> None:
         self.name = _name
+        self.add_ws = _add_ws
 
         attrs = [x for x in args if isinstance(x, dict)]
         self.attrs = TagAttrDict(*attrs, **kwargs)
@@ -580,12 +638,20 @@ class Tag:
                 return HTML(html_ + _normalize_text(children[0]) + close)
 
         # Write children
-        # TODO: inline elements should eat ws?
-        html_ += eol
+        if self.add_ws:
+            html_ += eol
+
         html_ += self.children.get_html_string(
-            indent + 1, eol, _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES)
+            indent=indent + 1,
+            eol=eol,
+            add_ws=self.add_ws,
+            _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES),
         )
-        return HTML(html_ + eol + indent_str + close)
+
+        if self.add_ws:
+            html_ += eol + indent_str
+
+        return HTML(html_ + close)
 
     def render(self) -> RenderedHTML:
         """

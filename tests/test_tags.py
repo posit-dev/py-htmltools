@@ -48,11 +48,7 @@ def test_basic_tag_api():
         <div class="foo" for="bar" id="baz" bool="">
           <h1>hello</h1>
           <h2>world</h2>
-          text
-          1
-          2.1
-          list
-          here
+          text12.1listhere
         </div>"""
     )
     assert x1.attrs["class"] == "foo"
@@ -62,14 +58,14 @@ def test_basic_tag_api():
     x3 = TagList()
     x3.append(a())
     x3.insert(0, span())
-    expect_html(x3, "<span></span>\n<a></a>")
+    expect_html(x3, "<span></span><a></a>")
 
 
 def test_tag_list_dict():
     # Dictionaries allowed at top level
     x1 = div("a", {"b": "B"}, "c")
     assert x1.attrs == {"b": "B"}
-    assert str(x1) == '<div b="B">\n  a\n  c\n</div>'
+    assert str(x1) == '<div b="B">\n  ac\n</div>'
 
     # List args can't contain dictionaries
     with pytest.raises(TypeError):
@@ -179,27 +175,268 @@ def test_tagify_deep_copy():
 
 def test_tag_writing():
     expect_html(TagList("hi"), "hi")
-    expect_html(TagList("one", "two", TagList("three")), "one\ntwo\nthree")
+    expect_html(TagList("one", "two", TagList("three")), "onetwothree")
     expect_html(tags.b("one"), "<b>one</b>")
-    expect_html(tags.b("one", "two"), "<b>\n  one\n  two\n</b>")
+    expect_html(tags.b("one", "two"), "<b>onetwo</b>")
     expect_html(TagList(["one"]), "one")
     expect_html(TagList([TagList("one")]), "one")
-    expect_html(TagList(tags.br(), "one"), "<br/>\none")
-    assert str(
-        tags.b("one", "two", span("foo", "bar", span("baz")))
-    ) == textwrap.dedent(
-        """\
-            <b>
-              one
-              two
-              <span>
-                foo
-                bar
-                <span>baz</span>
-              </span>
-            </b>"""
+    expect_html(TagList(tags.br(), "one"), "<br/>one")
+    assert (
+        str(tags.b("one", "two", span("foo", "bar", span("baz"))))
+        == "<b>onetwo<span>foobar<span>baz</span></span></b>"
     )
     expect_html(tags.area(), "<area/>")
+
+
+def test_tag_inline():
+    # Empty inline/block tags
+    expect_html(div(), "<div></div>")
+    expect_html(span(), "<span></span>")
+
+    # Inline/block tags with one item
+    expect_html(div("a"), "<div>a</div>")
+    expect_html(span("a"), "<span>a</span>")
+
+    # Inline tags with two children
+    expect_html(
+        span("a", "b"),
+        "<span>ab</span>",
+    )
+    expect_html(
+        span(span("a"), "b"),
+        "<span><span>a</span>b</span>",
+    )
+    expect_html(
+        span("a", span("b")),
+        "<span>a<span>b</span></span>",
+    )
+    expect_html(
+        span(span("a"), span("b")),
+        "<span><span>a</span><span>b</span></span>",
+    )
+
+    # Block tags with two inline children
+    expect_html(
+        div("a", "b"),
+        textwrap.dedent(
+            """\
+            <div>
+              ab
+            </div>"""
+        ),
+    )
+    expect_html(
+        div(span("a"), "b"),
+        textwrap.dedent(
+            """\
+            <div>
+              <span>a</span>b
+            </div>"""
+        ),
+    )
+    expect_html(
+        div("a", span("b")),
+        textwrap.dedent(
+            """\
+            <div>
+              a<span>b</span>
+            </div>"""
+        ),
+    )
+    expect_html(
+        div(span("a"), span("b")),
+        textwrap.dedent(
+            """\
+            <div>
+              <span>a</span><span>b</span>
+            </div>"""
+        ),
+    )
+
+    # Block tags with one block and one inline child
+    expect_html(
+        div("a", div("b")),
+        textwrap.dedent(
+            """\
+            <div>
+              a
+              <div>b</div>
+            </div>"""
+        ),
+    )
+    expect_html(
+        div(span("a"), div("b")),
+        textwrap.dedent(
+            """\
+            <div>
+              <span>a</span>
+              <div>b</div>
+            </div>"""
+        ),
+    )
+    expect_html(
+        div(div("a"), "b"),
+        textwrap.dedent(
+            """\
+            <div>
+              <div>a</div>
+              b
+            </div>"""
+        ),
+    )
+    expect_html(
+        div(div("a"), span("b")),
+        textwrap.dedent(
+            """\
+            <div>
+              <div>a</div>
+              <span>b</span>
+            </div>"""
+        ),
+    )
+
+    # Block tag with two block children
+    expect_html(
+        div(div("a"), div("b")),
+        textwrap.dedent(
+            """\
+            <div>
+              <div>a</div>
+              <div>b</div>
+            </div>"""
+        ),
+    )
+
+    # Block tag with three children; mix of inline and block
+    expect_html(
+        div(span("a"), span("b"), div("c")),
+        textwrap.dedent(
+            """\
+            <div>
+              <span>a</span><span>b</span>
+              <div>c</div>
+            </div>"""
+        ),
+    )
+    expect_html(
+        div(span("a"), "b", div("c")),
+        textwrap.dedent(
+            """\
+            <div>
+              <span>a</span>b
+              <div>c</div>
+            </div>"""
+        ),
+    )
+    expect_html(
+        div(div("a"), "b", span("c")),
+        textwrap.dedent(
+            """\
+            <div>
+              <div>a</div>
+              b<span>c</span>
+            </div>"""
+        ),
+    )
+
+    # More complex nesting
+    expect_html(
+        div(span(tags.b("a")), span(tags.b("b"))),
+        textwrap.dedent(
+            """\
+            <div>
+              <span><b>a</b></span><span><b>b</b></span>
+            </div>"""
+        ),
+    )
+    expect_html(
+        span(span(tags.b("a")), span(tags.b("b")), span("c")),
+        textwrap.dedent(
+            """\
+            <span><span><b>a</b></span><span><b>b</b></span><span>c</span></span>"""
+        ),
+    )
+    expect_html(
+        div(div(span("a")), span(tags.b("b"))),
+        textwrap.dedent(
+            """\
+            <div>
+              <div>
+                <span>a</span>
+              </div>
+              <span><b>b</b></span>
+            </div>"""
+        ),
+    )
+
+
+def test_tag_list_ws():
+    x = TagList(span("a"), "b")
+    expect_html(x.get_html_string(), "<span>a</span>b")
+    expect_html(x.get_html_string(add_ws=True), "<span>a</span>b")
+    expect_html(x.get_html_string(indent=1, add_ws=True), "  <span>a</span>b")
+
+    x = TagList(div("a"), "b")
+    expect_html(x.get_html_string(), "<div>a</div>\nb")
+    expect_html(x.get_html_string(add_ws=True), "<div>a</div>\nb")
+    expect_html(x.get_html_string(indent=2, add_ws=True), "    <div>a</div>\n    b")
+
+    x = TagList("a", "b", div("c", "d"), span("e", "f"), span("g", "h"))
+    expect_html(
+        x.get_html_string(),
+        textwrap.dedent(
+            """\
+            ab
+            <div>
+              cd
+            </div>
+            <span>ef</span><span>gh</span>"""
+        ),
+    )
+    expect_html(
+        x.get_html_string(add_ws=True),
+        textwrap.dedent(
+            """\
+            ab
+            <div>
+              cd
+            </div>
+            <span>ef</span><span>gh</span>"""
+        ),
+    )
+    expect_html(
+        x.get_html_string(indent=1, add_ws=True),
+        """  ab
+  <div>
+    cd
+  </div>
+  <span>ef</span><span>gh</span>""",
+    )
+
+
+# This set of tests is commented out because we're not currently enforcing any
+# particular behavior for invalid inline/block nesting.
+# def test_tag_inline_invalid():
+#     # This set of tests is for invalid inline/block nesting. Normally, block tags can
+#     # contain inline or block tags, but inline tags can only contain inline tags.
+#     #
+#     # These tests cover the invalid cases where inline tags contain block tags.
+#     expect_html(
+#         span(div("a")),
+#         "<span>ab</span>",
+#     )
+#     expect_html(
+#         span(div("a"), "b"),
+#         "<span>ab</span>",
+#     )
+#     expect_html(
+#         span("a", div("b")),
+#         "<span>ab</span>",
+#     )
+#     expect_html(
+#         span(div("a"), div("b")),
+#         "<span>ab</span>",
+#     )
 
 
 def test_tag_repr():
@@ -223,9 +460,7 @@ def test_tag_escaping():
 
     # script and style tags are not escaped
     assert str(tags.script("a && b > 3")) == "<script>a && b > 3</script>"
-    assert (
-        str(tags.script("a && b", "x > 3")) == "<script>\n  a && b\n  x > 3\n</script>"
-    )
+    assert str(tags.script("a && b", "x > 3")) == "<script>\n  a && bx > 3\n</script>"
     assert str(tags.script("a && b\nx > 3")) == "<script>a && b\nx > 3</script>"
     assert str(tags.style("a && b > 3")) == "<style>a && b > 3</style>"
 

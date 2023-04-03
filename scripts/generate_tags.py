@@ -7,8 +7,73 @@ import os
 import re
 from urllib.request import urlopen
 
+_INLINE_TAG_NAMES = {
+    "a",
+    "abbr",
+    "acronym",
+    "audio",
+    "b",
+    "bdi",
+    "bdo",
+    "big",
+    "br",
+    "button",
+    "canvas",
+    "cite",
+    "code",
+    "data",
+    "datalist",
+    "del",
+    "dfn",
+    "em",
+    "embed",
+    "i",
+    "iframe",
+    "img",
+    "input",
+    "ins",
+    "kbd",
+    "label",
+    "map",
+    "mark",
+    "meter",
+    "noscript",
+    "object",
+    "output",
+    "picture",
+    # <pre> is technically a block tag, but we want to avoid adding in any extra
+    # whitespace, so we'll treat it like an inline tag.
+    "pre",
+    "progress",
+    "q",
+    "ruby",
+    "s",
+    "samp",
+    # Technically, <script> is considered inline, but in practice it doesn't seem worth
+    # treating it this way since the current tag writing logic will inline any tag that
+    # has at least one inline tag, meaning that the <head> tag will be inlined in most
+    # cases.
+    "select",
+    "slot",
+    "small",
+    "span",
+    "strong",
+    "sub",
+    "sup",
+    "svg",
+    "template",
+    "textarea",
+    "time",
+    "u",
+    "tt",
+    "var",
+    "video",
+    "wbr",
+}
+
+
 tag_template = '''
-def {name}(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
+def {name}(*args: TagChild | TagAttrs, _add_ws: bool = {add_ws}, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <{name}> tag.
 
@@ -18,15 +83,21 @@ def {name}(*args: TagChild | TagAttrs, **kwargs: TagAttrValue) -> Tag:
     ----------
     *args
         Child elements to this tag.
+    _add_ws
+        Whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
     Returns
     -------
     Tag
+
+    See Also
+    --------
+    ~htmltools.Tag
     """
 
-    return Tag("{name}", *args, **kwargs)
+    return Tag("{name}", *args, _add_ws=_add_ws, **kwargs)
 '''
 
 
@@ -45,7 +116,11 @@ def generate_tag_code(url: str) -> str:
         if "\n" in x["desc"]:
             x["desc"] = re.sub("\n\\s+", "\n    ", x["desc"])
 
-        code += "\n" + tag_template.format(name=x["name"], desc=x["desc"])
+        code += "\n" + tag_template.format(
+            name=x["name"],
+            add_ws=str(x["name"] not in _INLINE_TAG_NAMES),
+            desc=x["desc"],
+        )
     return code
 
 
