@@ -681,3 +681,10 @@ def test_metadata_nodes_gone():
         str(TagList(span("Body content"), MetadataNode()))
         == "<span>Body content</span>"
     )
+
+
+def test_types():
+    # When a type checker like pyright is run on this file, this line will make sure
+    # that a Tag function like `div()` matches the signature of the TagFunction Protocol
+    # class.
+    f: TagFunction = div  # noqa: F841
