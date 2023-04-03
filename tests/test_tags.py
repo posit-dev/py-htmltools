@@ -370,6 +370,50 @@ def test_tag_inline():
     )
 
 
+def test_tag_list_ws():
+    x = TagList(span("a"), "b")
+    expect_html(x.get_html_string(), "<span>a</span>b")
+    expect_html(x.get_html_string(add_ws=True), "<span>a</span>b")
+    expect_html(x.get_html_string(indent=1, add_ws=True), "  <span>a</span>b")
+
+    x = TagList(div("a"), "b")
+    expect_html(x.get_html_string(), "<div>a</div>\nb")
+    expect_html(x.get_html_string(add_ws=True), "<div>a</div>\nb")
+    expect_html(x.get_html_string(indent=2, add_ws=True), "    <div>a</div>\n    b")
+
+    x = TagList("a", "b", div("c", "d"), span("e", "f"), span("g", "h"))
+    expect_html(
+        x.get_html_string(),
+        textwrap.dedent(
+            """\
+            ab
+            <div>
+              cd
+            </div>
+            <span>ef</span><span>gh</span>"""
+        ),
+    )
+    expect_html(
+        x.get_html_string(add_ws=True),
+        textwrap.dedent(
+            """\
+            ab
+            <div>
+              cd
+            </div>
+            <span>ef</span><span>gh</span>"""
+        ),
+    )
+    expect_html(
+        x.get_html_string(indent=1, add_ws=True),
+        """  ab
+  <div>
+    cd
+  </div>
+  <span>ef</span><span>gh</span>""",
+    )
+
+
 # This set of tests is commented out because we're not currently enforcing any
 # particular behavior for invalid inline/block nesting.
 # def test_tag_inline_invalid():
