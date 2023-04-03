@@ -136,6 +136,7 @@ class TagFunction(Protocol):
     def __call__(
         self,
         *args: TagChild | TagAttrs,
+        _add_ws: bool = ...,
         **kwargs: TagAttrValue,
     ) -> "Tag":
         ...
