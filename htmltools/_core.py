@@ -258,6 +258,11 @@ class TagList(List[TagNode]):
             Number of spaces to indent each line of the HTML.
         eol
             End-of-line character(s).
+        add_ws:
+            Whether to add whitespace between the opening tag and the first child. If
+            either this is True, or the child's add_ws attribute is True, then
+            whitespace will be added; if they are both False, then no whitespace will be
+            added.
         """
 
         html_ = ""
