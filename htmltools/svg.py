@@ -1549,7 +1549,7 @@ def style(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("style", *args, _add_ws=_add_ws, **kwargs)
 
 
-def svg(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def svg(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <svg> tag.
 

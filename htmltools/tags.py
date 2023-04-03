@@ -1084,7 +1084,7 @@ def b(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue)
     return Tag("b", *args, _add_ws=_add_ws, **kwargs)
 
 
-def bdi(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def bdi(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <bdi> tag.
 
@@ -1219,7 +1219,7 @@ def code(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
     return Tag("code", *args, _add_ws=_add_ws, **kwargs)
 
 
-def data(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def data(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <data> tag.
 
@@ -1354,7 +1354,7 @@ def kbd(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
     return Tag("kbd", *args, _add_ws=_add_ws, **kwargs)
 
 
-def mark(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def mark(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <mark> tag.
 
@@ -1462,7 +1462,7 @@ def rt(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
     return Tag("rt", *args, _add_ws=_add_ws, **kwargs)
 
 
-def ruby(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def ruby(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <ruby> tag.
 
@@ -1489,7 +1489,7 @@ def ruby(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("ruby", *args, _add_ws=_add_ws, **kwargs)
 
 
-def s(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def s(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <s> tag.
 
@@ -1705,7 +1705,7 @@ def time(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
     return Tag("time", *args, _add_ws=_add_ws, **kwargs)
 
 
-def u(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def u(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <u> tag.
 
@@ -1759,7 +1759,7 @@ def var(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
     return Tag("var", *args, _add_ws=_add_ws, **kwargs)
 
 
-def wbr(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def wbr(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <wbr> tag.
 
@@ -1813,7 +1813,7 @@ def area(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("area", *args, _add_ws=_add_ws, **kwargs)
 
 
-def audio(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def audio(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <audio> tag.
 
@@ -1921,7 +1921,7 @@ def track(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("track", *args, _add_ws=_add_ws, **kwargs)
 
 
-def video(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def video(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <video> tag.
 
@@ -1948,7 +1948,7 @@ def video(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("video", *args, _add_ws=_add_ws, **kwargs)
 
 
-def embed(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def embed(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <embed> tag.
 
@@ -1975,7 +1975,7 @@ def embed(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("embed", *args, _add_ws=_add_ws, **kwargs)
 
 
-def iframe(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def iframe(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <iframe> tag.
 
@@ -2056,7 +2056,7 @@ def param(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("param", *args, _add_ws=_add_ws, **kwargs)
 
 
-def picture(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def picture(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <picture> tag.
 
@@ -2137,7 +2137,7 @@ def source(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("source", *args, _add_ws=_add_ws, **kwargs)
 
 
-def svg(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def svg(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <svg> tag.
 
@@ -2199,7 +2199,7 @@ def math(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("math", *args, _add_ws=_add_ws, **kwargs)
 
 
-def canvas(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def canvas(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <canvas> tag.
 
@@ -2226,7 +2226,7 @@ def canvas(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("canvas", *args, _add_ws=_add_ws, **kwargs)
 
 
-def noscript(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def noscript(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <noscript> tag.
 
@@ -2280,7 +2280,7 @@ def script(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("script", *args, _add_ws=_add_ws, **kwargs)
 
 
-def ins(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def ins(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <ins> tag.
 
@@ -2604,7 +2604,7 @@ def button(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrV
     return Tag("button", *args, _add_ws=_add_ws, **kwargs)
 
 
-def datalist(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def datalist(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <datalist> tag.
 
@@ -2766,7 +2766,7 @@ def legend(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("legend", *args, _add_ws=_add_ws, **kwargs)
 
 
-def meter(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def meter(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <meter> tag.
 
@@ -2874,7 +2874,7 @@ def output(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrV
     return Tag("output", *args, _add_ws=_add_ws, **kwargs)
 
 
-def progress(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def progress(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <progress> tag.
 
@@ -3036,7 +3036,7 @@ def summary(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("summary", *args, _add_ws=_add_ws, **kwargs)
 
 
-def slot(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def slot(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <slot> tag.
 
@@ -3063,7 +3063,7 @@ def slot(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("slot", *args, _add_ws=_add_ws, **kwargs)
 
 
-def template(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def template(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <template> tag.
 
