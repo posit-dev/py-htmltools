@@ -6,18 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [UNRELEASED]
+## [0.2.0] - 2023-04-03
 
 ### New features
 
 * Added support for URL based `HTMLDependency` objects. (#53)
 
 * Tag functions now have a boolean parameter `_add_ws`, which determines if the tag should be surrounded by whitespace. Tags which are normally block elements (like `div`) have this default to `True`, and tags which are normally inline elements (like `span`) have this default to `False`. This makes it possible to create HTML where neighboring elements have no whitespace between them. For example, `span(span("a"), span("b"))` will now yield `<span><span>a</span><span>b</span></span>`. (#54)
-
-### Bug fixes
-
-
-### Other changes
 
 
 ## [0.1.5] - 2023-03-11
