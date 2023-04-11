@@ -154,8 +154,8 @@ class TagList(List[TagNode]):
     *args
         The tag children to add to the list.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from htmltools import TagList, div
     >>> TagList("hello", div(id="foo", class_="bar"))
     hello
@@ -490,7 +490,7 @@ class Tag:
     with `_add_ws=False` and manually add whitespace, like `div("\n", span("a"),
     _add_ws=False)`.
 
-    Example
+    Examples
     --------
     >>> from htmltools import div
     >>> x = div("hello", id="foo", class_="bar")
@@ -753,8 +753,8 @@ class HTMLDocument:
     **kwargs
         Attributes to set on the document (i.e., the root <html> tag).
 
-    Example
-    -------
+    Examples
+    --------
     >>> from htmltools import HTMLDocument, h1, tags
     >>> HTMLDocument(h1("Hello"), tags.meta(name="description", content="test"), lang = "en")
     """
@@ -933,8 +933,8 @@ class HTML(str):
     Mark a string as raw HTML. This will prevent the string from being escaped when
     rendered inside an HTML tag.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from htmltools import HTML, div
     >>> div("<p>Hello</p>")
     <div>&lt;p&gt;Hello&lt;/p&gt;</div>
@@ -1082,8 +1082,8 @@ class HTMLDependency(MetadataNode):
     head
         Tags to include in the document's ``<head>``.
 
-    Example
-    -------
+    Examples
+    --------
     >>> dep = HTMLDependency(
             name="mypackage",
             version="1.0",
@@ -1352,8 +1352,8 @@ def head_content(*args: TagChild) -> HTMLDependency:
     same content included multiple times, you can add some irrelevant/empty tags (e.g.,
     ``TagList(x, Tag("meta"))``) to make sure ``x`` is included multiple times.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from htmltools import *
     >>> x = div(head_content(title("My Title")))
     >>> print(HTMLDocument(x).render()["html"])
