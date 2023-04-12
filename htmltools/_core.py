@@ -90,22 +90,25 @@ T = TypeVar("T")
 
 TagT = TypeVar("TagT", bound="Tag")
 
-# Types that can be passed in as attributes to Tag functions. These values will be
-# converted to strings before being stored as tag attributes.
 TagAttrValue = Union[str, float, bool, None]
+"""
+Types that can be passed in as attributes to `Tag` functions. These values will be
+converted to strings before being stored as tag attributes.
+"""
 
-# For dictionaries of tag attributes (e.g., {"id": "foo"}), which can be passed as
-# unnamed arguments to Tag functions like ``div()``.
 TagAttrs = Dict[str, TagAttrValue]
+"""
+For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed as unnamed
+arguments to Tag functions like `div()`.
+"""
 
-# Types of objects that can be a node in a Tag tree. Equivalently, these are the valid
-# elements of a TagList. Note that this type represents the internal structure of items
-# in a TagList; the user-facing type is TagChild.
 TagNode = Union["Tagifiable", "Tag", MetadataNode, str]
+"""
+Types of objects that can be a node in a `Tag` tree. Equivalently, these are the valid
+elements of a `TagList`. Note that this type represents the internal structure of items
+in a `TagList`; the user-facing type is `TagChild`.
+"""
 
-# Types of objects that can be passed as children to Tag functions like ``div()``. The
-# Tag functions and the TagList() constructor can accept these as unnamed arguments;
-# they will be flattened and normalized to TagNode objects.
 TagChild = Union[
     TagNode,
     "TagList",
@@ -113,7 +116,11 @@ TagChild = Union[
     None,
     Sequence["TagChild"],
 ]
-
+"""
+Types of objects that can be passed as children to Tag functions like `div()`. The `Tag`
+functions and the `TagList()` constructor can accept these as unnamed arguments; they
+will be flattened and normalized to `TagNode` objects.
+"""
 
 # These two types existed in htmltools 0.14.0 and earlier. They are here so that
 # existing versions of Shiny will be able to load, but users of those existing packages
@@ -122,17 +129,23 @@ TagChildArg = Never
 TagAttrArg = Never
 
 
-# Objects with tagify() methods are considered Tagifiable. Note that an object returns a
-# TagList, the children of the TagList must also be tagified.
 @runtime_checkable
 class Tagifiable(Protocol):
+    """
+    Objects with `tagify()` methods are considered `Tagifiable`. Note that an object
+    returns a `TagList`, the children of the `TagList` must also be tagified.
+    """
+
     def tagify(self) -> "TagList | Tag | MetadataNode | str":
         ...
 
 
-# Tag functions, like div(), span(), etc.
 @runtime_checkable
 class TagFunction(Protocol):
+    """
+    Tag functions, like `div()`, `span()`, etc.
+    """
+
     def __call__(
         self,
         *args: TagChild | TagAttrs,
