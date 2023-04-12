@@ -500,7 +500,7 @@ class Tag:
     Bare strings are treated as children with `_add_ws=False`.
 
     If you need fine control over whitespace in the output HTML, you can create tags
-    with `_add_ws=False` and manually add whitespace, like `div("\n", span("a"),
+    with `_add_ws=False` and manually add whitespace, like `div("\\n", span("a"),
     _add_ws=False)`.
 
     Examples
