@@ -240,7 +240,8 @@ class TagList(List[TagNode]):
 
         Returns
         -------
-        The path to the generated HTML file.
+        :
+            The path to the generated HTML file.
         """
 
         return HTMLDocument(self).save_html(
@@ -574,7 +575,8 @@ class Tag:
 
         Returns
         -------
-        The modified tag.
+        :
+            The modified tag.
         """
         cls = self.attrs.get("class")
         if cls:
@@ -593,7 +595,8 @@ class Tag:
 
         Returns
         -------
-        ``True`` if the tag has the class, ``False`` otherwise.
+        :
+            ``True`` if the tag has the class, ``False`` otherwise.
         """
         cls = self.attrs.get("class")
         if cls:

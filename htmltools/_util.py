@@ -38,7 +38,8 @@ def css(collapse_: str = "", **kwargs: str | float | None) -> Optional[str]:
 
     Returns
     -------
-    A string of CSS style declarations, or ``None`` if no properties were given.
+    :
+        A string of CSS style declarations, or ``None`` if no properties were given.
 
     Example
     -------

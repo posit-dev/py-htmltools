@@ -90,7 +90,8 @@ def {name}(*args: TagChild | TagAttrs, _add_ws: bool = {add_ws}, **kwargs: TagAt
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------

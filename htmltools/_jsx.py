@@ -300,7 +300,8 @@ def jsx_tag_create(
 
     Returns
     -------
-    JSXTag
+    :
+        JSXTag
 
     Examples
     --------

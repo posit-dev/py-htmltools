@@ -47,7 +47,8 @@ def html(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -74,7 +75,8 @@ def base(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -101,7 +103,8 @@ def head(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -129,7 +132,8 @@ def link(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -156,7 +160,8 @@ def meta(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -183,7 +188,8 @@ def style(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -210,7 +216,8 @@ def title(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -237,7 +244,8 @@ def body(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -264,7 +272,8 @@ def address(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -291,7 +300,8 @@ def article(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -318,7 +328,8 @@ def aside(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -345,7 +356,8 @@ def footer(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -372,7 +384,8 @@ def header(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -399,7 +412,8 @@ def h1(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -426,7 +440,8 @@ def h2(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -453,7 +468,8 @@ def h3(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -480,7 +496,8 @@ def h4(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -507,7 +524,8 @@ def h5(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -534,7 +552,8 @@ def h6(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -561,7 +580,8 @@ def main(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -588,7 +608,8 @@ def nav(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -615,7 +636,8 @@ def section(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -642,7 +664,8 @@ def blockquote(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAt
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -669,7 +692,8 @@ def dd(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -696,7 +720,8 @@ def div(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -723,7 +748,8 @@ def dl(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -750,7 +776,8 @@ def dt(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -777,7 +804,8 @@ def figcaption(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAt
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -804,7 +832,8 @@ def figure(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -831,7 +860,8 @@ def hr(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -858,7 +888,8 @@ def li(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -885,7 +916,8 @@ def menu(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -912,7 +944,8 @@ def ol(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -939,7 +972,8 @@ def p(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) 
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -966,7 +1000,8 @@ def pre(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -993,7 +1028,8 @@ def ul(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1020,7 +1056,8 @@ def a(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1047,7 +1084,8 @@ def abbr(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1074,7 +1112,8 @@ def b(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1101,7 +1140,8 @@ def bdi(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1128,7 +1168,8 @@ def bdo(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1155,7 +1196,8 @@ def br(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1182,7 +1224,8 @@ def cite(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1209,7 +1252,8 @@ def code(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1236,7 +1280,8 @@ def data(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1263,7 +1308,8 @@ def dfn(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1290,7 +1336,8 @@ def em(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1317,7 +1364,8 @@ def i(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1344,7 +1392,8 @@ def kbd(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1371,7 +1420,8 @@ def mark(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1398,7 +1448,8 @@ def q(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1425,7 +1476,8 @@ def rp(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1452,7 +1504,8 @@ def rt(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1479,7 +1532,8 @@ def ruby(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1506,7 +1560,8 @@ def s(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1533,7 +1588,8 @@ def samp(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1560,7 +1616,8 @@ def small(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1587,7 +1644,8 @@ def span(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1614,7 +1672,8 @@ def strong(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1641,7 +1700,8 @@ def sub(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1668,7 +1728,8 @@ def sup(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1695,7 +1756,8 @@ def time(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1722,7 +1784,8 @@ def u(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1749,7 +1812,8 @@ def var(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1776,7 +1840,8 @@ def wbr(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1803,7 +1868,8 @@ def area(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1830,7 +1896,8 @@ def audio(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1857,7 +1924,8 @@ def img(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1884,7 +1952,8 @@ def map(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1911,7 +1980,8 @@ def track(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1938,7 +2008,8 @@ def video(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1965,7 +2036,8 @@ def embed(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -1992,7 +2064,8 @@ def iframe(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2019,7 +2092,8 @@ def object(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2046,7 +2120,8 @@ def param(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2073,7 +2148,8 @@ def picture(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttr
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2100,7 +2176,8 @@ def portal(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2127,7 +2204,8 @@ def source(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2158,7 +2236,8 @@ def svg(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2189,7 +2268,8 @@ def math(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2216,7 +2296,8 @@ def canvas(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2243,7 +2324,8 @@ def noscript(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAtt
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2270,7 +2352,8 @@ def script(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2297,7 +2380,8 @@ def ins(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2324,7 +2408,8 @@ def caption(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2351,7 +2436,8 @@ def col(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2378,7 +2464,8 @@ def colgroup(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2405,7 +2492,8 @@ def table(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2432,7 +2520,8 @@ def tbody(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2459,7 +2548,8 @@ def td(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2486,7 +2576,8 @@ def tfoot(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2513,7 +2604,8 @@ def th(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2540,7 +2632,8 @@ def thead(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2567,7 +2660,8 @@ def tr(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue)
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2594,7 +2688,8 @@ def button(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2621,7 +2716,8 @@ def datalist(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAtt
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2648,7 +2744,8 @@ def fieldset(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2675,7 +2772,8 @@ def form(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2702,7 +2800,8 @@ def input(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2729,7 +2828,8 @@ def label(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2756,7 +2856,8 @@ def legend(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2783,7 +2884,8 @@ def meter(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2810,7 +2912,8 @@ def optgroup(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2837,7 +2940,8 @@ def option(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2864,7 +2968,8 @@ def output(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2891,7 +2996,8 @@ def progress(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAtt
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2918,7 +3024,8 @@ def select(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2945,7 +3052,8 @@ def textarea(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAtt
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2972,7 +3080,8 @@ def details(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -2999,7 +3108,8 @@ def dialog(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -3026,7 +3136,8 @@ def summary(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -3053,7 +3164,8 @@ def slot(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrVal
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
@@ -3080,7 +3192,8 @@ def template(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAtt
 
     Returns
     -------
-    Tag
+    :
+        A :func:`~htmltools.Tag` object.
 
     See Also
     --------
