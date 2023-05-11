@@ -98,9 +98,11 @@ def test_tag_attrs_update():
 
 
 def test_tag_multiple_repeated_attrs():
+    foo_attrs = div({"class": "foo"}).attrs
+    bar_attrs = div({"class": "bar"}).attrs
     x = div({"class": "foo", "class_": "bar"}, class_="baz")
-    y = div({"class": "foo"}, {"class_": "bar"}, class_="baz")
-    z = div({"class": "foo"}, {"class": "bar"}, class_="baz")
+    y = div(foo_attrs, {"class_": "bar"}, class_="baz")
+    z = div({"class": "foo"}, bar_attrs, class_="baz")
     assert x.attrs == {"class": "foo bar baz"}
     assert y.attrs == {"class": "foo bar baz"}
     assert z.attrs == {"class": "foo bar baz"}
