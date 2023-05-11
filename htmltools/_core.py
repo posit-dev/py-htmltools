@@ -96,7 +96,7 @@ Types that can be passed in as attributes to `Tag` functions. These values will 
 converted to strings before being stored as tag attributes.
 """
 
-TagAttrs = Dict[str, TagAttrValue]
+TagAttrs = Union[Dict[str, TagAttrValue], "TagAttrDict"]
 """
 For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed as unnamed
 arguments to Tag functions like `div()`.
