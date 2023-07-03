@@ -54,11 +54,34 @@ def test_basic_tag_api():
     assert x1.attrs["class"] == "foo"
     x1.add_class("bar")
     assert x1.attrs["class"] == "foo bar"
-    assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing")
+    x1.add_class("baz", prepend=True)
+    assert x1.attrs["class"] == "baz foo bar"
+    assert (
+        x1.has_class("baz")
+        and x1.has_class("foo")
+        and x1.has_class("bar")
+        and not x1.has_class("missing")
+    )
+    x1.remove_class("foo")
+    assert x1.has_class("bar") and not x1.has_class("foo") and x1.has_class("baz")
+    x1.remove_class("baz")
+    assert x1.attrs["class"] == "bar"
+    x1.remove_class("bar")
+    assert "class" not in x1.attrs.keys()
+
     x3 = TagList()
     x3.append(a())
     x3.insert(0, span())
     expect_html(x3, "<span></span><a></a>")
+
+    x4 = div()
+    x4.add_style(None)  # type: ignore[reportGeneralTypeIssues]
+    x4.add_style(False)  # type: ignore[reportGeneralTypeIssues]
+    assert "style" not in x4.attrs.keys()
+    x4.add_style("color: red;")
+    x4.add_style("color: green;")
+    x4.add_style("color: blue;", prepend=True)
+    assert x4.attrs["style"] == "color: blue; color: red; color: green;"
 
 
 def test_tag_list_dict():
