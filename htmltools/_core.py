@@ -564,14 +564,28 @@ class Tag:
 
         self.children.append(*args)
 
-    def add_class(self, x: str) -> "Tag":
+    def add_class(self: TagT, class_: str, *, prepend: bool = False) -> TagT:
         """
-        Add an HTML class attribute.
+        Add a class value to the HTML class attribute.
 
         Parameters
         ----------
-        x
+        class_
             The class name to add.
+        prepend
+            Bool that determines if the `class` is added to the beginning or end of the class attribute.
+
+        Returns
+        -------
+        :
+            The modified tag.
+        """
+        if prepend:
+            self.attrs.update({"class": class_}, {"class": self.attrs.get("class")})
+        else:
+            self.attrs.update({"class": self.attrs.get("class")}, {"class": class_})
+        return self
+
 
         Returns
         -------
