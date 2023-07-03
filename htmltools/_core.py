@@ -586,6 +586,14 @@ class Tag:
             self.attrs.update({"class": self.attrs.get("class")}, {"class": class_})
         return self
 
+    def remove_class(self: TagT, class_: str) -> TagT:
+        """
+        Remove a class value from the HTML class attribute.
+
+        Parameters
+        ----------
+        class_
+            The class name to remove.
 
         Returns
         -------
@@ -593,9 +601,15 @@ class Tag:
             The modified tag.
         """
         cls = self.attrs.get("class")
-        if cls:
-            x = cls + " " + x
-        self.attrs["class"] = x
+        if not cls:
+            return self
+        if cls == class_:
+            self.attrs.pop("class")
+            return self
+
+        self.attrs["class"] = " ".join(
+            [cls_val for cls_val in cls.split(" ") if cls_val != class_]
+        )
         return self
 
     def has_class(self, class_: str) -> bool:
