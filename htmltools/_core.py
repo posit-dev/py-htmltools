@@ -614,7 +614,7 @@ class Tag:
 
     def has_class(self, class_: str) -> bool:
         """
-        Check if the tag has a particular class.
+        Check if the tag has a particular class value.
 
         Parameters
         ----------
@@ -631,6 +631,32 @@ class Tag:
             return class_ in cls.split(" ")
         else:
             return False
+
+    def add_style(self: TagT, style: str, *, prepend: bool = False) -> TagT:
+        """
+        Add a style value(s) to the HTML style attribute.
+
+        Parameters
+        ----------
+        style
+            CSS properties and values already properly formatted. Each should already contain trailing semicolons.
+        prepend
+            Bool that determines if the `style` is added to the beginning or end of the style attribute.
+
+        See Also
+        --------
+        ~htmltools.css
+
+        Returns
+        -------
+        :
+            The modified tag.
+        """
+        if prepend:
+            self.attrs.update({"style": style}, {"style": self.attrs.get("style")})
+        else:
+            self.attrs.update({"style": self.attrs.get("style")}, {"style": style})
+        return self
 
     def tagify(self: TagT) -> TagT:
         """
