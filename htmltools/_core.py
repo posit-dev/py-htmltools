@@ -602,16 +602,27 @@ class Tag:
         :
             The modified tag.
         """
-        cls = self.attrs.get("class")
+        # Nothing to do if no class is specified
+        if not class_:
+            return self
+        cls = self.attrs.get("class") or ""
+
+        # If no class attribute exists, there's nothing to remove
         if not cls:
             return self
-        if cls == class_:
-            self.attrs.pop("class")
-            return self
 
-        self.attrs["class"] = " ".join(
-            [cls_val for cls_val in cls.split(" ") if cls_val != class_]
-        )
+        # Coerce and clean
+        class_ = str(class_).strip()
+
+        # Remove the class value from the ordered set of class values
+        # Note: .split() splits on any whitespace and removes empty strings
+        new_classes = [cls_val for cls_val in cls.split() if cls_val != class_]
+        if len(new_classes) > 0:
+            # Store the new class value
+            self.attrs.update({"class": " ".join(new_classes)})
+        else:
+            # If no class values remain, remove the class attribute
+            self.attrs.pop("class")
         return self
 
     def has_class(self, class_: str) -> bool:
@@ -630,7 +641,7 @@ class Tag:
         """
         cls = self.attrs.get("class")
         if cls:
-            return class_ in cls.split(" ")
+            return class_ in cls.split()
         else:
             return False
 

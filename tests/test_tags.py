@@ -62,11 +62,13 @@ def test_basic_tag_api():
         and x1.has_class("bar")
         and not x1.has_class("missing")
     )
-    x1.remove_class("foo")
+    # Add odd white space
+    x1.attrs["class"] = " " + x1.attrs["class"] + " "
+    x1.remove_class(" foo")  # leading space
     assert x1.has_class("bar") and not x1.has_class("foo") and x1.has_class("baz")
-    x1.remove_class("baz")
+    x1.remove_class("baz ")  # trailing space
     assert x1.attrs["class"] == "bar"
-    x1.remove_class("bar")
+    x1.remove_class("  bar ")  # lots of white space
     assert "class" not in x1.attrs.keys()
 
     x3 = TagList()
@@ -75,9 +77,16 @@ def test_basic_tag_api():
     expect_html(x3, "<span></span><a></a>")
 
     x4 = div()
+
     x4.add_style(None)  # type: ignore[reportGeneralTypeIssues]
     x4.add_style(False)  # type: ignore[reportGeneralTypeIssues]
     assert "style" not in x4.attrs.keys()
+    try:
+        x4.add_style("color: red")
+        assert False, "Expected ValueError for missing semicolon"
+    except ValueError as e:
+        assert "must end with a semicolon" in str(e)
+
     x4.add_style("color: red;")
     x4.add_style("color: green;")
     x4.add_style("color: blue;", prepend=True)
