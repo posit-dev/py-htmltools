@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### New features
 
-* Added `Tag` methods: `add_class(class_: str, *, prepend: bool = False)`, `remove_class(class_)`, and `add_style(style: str, *, prepend: bool = False)`. (#57)
+* Added `Tag` methods `remove_class` and `add_style`. (#57)
+* Added support for `Tag`'s `add_class(prepend=)`. (#57)
 
 ### Bug fixes
 

@@ -98,8 +98,8 @@ converted to strings before being stored as tag attributes.
 
 TagAttrs = Dict[str, TagAttrValue]
 """
-For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed as unnamed
-arguments to Tag functions like `div()`.
+For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed as
+unnamed arguments to Tag functions like `div()`.
 """
 
 TagNode = Union["Tagifiable", "Tag", MetadataNode, str]
@@ -214,7 +214,8 @@ class TagList(List[TagNode]):
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
                 if isinstance(tagified_child, TagList):
-                    # If the Tagifiable object returned a TagList, flatten it into this one.
+                    # If the Tagifiable object returned a TagList, flatten it into this
+                    # one.
                     cp[i : i + 1] = _tagchilds_to_tagnodes(tagified_child)
                 else:
                     cp[i] = tagified_child
@@ -573,7 +574,8 @@ class Tag:
         class_
             The class name to add.
         prepend
-            Bool that determines if the `class` is added to the beginning or end of the class attribute.
+            Bool that determines if the `class` is added to the beginning or end of the
+            class attribute.
 
         Returns
         -------
@@ -639,9 +641,11 @@ class Tag:
         Parameters
         ----------
         style
-            CSS properties and values already properly formatted. Each should already contain trailing semicolons.
+            CSS properties and values already properly formatted. Each should already
+            contain trailing semicolons.
         prepend
-            Bool that determines if the `style` is added to the beginning or end of the style attribute.
+            Bool that determines if the `style` is added to the beginning or end of the
+            style attribute.
 
         See Also
         --------
@@ -652,6 +656,12 @@ class Tag:
         :
             The modified tag.
         """
+
+        if isinstance(  # type: ignore[reportUnnecessaryIsInstance]
+            style, str
+        ) and not style.endswith(";"):
+            raise ValueError("`Tag.add_style(style=)` must end with a semicolon")
+
         if prepend:
             self.attrs.update({"style": style}, {"style": self.attrs.get("style")})
         else:
