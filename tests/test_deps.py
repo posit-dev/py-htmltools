@@ -1,6 +1,6 @@
 import textwrap
 
-from htmltools import *
+from htmltools import HTMLDependency, HTMLDocument, TagList, div, tags
 
 
 def test_init_errors():

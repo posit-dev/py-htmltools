@@ -3,7 +3,16 @@ import textwrap
 from tempfile import TemporaryDirectory
 from typing import Union
 
-from htmltools import *
+from htmltools import (
+    HTMLDependency,
+    HTMLDocument,
+    Tag,
+    TagList,
+    div,
+    head_content,
+    span,
+    tags,
+)
 
 
 def saved_html(x: Union[Tag, HTMLDocument]) -> str:

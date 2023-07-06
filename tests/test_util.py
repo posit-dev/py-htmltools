@@ -1,6 +1,6 @@
 from typing import Any
 
-from htmltools import *
+from htmltools import TagList, div, span
 from htmltools._util import flatten
 
 

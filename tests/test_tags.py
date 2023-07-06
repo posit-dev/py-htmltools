@@ -6,7 +6,23 @@ from typing import Any, Callable, Union, cast
 
 import pytest
 
-from htmltools import *
+from htmltools import (
+    HTML,
+    HTMLDependency,
+    HTMLDocument,
+    MetadataNode,
+    Tag,
+    TagFunction,
+    TagList,
+    TagNode,
+    a,
+    div,
+    h1,
+    h2,
+    head_content,
+    span,
+    tags,
+)
 
 
 def cast_tag(x: Any) -> Tag:
