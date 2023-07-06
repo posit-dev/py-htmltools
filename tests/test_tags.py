@@ -52,7 +52,7 @@ def test_basic_tag_api():
         ["list", ["here"]],
     ]
     props = dict(class_="foo", for_="bar", id="baz", bool="")
-    x1 = div(*children, **props)
+    x1 = div(*children, _add_ws=div().add_ws, **props)
     x2 = div()
     x2.append(*children)
     x2.attrs.update(**props)

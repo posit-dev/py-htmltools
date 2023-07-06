@@ -885,7 +885,7 @@ class HTMLDocument:
 
         body = body.tagify()
 
-        html = Tag("html", Tag("head"), body, **self._html_attr_args)
+        html = Tag("html", Tag("head"), body, _add_ws=True, **self._html_attr_args)
         html = HTMLDocument._hoist_head_content(html, lib_prefix, include_version)
         return html
 
