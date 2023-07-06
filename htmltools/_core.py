@@ -408,7 +408,11 @@ class TagAttrDict(Dict[str, str]):
             nm = self._normalize_attr_name(name)
             super().__setitem__(nm, val)
 
-    def update(self, *args: Mapping[str, TagAttrValue], **kwargs: TagAttrValue) -> None:
+    def update(  # type: ignore[reportIncompatibleMethodOverride] # TODO-future: fix typing
+        self,
+        *args: Mapping[str, TagAttrValue],
+        **kwargs: TagAttrValue,
+    ) -> None:
         if kwargs:
             args = args + (kwargs,)
 
