@@ -367,11 +367,10 @@ class jsx(str):
         return jsx(res) if isinstance(other, jsx) else res
 
 
-def _lib_dependency(pkg: str, script: ScriptItem, **kwargs: object) -> HTMLDependency:
+def _lib_dependency(pkg: str, script: ScriptItem) -> HTMLDependency:
     return HTMLDependency(
         name=pkg,
         version=versions[pkg],
         source={"package": "htmltools", "subdir": "lib/" + pkg},
         script=script,
-        **kwargs,
     )
