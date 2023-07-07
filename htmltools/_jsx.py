@@ -46,8 +46,10 @@ class JSXTagAttrDict(Dict[str, JSXTagAttrValue]):
         nm = self._normalize_attr_name(name)
         super().__setitem__(nm, value)
 
-    def update(
-        self, *args: Mapping[str, JSXTagAttrValue], **kwargs: JSXTagAttrValue
+    def update(  # type: ignore[reportIncompatibleMethodOverride] # TODO-future: fix typing
+        self,
+        *args: Mapping[str, JSXTagAttrValue],
+        **kwargs: JSXTagAttrValue,
     ) -> None:
         for arg in args:
             self._update(arg)
@@ -365,11 +367,10 @@ class jsx(str):
         return jsx(res) if isinstance(other, jsx) else res
 
 
-def _lib_dependency(pkg: str, script: ScriptItem, **kwargs: object) -> HTMLDependency:
+def _lib_dependency(pkg: str, script: ScriptItem) -> HTMLDependency:
     return HTMLDependency(
         name=pkg,
         version=versions[pkg],
         source={"package": "htmltools", "subdir": "lib/" + pkg},
         script=script,
-        **kwargs,
     )
