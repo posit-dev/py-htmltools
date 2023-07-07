@@ -90,8 +90,8 @@ converted to strings before being stored as tag attributes.
 
 TagAttrs = Dict[str, TagAttrValue]
 """
-For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed as unnamed
-arguments to Tag functions like `div()`.
+For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed as
+unnamed arguments to Tag functions like `div()`.
 """
 
 TagNode = Union["Tagifiable", "Tag", MetadataNode, str]
@@ -206,7 +206,8 @@ class TagList(List[TagNode]):
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
                 if isinstance(tagified_child, TagList):
-                    # If the Tagifiable object returned a TagList, flatten it into this one.
+                    # If the Tagifiable object returned a TagList, flatten it into this
+                    # one.
                     cp[i : i + 1] = _tagchilds_to_tagnodes(tagified_child)
                 else:
                     cp[i] = tagified_child
@@ -560,29 +561,69 @@ class Tag:
 
         self.children.append(*args)
 
-    def add_class(self, x: str) -> "Tag":
+    def add_class(self: TagT, class_: str, *, prepend: bool = False) -> TagT:
         """
-        Add an HTML class attribute.
+        Add a class value to the HTML class attribute.
 
         Parameters
         ----------
-        x
+        class_
             The class name to add.
+        prepend
+            Bool that determines if the `class` is added to the beginning or end of the
+            class attribute.
 
         Returns
         -------
         :
             The modified tag.
         """
-        cls = self.attrs.get("class")
-        if cls:
-            x = cls + " " + x
-        self.attrs["class"] = x
+        if prepend:
+            self.attrs.update({"class": class_}, {"class": self.attrs.get("class")})
+        else:
+            self.attrs.update({"class": self.attrs.get("class")}, {"class": class_})
+        return self
+
+    def remove_class(self: TagT, class_: str) -> TagT:
+        """
+        Remove a class value from the HTML class attribute.
+
+        Parameters
+        ----------
+        class_
+            The class name to remove.
+
+        Returns
+        -------
+        :
+            The modified tag.
+        """
+        # Nothing to do if no class is specified
+        if not class_:
+            return self
+        cls = self.attrs.get("class") or ""
+
+        # If no class attribute exists, there's nothing to remove
+        if not cls:
+            return self
+
+        # Coerce and clean
+        class_ = str(class_).strip()
+
+        # Remove the class value from the ordered set of class values
+        # Note: .split() splits on any whitespace and removes empty strings
+        new_classes = [cls_val for cls_val in cls.split() if cls_val != class_]
+        if len(new_classes) > 0:
+            # Store the new class value
+            self.attrs.update({"class": " ".join(new_classes)})
+        else:
+            # If no class values remain, remove the class attribute
+            self.attrs.pop("class")
         return self
 
     def has_class(self, class_: str) -> bool:
         """
-        Check if the tag has a particular class.
+        Check if the tag has a particular class value.
 
         Parameters
         ----------
@@ -596,9 +637,43 @@ class Tag:
         """
         cls = self.attrs.get("class")
         if cls:
-            return class_ in cls.split(" ")
+            return class_ in cls.split()
         else:
             return False
+
+    def add_style(self: TagT, style: str, *, prepend: bool = False) -> TagT:
+        """
+        Add a style value(s) to the HTML style attribute.
+
+        Parameters
+        ----------
+        style
+            CSS properties and values already properly formatted. Each should already
+            contain trailing semicolons.
+        prepend
+            Bool that determines if the `style` is added to the beginning or end of the
+            style attribute.
+
+        See Also
+        --------
+        ~htmltools.css
+
+        Returns
+        -------
+        :
+            The modified tag.
+        """
+
+        if isinstance(  # type: ignore[reportUnnecessaryIsInstance]
+            style, str
+        ) and not style.endswith(";"):
+            raise ValueError("`Tag.add_style(style=)` must end with a semicolon")
+
+        if prepend:
+            self.attrs.update({"style": style}, {"style": self.attrs.get("style")})
+        else:
+            self.attrs.update({"style": self.attrs.get("style")}, {"style": style})
+        return self
 
     def tagify(self: TagT) -> TagT:
         """

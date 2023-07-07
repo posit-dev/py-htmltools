@@ -70,11 +70,43 @@ def test_basic_tag_api():
     assert x1.attrs["class"] == "foo"
     x1.add_class("bar")
     assert x1.attrs["class"] == "foo bar"
-    assert x1.has_class("foo") and x1.has_class("bar") and not x1.has_class("missing")
+    x1.add_class("baz", prepend=True)
+    assert x1.attrs["class"] == "baz foo bar"
+    assert (
+        x1.has_class("baz")
+        and x1.has_class("foo")
+        and x1.has_class("bar")
+        and not x1.has_class("missing")
+    )
+    # Add odd white space
+    x1.attrs["class"] = " " + x1.attrs["class"] + " "
+    x1.remove_class(" foo")  # leading space
+    assert x1.has_class("bar") and not x1.has_class("foo") and x1.has_class("baz")
+    x1.remove_class("baz ")  # trailing space
+    assert x1.attrs["class"] == "bar"
+    x1.remove_class("  bar ")  # lots of white space
+    assert "class" not in x1.attrs.keys()
+
     x3 = TagList()
     x3.append(a())
     x3.insert(0, span())
     expect_html(x3, "<span></span><a></a>")
+
+    x4 = div()
+
+    x4.add_style(None)  # type: ignore[reportGeneralTypeIssues]
+    x4.add_style(False)  # type: ignore[reportGeneralTypeIssues]
+    assert "style" not in x4.attrs.keys()
+    try:
+        x4.add_style("color: red")
+        assert False, "Expected ValueError for missing semicolon"
+    except ValueError as e:
+        assert "must end with a semicolon" in str(e)
+
+    x4.add_style("color: red;")
+    x4.add_style("color: green;")
+    x4.add_style("color: blue;", prepend=True)
+    assert x4.attrs["style"] == "color: blue; color: red; color: green;"
 
 
 def test_tag_list_dict():
