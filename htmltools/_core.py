@@ -408,7 +408,11 @@ class TagAttrDict(Dict[str, str]):
             nm = self._normalize_attr_name(name)
             super().__setitem__(nm, val)
 
-    def update(self, *args: Mapping[str, TagAttrValue], **kwargs: TagAttrValue) -> None:
+    def update(  # type: ignore[reportIncompatibleMethodOverride] # TODO-future: fix typing
+        self,
+        *args: Mapping[str, TagAttrValue],
+        **kwargs: TagAttrValue,
+    ) -> None:
         if kwargs:
             args = args + (kwargs,)
 
@@ -885,7 +889,7 @@ class HTMLDocument:
 
         body = body.tagify()
 
-        html = Tag("html", Tag("head"), body, **self._html_attr_args)
+        html = Tag("html", Tag("head"), body, _add_ws=True, **self._html_attr_args)
         html = HTMLDocument._hoist_head_content(html, lib_prefix, include_version)
         return html
 
