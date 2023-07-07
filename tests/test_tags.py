@@ -6,7 +6,23 @@ from typing import Any, Callable, Union, cast
 
 import pytest
 
-from htmltools import *
+from htmltools import (
+    HTML,
+    HTMLDependency,
+    HTMLDocument,
+    MetadataNode,
+    Tag,
+    TagFunction,
+    TagList,
+    TagNode,
+    a,
+    div,
+    h1,
+    h2,
+    head_content,
+    span,
+    tags,
+)
 
 
 def cast_tag(x: Any) -> Tag:
@@ -36,7 +52,7 @@ def test_basic_tag_api():
         ["list", ["here"]],
     ]
     props = dict(class_="foo", for_="bar", id="baz", bool="")
-    x1 = div(*children, **props)
+    x1 = div(*children, _add_ws=div().add_ws, **props)
     x2 = div()
     x2.append(*children)
     x2.attrs.update(**props)
