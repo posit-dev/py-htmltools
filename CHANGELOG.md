@@ -6,17 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [UNRELEASED]
+## [0.3.0] 2023-08-01
 
 ### New features
 
 * Added `Tag` methods `remove_class` and `add_style`. (#57)
-* Added support for `Tag`'s `add_class(prepend=)`. (#57)
 
-### Bug fixes
+* Added support for `Tag`'s `add_class(prepend=)`. (#57)
 
 ### Other changes
 
+* Dropped support for Python 3.7 (#56)
 
 
 ## [0.2.1] - 2023-04-03
