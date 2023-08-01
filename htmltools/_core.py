@@ -1270,7 +1270,6 @@ class HTMLDependency(MetadataNode):
             return {"source": "", "href": ""}
 
         if "href" in src:
-            src = cast(HTMLDependencyUrl, src)
             return {"source": "", "href": src["href"]}
 
         pkg = src.get("package", None)
