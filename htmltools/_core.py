@@ -244,7 +244,7 @@ class TagList(List[TagNode]):
 
     def render(self) -> RenderedHTML:
         """
-        Get string representation as well as it's HTML dependencies.
+        Get string representation as well as its HTML dependencies.
         """
         cp = self.tagify()
         deps = cp.get_dependencies()
@@ -744,7 +744,7 @@ class Tag:
 
     def render(self) -> RenderedHTML:
         """
-        Get string representation as well as it's HTML dependencies.
+        Get string representation as well as its HTML dependencies.
         """
         cp = self.tagify()
         deps = cp.get_dependencies()
@@ -832,7 +832,7 @@ _NO_ESCAPE_TAG_NAMES = {"script", "style"}
 # =============================================================================
 class HTMLDocument:
     """
-    Create an HTML document.
+    Create an HTML document from Tag objects.
 
     Parameters
     ----------
@@ -926,7 +926,7 @@ class HTMLDocument:
     # Take the stored content, and generate an <html> tag which contains the correct
     # <head> and <body> content. HTMLDependency items will be extracted out of the body
     # and inserted into the <head>.
-    # - lib_prefix: A directoy prefix to add to <script src="[lib_prefix]/script.js">
+    # - lib_prefix: A directory prefix to add to <script src="[lib_prefix]/script.js">
     #   and <link rel="[lib_prefix]/style.css"> tags.
     def _gen_html_tag_tree(
         self, lib_prefix: Optional[str], include_version: bool
