@@ -48,6 +48,7 @@ __all__ = (
     "TagList",
     "Tag",
     "HTMLDocument",
+    "HTMLTextDocument",
     "HTML",
     "MetadataNode",
     "HTMLDependency",
@@ -1010,6 +1011,101 @@ class HTMLDocument:
             ]
         )
         return res
+
+
+class HTMLTextDocument:
+    """
+    Create an HTML document object from text.
+
+    The text should be a complete HTML document, with `<html>`. This class is used to
+    insert HTML dependency objects into the head of an existing HTML document.
+
+    Parameters
+    ----------
+    template
+        The template to use.
+    deps
+        HTML dependencies for the document.
+    deps_replace_pattern
+        A string that will be replaced with the head content. The first instance of this
+        string will be replaced with the head content. If this is None, then deps must
+        be provided.
+
+    Examples
+    --------
+    >>> dep = HTMLDependency(name="foo", version="1.0.0", script={"src": "foo.js"})
+    >>> doc = HTMLTextDocument(
+            '<html><head><meta data-foo=""></head><body></body></html>',
+            deps=[dep],
+            deps_replace_pattern='<meta data-foo="">',
+        )
+    >>> res = doc.render()
+    {
+      'dependencies': [<HTMLDependency "foo-1.0.0">],
+      'html': '<html><head><script type="application/html-dependencies">foo[1.0.0]</script>\n<script src="foo.js"></script></head><body></body></html>'
+    }
+    """
+
+    def __init__(
+        self,
+        template: str,
+        deps: Optional[list[HTMLDependency]] = None,
+        deps_replace_pattern: Optional[str] = None,
+    ) -> None:
+        if deps_replace_pattern is None and deps is not None:
+            raise ValueError(
+                "If deps is not None, deps_replace_pattern must also be not None."
+            )
+
+        self._template = template
+        if deps is None:
+            deps = []
+        self._deps = deps
+
+        self._deps_replace_pattern = deps_replace_pattern
+
+    def render(
+        self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
+    ) -> RenderedHTML:
+        """
+        Render the document.
+
+        Parameters
+        ----------
+        lib_prefix
+            A prefix to add to relative paths to dependency files.
+        include_version
+            Whether to include the version number in the dependency's folder name.
+        """
+
+        dep_tags = TagList()
+        # Add some metadata about the dependencies so that shiny.js' renderDependency
+        # logic knows not to re-render them.
+        if len(self._deps) > 0:
+            dep_tags.append(
+                Tag(
+                    "script",
+                    ";".join([d.name + "[" + str(d.version) + "]" for d in self._deps]),
+                    type="application/html-dependencies",
+                )
+            )
+
+        dep_tags.extend(
+            [
+                d.as_html_tags(lib_prefix=lib_prefix, include_version=include_version)
+                for d in self._deps
+            ]
+        )
+
+        rendered_dep_tags = dep_tags.render()
+
+        html = self._template.replace(
+            cast(str, self._deps_replace_pattern),  # If we got here, we know it's a str
+            rendered_dep_tags["html"],
+            1,
+        )
+
+        return {"dependencies": deepcopy(self._deps), "html": html}
 
 
 # =============================================================================
