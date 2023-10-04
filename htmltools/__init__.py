@@ -1,4 +1,4 @@
-__version__ = "0.3.0"
+__version__ = "0.3.0.9000"
 
 from . import svg, tags
 from ._core import TagAttrArg  # pyright: ignore[reportUnusedImport]  # noqa: F401
@@ -79,3 +79,10 @@ __all__ = (
     "span",
     "strong",
 )
+
+
+import typing as _typing
+
+# Setting this will control how HTML dependencies are rendered. Normally they are not
+# visible, but if set to "json", they will be serialized as JSON in a <script> tag.
+html_dependency_render_mode: _typing.Literal["json", "invisible"] = "invisible"

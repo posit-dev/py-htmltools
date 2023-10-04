@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import os
 import posixpath
+import re
 import shutil
 import sys
 import tempfile
@@ -359,17 +361,28 @@ class TagList(List[TagNode]):
         """
         _tag_show(self, renderer)
 
-    def __str__(self) -> str:
-        return str(self.get_html_string())
-
     def __eq__(self, other: Any) -> bool:
         return _equals_impl(self, other)
 
+    def __str__(self) -> str:
+        rendered = self.render()
+        res = rendered["html"]
+        from . import html_dependency_render_mode
+
+        if html_dependency_render_mode == "json":
+            dep_html = [
+                x.serialize_to_script_json().get_html_string()
+                for x in rendered["dependencies"]
+            ]
+            res += "\n".join(dep_html)
+
+        return str(res)
+
     def __repr__(self) -> str:
-        return repr(self.get_html_string())
+        return str(self)
 
     def _repr_html_(self) -> str:
-        return str(self.get_html_string())
+        return str(self)
 
 
 # =============================================================================
@@ -791,17 +804,29 @@ class Tag:
         """
         _tag_show(self, renderer)
 
-    def __str__(self) -> str:
-        return str(self.get_html_string())
-
-    def __repr__(self) -> str:
-        return repr(self.get_html_string())
-
-    def _repr_html_(self) -> str:
-        return str(self.get_html_string())
-
     def __eq__(self, other: Any) -> bool:
         return _equals_impl(self, other)
+
+    def __str__(self) -> str:
+        rendered = self.render()
+        res = rendered["html"]
+
+        from . import html_dependency_render_mode
+
+        if html_dependency_render_mode == "json":
+            dep_html = [
+                x.serialize_to_script_json().get_html_string()
+                for x in rendered["dependencies"]
+            ]
+            res += "\n".join(dep_html)
+
+        return str(res)
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def _repr_html_(self) -> str:
+        return str(self)
 
 
 # Tags that have the form <tagname />
@@ -1048,7 +1073,7 @@ class HTMLTextDocument:
 
     def __init__(
         self,
-        template: str,
+        html: str,
         deps: Optional[list[HTMLDependency]] = None,
         deps_replace_pattern: Optional[str] = None,
     ) -> None:
@@ -1057,12 +1082,14 @@ class HTMLTextDocument:
                 "If deps is not None, deps_replace_pattern must also be not None."
             )
 
-        self._template = template
+        self._html = html
         if deps is None:
             deps = []
         self._deps = deps
 
         self._deps_replace_pattern = deps_replace_pattern
+
+        self._extract_serialized_html_deps()
 
     def render(
         self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
@@ -1099,13 +1126,42 @@ class HTMLTextDocument:
 
         rendered_dep_tags = dep_tags.render()
 
-        html = self._template.replace(
+        html = self._html.replace(
             cast(str, self._deps_replace_pattern),  # If we got here, we know it's a str
             rendered_dep_tags["html"],
             1,
         )
 
         return {"dependencies": deepcopy(self._deps), "html": html}
+
+    def _extract_serialized_html_deps(self) -> None:
+        """
+        Search the HTML text for serialized HTML dependency objects, remove the text for
+        those serialized objects, and add the reconstituted dependency objects to
+        self._deps.
+        """
+        self._html, body_deps = self._static_extract_serialized_html_deps(self._html)
+        self._deps.extend(body_deps)
+
+    @staticmethod
+    def _static_extract_serialized_html_deps(
+        html: str,
+    ) -> tuple[str, list[HTMLDependency]]:
+        # Scan for HTML dependencies that were serialized via
+        # HTMLdependency.get_tag_representation()
+        pattern = (
+            r'<script type="application/json" data-html-dependency="">(.*?)</script>'
+        )
+        dep_strs = re.findall(pattern, html)
+        # html = re.sub(pattern, "", html)
+
+        deps: list[HTMLDependency] = []
+        for dep_str in dep_strs:
+            args = json.loads(dep_str)
+            dep = HTMLDependency(**args)
+            deps.append(dep)
+
+        return (html, deps)
 
 
 # =============================================================================
@@ -1392,6 +1448,25 @@ class HTMLDependency(MetadataNode):
         links = [Tag("link", **s) for s in d["stylesheet"]]
         scripts = [Tag("script", **s) for s in d["script"]]
         return TagList(*metas, *links, *scripts, self.head)
+
+    def serialize_to_script_json(self, indent: int = 0, eol: str = "\n") -> Tag:
+        res = {
+            "name": self.name,
+            "version": str(self.version),
+            "source": self.source,
+            "script": self.script,
+            "stylesheet": self.stylesheet,
+            "meta": self.meta,
+            "all_files": self.all_files,
+            "head": self.head,
+        }
+
+        return Tag(
+            "script",
+            json.dumps(res),
+            type="application/json",
+            data_html_dependency=True,
+        )
 
     def as_dict(
         self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
