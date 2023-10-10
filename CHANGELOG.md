@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [UNRELEASED]
+
+* Added `HTMLTextDocument` class, which takes as input a string representation of an HTML document. (#61)
+
+* Added `htmltools.html_dependency_render_mode`. If this is set to `"json"`, then `HTMLDependency` objects will be rendered as JSON inside of `<script>` tags. (#61)
+
+
 ## [0.3.0] 2023-08-01
 
 ### New features
