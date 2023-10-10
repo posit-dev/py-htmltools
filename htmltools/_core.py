@@ -365,18 +365,7 @@ class TagList(List[TagNode]):
         return _equals_impl(self, other)
 
     def __str__(self) -> str:
-        rendered = self.render()
-        res = rendered["html"]
-        from . import html_dependency_render_mode
-
-        if html_dependency_render_mode == "json":
-            dep_html = [
-                x.serialize_to_script_json().get_html_string()
-                for x in rendered["dependencies"]
-            ]
-            res += "\n".join(dep_html)
-
-        return str(res)
+        return _render_tag_or_taglist(self)
 
     def __repr__(self) -> str:
         return str(self)
@@ -808,19 +797,7 @@ class Tag:
         return _equals_impl(self, other)
 
     def __str__(self) -> str:
-        rendered = self.render()
-        res = rendered["html"]
-
-        from . import html_dependency_render_mode
-
-        if html_dependency_render_mode == "json":
-            dep_html = [
-                x.serialize_to_script_json().get_html_string()
-                for x in rendered["dependencies"]
-            ]
-            res += "\n".join(dep_html)
-
-        return str(res)
+        return _render_tag_or_taglist(self)
 
     def __repr__(self) -> str:
         return str(self)
@@ -850,6 +827,26 @@ _VOID_TAG_NAMES = {
 }
 
 _NO_ESCAPE_TAG_NAMES = {"script", "style"}
+
+
+def _render_tag_or_taglist(x: Tag | TagList) -> str:
+    """Render a Tag or TagList to a string.
+
+    This looks at html_dependency_render_mode to see if HTMLDependency objects should be
+    serialized as HTML. This type of serialization is used with Quarto.
+    """
+    rendered = x.render()
+    res = rendered["html"]
+    from . import html_dependency_render_mode
+
+    if html_dependency_render_mode == "json":
+        dep_html = [
+            x.serialize_to_script_json().get_html_string()
+            for x in rendered["dependencies"]
+        ]
+        res += "\n".join(dep_html)
+
+    return str(res)
 
 
 # =============================================================================
