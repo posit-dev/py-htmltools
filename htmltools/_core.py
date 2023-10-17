@@ -13,14 +13,17 @@ import urllib.parse
 import webbrowser
 from copy import copy, deepcopy
 from pathlib import Path
+from types import TracebackType
 from typing import (
     Any,
+    Callable,
     Dict,
     Iterable,
     List,
     Mapping,
     Optional,
     Sequence,
+    Type,
     TypeVar,
     Union,
     cast,
@@ -451,6 +454,9 @@ class TagAttrDict(Dict[str, str]):
         )
 
 
+_displayhook_stack: list[Callable[[Any], None]] = []
+
+
 # =============================================================================
 # Tag class
 # =============================================================================
@@ -542,6 +548,21 @@ class Tag:
         new_dict = {key: copy(value) for key, value in self.__dict__.items()}
         cp.__dict__.update(new_dict)
         return cp
+
+    def __enter__(self) -> None:
+        _displayhook_stack.append(sys.displayhook)
+        sys.displayhook = self.append
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> bool:
+        sys.displayhook = _displayhook_stack.pop()
+        if exc_type is None:
+            sys.displayhook(self)
+        return False
 
     def insert(self, index: SupportsIndex, x: TagChild) -> None:
         """
