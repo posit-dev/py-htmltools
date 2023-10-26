@@ -1455,12 +1455,16 @@ class HTMLDependency(MetadataNode):
             "stylesheet": self.stylesheet,
             "meta": self.meta,
             "all_files": self.all_files,
-            "head": self.head,
+            # Tags cannot be serialized to JSON, so render to HTML
+            "head": (
+                TagList(self.head).get_html_string() if self.head is not None else None
+            ),
         }
 
         return Tag(
             "script",
-            json.dumps(res),
+            # "</script>" in a script tag must be escaped
+            json.dumps(res, indent=indent).replace("</script>", "<\\/script>"),
             type="application/json",
             data_html_dependency=True,
         )
@@ -1520,8 +1524,8 @@ class HTMLDependency(MetadataNode):
 
         # Collect all the source files
         if self.all_files:
-            src_files = list(Path(paths["source"]).glob("*"))
-            src_files = [str(x) for x in src_files]
+            path_src = Path(paths["source"])
+            src_files = [str(x.relative_to(path_src)) for x in path_src.glob("*")]
         else:
             src_files = [
                 *[s["src"] for s in self.script],

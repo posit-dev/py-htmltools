@@ -164,6 +164,22 @@ def test_head_output():
     )
     assert b.as_html_tags().get_html_string() == "<script>1 && 1</script>"
 
+    assert (
+        b.serialize_to_script_json(indent=4).get_html_string()
+        == """<script type="application/json" data-html-dependency="">{
+    "name": "a",
+    "version": "1.0",
+    "source": {
+        "subdir": "foo"
+    },
+    "script": [],
+    "stylesheet": [],
+    "meta": [],
+    "all_files": false,
+    "head": "<script>1 && 1<\\/script>"
+}</script>"""
+    )
+
 
 def test_meta_output():
     a = HTMLDependency(
