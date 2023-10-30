@@ -1146,9 +1146,7 @@ class HTMLTextDocument:
     ) -> tuple[str, list[HTMLDependency]]:
         # Scan for HTML dependencies that were serialized via
         # HTMLdependency.get_tag_representation()
-        pattern = (
-            r'<script type="application/json" data-html-dependency="">(.*?)</script>'
-        )
+        pattern = r'<script type="application/json" data-html-dependency="">((?:.|\r|\n)*?)</script>'
         dep_strs = re.findall(pattern, html)
         # html = re.sub(pattern, "", html)
 
@@ -1446,7 +1444,7 @@ class HTMLDependency(MetadataNode):
         scripts = [Tag("script", **s) for s in d["script"]]
         return TagList(*metas, *links, *scripts, self.head)
 
-    def serialize_to_script_json(self, indent: int = 0, eol: str = "\n") -> Tag:
+    def serialize_to_script_json(self, indent: int | None = None) -> Tag:
         res = {
             "name": self.name,
             "version": str(self.version),
