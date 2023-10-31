@@ -10,7 +10,7 @@ from __future__ import annotations
 from ._core import Tag, TagAttrs, TagAttrValue, TagChild
 
 
-def a(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
+def a(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <a> tag.
 
@@ -21,7 +21,7 @@ def a(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue)
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -38,7 +38,7 @@ def a(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue)
     return Tag("a", *args, _add_ws=_add_ws, **kwargs)
 
 
-def animate(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def animate(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <animate> tag.
 
@@ -49,7 +49,7 @@ def animate(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -66,7 +66,7 @@ def animate(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("animate", *args, _add_ws=_add_ws, **kwargs)
 
 
-def animateMotion(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def animateMotion(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <animateMotion> tag.
 
@@ -77,7 +77,7 @@ def animateMotion(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Ta
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -94,7 +94,7 @@ def animateMotion(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Ta
     return Tag("animateMotion", *args, _add_ws=_add_ws, **kwargs)
 
 
-def animateTransform(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def animateTransform(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <animateTransform> tag.
 
@@ -105,7 +105,7 @@ def animateTransform(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs:
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -122,7 +122,7 @@ def animateTransform(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs:
     return Tag("animateTransform", *args, _add_ws=_add_ws, **kwargs)
 
 
-def circle(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def circle(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <circle> tag.
 
@@ -133,7 +133,7 @@ def circle(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -150,7 +150,7 @@ def circle(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("circle", *args, _add_ws=_add_ws, **kwargs)
 
 
-def clipPath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def clipPath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <clipPath> tag.
 
@@ -161,7 +161,7 @@ def clipPath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -178,7 +178,7 @@ def clipPath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     return Tag("clipPath", *args, _add_ws=_add_ws, **kwargs)
 
 
-def defs(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def defs(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <defs> tag.
 
@@ -189,7 +189,7 @@ def defs(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -206,7 +206,7 @@ def defs(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("defs", *args, _add_ws=_add_ws, **kwargs)
 
 
-def desc(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def desc(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <desc> tag.
 
@@ -217,7 +217,7 @@ def desc(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -234,7 +234,7 @@ def desc(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("desc", *args, _add_ws=_add_ws, **kwargs)
 
 
-def discard(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def discard(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <discard> tag.
 
@@ -245,7 +245,7 @@ def discard(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -262,7 +262,7 @@ def discard(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("discard", *args, _add_ws=_add_ws, **kwargs)
 
 
-def ellipse(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def ellipse(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <ellipse> tag.
 
@@ -273,7 +273,7 @@ def ellipse(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -290,7 +290,7 @@ def ellipse(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("ellipse", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feBlend(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feBlend(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feBlend> tag.
 
@@ -301,7 +301,7 @@ def feBlend(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -318,7 +318,7 @@ def feBlend(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("feBlend", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feColorMatrix(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feColorMatrix(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feColorMatrix> tag.
 
@@ -329,7 +329,7 @@ def feColorMatrix(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Ta
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -346,7 +346,7 @@ def feColorMatrix(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Ta
     return Tag("feColorMatrix", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feComponentTransfer(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feComponentTransfer(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feComponentTransfer> tag.
 
@@ -357,7 +357,7 @@ def feComponentTransfer(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwar
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -374,7 +374,7 @@ def feComponentTransfer(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwar
     return Tag("feComponentTransfer", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feComposite(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feComposite(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feComposite> tag.
 
@@ -385,7 +385,7 @@ def feComposite(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagA
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -402,7 +402,7 @@ def feComposite(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagA
     return Tag("feComposite", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feConvolveMatrix(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feConvolveMatrix(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feConvolveMatrix> tag.
 
@@ -413,7 +413,7 @@ def feConvolveMatrix(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs:
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -430,7 +430,7 @@ def feConvolveMatrix(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs:
     return Tag("feConvolveMatrix", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feDiffuseLighting(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feDiffuseLighting(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feDiffuseLighting> tag.
 
@@ -441,7 +441,7 @@ def feDiffuseLighting(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -458,7 +458,7 @@ def feDiffuseLighting(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs
     return Tag("feDiffuseLighting", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feDisplacementMap(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feDisplacementMap(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feDisplacementMap> tag.
 
@@ -469,7 +469,7 @@ def feDisplacementMap(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -486,7 +486,7 @@ def feDisplacementMap(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs
     return Tag("feDisplacementMap", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feDistantLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feDistantLight(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feDistantLight> tag.
 
@@ -497,7 +497,7 @@ def feDistantLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -514,7 +514,7 @@ def feDistantLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     return Tag("feDistantLight", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feDropShadow(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feDropShadow(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feDropShadow> tag.
 
@@ -525,7 +525,7 @@ def feDropShadow(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -542,7 +542,7 @@ def feDropShadow(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     return Tag("feDropShadow", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feFlood(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feFlood(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feFlood> tag.
 
@@ -553,7 +553,7 @@ def feFlood(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -570,7 +570,7 @@ def feFlood(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("feFlood", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feFuncA(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feFuncA(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feFuncA> tag.
 
@@ -581,7 +581,7 @@ def feFuncA(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -598,7 +598,7 @@ def feFuncA(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("feFuncA", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feFuncB(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feFuncB(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feFuncB> tag.
 
@@ -609,7 +609,7 @@ def feFuncB(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -626,7 +626,7 @@ def feFuncB(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("feFuncB", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feFuncG(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feFuncG(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feFuncG> tag.
 
@@ -637,7 +637,7 @@ def feFuncG(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -654,7 +654,7 @@ def feFuncG(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("feFuncG", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feFuncR(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feFuncR(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feFuncR> tag.
 
@@ -665,7 +665,7 @@ def feFuncR(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -682,7 +682,7 @@ def feFuncR(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("feFuncR", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feGaussianBlur(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feGaussianBlur(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feGaussianBlur> tag.
 
@@ -693,7 +693,7 @@ def feGaussianBlur(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -710,7 +710,7 @@ def feGaussianBlur(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     return Tag("feGaussianBlur", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feImage(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feImage(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feImage> tag.
 
@@ -721,7 +721,7 @@ def feImage(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -738,7 +738,7 @@ def feImage(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("feImage", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feMerge(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feMerge(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feMerge> tag.
 
@@ -749,7 +749,7 @@ def feMerge(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -766,7 +766,7 @@ def feMerge(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("feMerge", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feMergeNode(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feMergeNode(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feMergeNode> tag.
 
@@ -777,7 +777,7 @@ def feMergeNode(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagA
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -794,7 +794,7 @@ def feMergeNode(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagA
     return Tag("feMergeNode", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feMorphology(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feMorphology(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feMorphology> tag.
 
@@ -805,7 +805,7 @@ def feMorphology(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -822,7 +822,7 @@ def feMorphology(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     return Tag("feMorphology", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feOffset(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feOffset(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feOffset> tag.
 
@@ -833,7 +833,7 @@ def feOffset(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -850,7 +850,7 @@ def feOffset(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     return Tag("feOffset", *args, _add_ws=_add_ws, **kwargs)
 
 
-def fePointLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def fePointLight(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <fePointLight> tag.
 
@@ -861,7 +861,7 @@ def fePointLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -878,7 +878,7 @@ def fePointLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     return Tag("fePointLight", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feSpecularLighting(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feSpecularLighting(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feSpecularLighting> tag.
 
@@ -889,7 +889,7 @@ def feSpecularLighting(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwarg
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -906,7 +906,7 @@ def feSpecularLighting(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwarg
     return Tag("feSpecularLighting", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feSpotLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feSpotLight(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feSpotLight> tag.
 
@@ -917,7 +917,7 @@ def feSpotLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagA
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -934,7 +934,7 @@ def feSpotLight(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagA
     return Tag("feSpotLight", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feTile(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feTile(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feTile> tag.
 
@@ -945,7 +945,7 @@ def feTile(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -962,7 +962,7 @@ def feTile(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("feTile", *args, _add_ws=_add_ws, **kwargs)
 
 
-def feTurbulence(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def feTurbulence(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <feTurbulence> tag.
 
@@ -973,7 +973,7 @@ def feTurbulence(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -990,7 +990,7 @@ def feTurbulence(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Tag
     return Tag("feTurbulence", *args, _add_ws=_add_ws, **kwargs)
 
 
-def filter(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def filter(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <filter> tag.
 
@@ -1001,7 +1001,7 @@ def filter(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1018,7 +1018,7 @@ def filter(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("filter", *args, _add_ws=_add_ws, **kwargs)
 
 
-def foreignObject(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def foreignObject(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <foreignObject> tag.
 
@@ -1029,7 +1029,7 @@ def foreignObject(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Ta
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1046,7 +1046,7 @@ def foreignObject(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: Ta
     return Tag("foreignObject", *args, _add_ws=_add_ws, **kwargs)
 
 
-def g(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def g(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <g> tag.
 
@@ -1057,7 +1057,7 @@ def g(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) 
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1074,7 +1074,7 @@ def g(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) 
     return Tag("g", *args, _add_ws=_add_ws, **kwargs)
 
 
-def hatch(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def hatch(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <hatch> tag.
 
@@ -1085,7 +1085,7 @@ def hatch(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1102,7 +1102,7 @@ def hatch(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("hatch", *args, _add_ws=_add_ws, **kwargs)
 
 
-def hatchpath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def hatchpath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <hatchpath> tag.
 
@@ -1113,7 +1113,7 @@ def hatchpath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAtt
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1130,7 +1130,7 @@ def hatchpath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAtt
     return Tag("hatchpath", *args, _add_ws=_add_ws, **kwargs)
 
 
-def image(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def image(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <image> tag.
 
@@ -1141,7 +1141,7 @@ def image(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1158,7 +1158,7 @@ def image(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("image", *args, _add_ws=_add_ws, **kwargs)
 
 
-def line(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def line(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <line> tag.
 
@@ -1169,7 +1169,7 @@ def line(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1186,7 +1186,7 @@ def line(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("line", *args, _add_ws=_add_ws, **kwargs)
 
 
-def linearGradient(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def linearGradient(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <linearGradient> tag.
 
@@ -1197,7 +1197,7 @@ def linearGradient(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1214,7 +1214,7 @@ def linearGradient(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     return Tag("linearGradient", *args, _add_ws=_add_ws, **kwargs)
 
 
-def marker(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def marker(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <marker> tag.
 
@@ -1225,7 +1225,7 @@ def marker(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1242,7 +1242,7 @@ def marker(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("marker", *args, _add_ws=_add_ws, **kwargs)
 
 
-def mask(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def mask(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <mask> tag.
 
@@ -1253,7 +1253,7 @@ def mask(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1270,7 +1270,7 @@ def mask(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("mask", *args, _add_ws=_add_ws, **kwargs)
 
 
-def metadata(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def metadata(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <metadata> tag.
 
@@ -1281,7 +1281,7 @@ def metadata(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1298,7 +1298,7 @@ def metadata(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     return Tag("metadata", *args, _add_ws=_add_ws, **kwargs)
 
 
-def mpath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def mpath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <mpath> tag.
 
@@ -1309,7 +1309,7 @@ def mpath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1326,7 +1326,7 @@ def mpath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("mpath", *args, _add_ws=_add_ws, **kwargs)
 
 
-def path(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def path(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <path> tag.
 
@@ -1337,7 +1337,7 @@ def path(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1354,7 +1354,7 @@ def path(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("path", *args, _add_ws=_add_ws, **kwargs)
 
 
-def pattern(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def pattern(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <pattern> tag.
 
@@ -1365,7 +1365,7 @@ def pattern(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1382,7 +1382,7 @@ def pattern(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("pattern", *args, _add_ws=_add_ws, **kwargs)
 
 
-def polygon(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def polygon(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <polygon> tag.
 
@@ -1393,7 +1393,7 @@ def polygon(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1410,7 +1410,7 @@ def polygon(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrV
     return Tag("polygon", *args, _add_ws=_add_ws, **kwargs)
 
 
-def polyline(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def polyline(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <polyline> tag.
 
@@ -1421,7 +1421,7 @@ def polyline(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1438,7 +1438,7 @@ def polyline(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     return Tag("polyline", *args, _add_ws=_add_ws, **kwargs)
 
 
-def radialGradient(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def radialGradient(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <radialGradient> tag.
 
@@ -1449,7 +1449,7 @@ def radialGradient(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1466,7 +1466,7 @@ def radialGradient(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: T
     return Tag("radialGradient", *args, _add_ws=_add_ws, **kwargs)
 
 
-def rect(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def rect(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <rect> tag.
 
@@ -1477,7 +1477,7 @@ def rect(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1494,7 +1494,7 @@ def rect(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("rect", *args, _add_ws=_add_ws, **kwargs)
 
 
-def script(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def script(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <script> tag.
 
@@ -1505,7 +1505,7 @@ def script(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1522,7 +1522,7 @@ def script(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("script", *args, _add_ws=_add_ws, **kwargs)
 
 
-def set(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def set(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <set> tag.
 
@@ -1533,7 +1533,7 @@ def set(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1550,7 +1550,7 @@ def set(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue
     return Tag("set", *args, _add_ws=_add_ws, **kwargs)
 
 
-def stop(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def stop(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <stop> tag.
 
@@ -1561,7 +1561,7 @@ def stop(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1578,7 +1578,7 @@ def stop(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("stop", *args, _add_ws=_add_ws, **kwargs)
 
 
-def style(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def style(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <style> tag.
 
@@ -1589,7 +1589,7 @@ def style(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1606,7 +1606,7 @@ def style(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("style", *args, _add_ws=_add_ws, **kwargs)
 
 
-def svg(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValue) -> Tag:
+def svg(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = False, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <svg> tag.
 
@@ -1617,7 +1617,7 @@ def svg(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1634,7 +1634,7 @@ def svg(*args: TagChild | TagAttrs, _add_ws: bool = False, **kwargs: TagAttrValu
     return Tag("svg", *args, _add_ws=_add_ws, **kwargs)
 
 
-def switch(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def switch(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <switch> tag.
 
@@ -1645,7 +1645,7 @@ def switch(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1662,7 +1662,7 @@ def switch(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("switch", *args, _add_ws=_add_ws, **kwargs)
 
 
-def symbol(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def symbol(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <symbol> tag.
 
@@ -1673,7 +1673,7 @@ def symbol(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1690,7 +1690,7 @@ def symbol(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVa
     return Tag("symbol", *args, _add_ws=_add_ws, **kwargs)
 
 
-def text(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def text(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <text> tag.
 
@@ -1701,7 +1701,7 @@ def text(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1718,7 +1718,7 @@ def text(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     return Tag("text", *args, _add_ws=_add_ws, **kwargs)
 
 
-def textPath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def textPath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <textPath> tag.
 
@@ -1729,7 +1729,7 @@ def textPath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1746,7 +1746,7 @@ def textPath(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttr
     return Tag("textPath", *args, _add_ws=_add_ws, **kwargs)
 
 
-def title(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def title(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <title> tag.
 
@@ -1757,7 +1757,7 @@ def title(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1774,7 +1774,7 @@ def title(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("title", *args, _add_ws=_add_ws, **kwargs)
 
 
-def tspan(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def tspan(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <tspan> tag.
 
@@ -1785,7 +1785,7 @@ def tspan(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1802,7 +1802,7 @@ def tspan(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrVal
     return Tag("tspan", *args, _add_ws=_add_ws, **kwargs)
 
 
-def use(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def use(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <use> tag.
 
@@ -1813,7 +1813,7 @@ def use(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 
@@ -1830,7 +1830,7 @@ def use(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue
     return Tag("use", *args, _add_ws=_add_ws, **kwargs)
 
 
-def view(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValue) -> Tag:
+def view(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <view> tag.
 
@@ -1841,7 +1841,7 @@ def view(*args: TagChild | TagAttrs, _add_ws: bool = True, **kwargs: TagAttrValu
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 

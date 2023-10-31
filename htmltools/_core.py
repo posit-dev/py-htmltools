@@ -472,7 +472,8 @@ class Tag:
     *args
         Children for the tag.
     _add_ws
-        Whether to add whitespace surrounding the tag (see Note for details).
+        A ``bool`` indicating whether to add whitespace surrounding the tag (see Note
+        for details).
     **kwargs
         Attributes for the tag.
 
@@ -522,10 +523,18 @@ class Tag:
         self,
         _name: str,
         *args: TagChild | TagAttrs,
-        _add_ws: bool = True,
+        _add_ws: TagAttrValue = True,
         **kwargs: TagAttrValue,
     ) -> None:
         self.name = _name
+
+        # Note that _add_ws is marked as a TagAttrValue for the sake of static type
+        # checking, but it must in fact be a bool. This is due to limitations in
+        # Python's type system when passing along **kwargs.
+        # https://github.com/posit-dev/py-shiny/issues/609
+        if not isinstance(_add_ws, bool):
+            raise TypeError("`_add_ws` must be `True` or `False`")
+
         self.add_ws = _add_ws
 
         attrs = [x for x in args if isinstance(x, dict)]
