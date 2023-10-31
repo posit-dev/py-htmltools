@@ -531,7 +531,7 @@ class Tag:
         # Note that _add_ws is marked as a TagAttrValue for the sake of static type
         # checking, but it must in fact be a bool. This is due to limitations in
         # Python's type system when passing along **kwargs.
-        # https://github.com/posit-dev/py-shiny/issues/609
+        # https://github.com/posit-dev/py-htmltools/pull/67
         if not isinstance(_add_ws, bool):
             raise TypeError("`_add_ws` must be `True` or `False`")
 
