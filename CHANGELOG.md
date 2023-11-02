@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [UNRELEASED]
 
 * Changed the type annotation of `_add_ws` from `bool` to `TagAttrValue`. This makes it easier to write functions which call `Tag` functions and pass along `**kwargs`. (#67)
+* Enhanced the type definition of `TagAttrs` to include `TagAttrDict`, the type of a `Tag`'s `attrs` property. (#55)
 
 
 ## [0.4.1] 2023-10-30
@@ -30,8 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Added `Tag` methods `remove_class` and `add_style`. (#57)
 
 * Added support for `Tag`'s `add_class(prepend=)`. (#57)
-
-* Enhanced the type definition of `TagAttrs` to include `TagAttrDict`, the type of a `Tag`'s `attrs` property. (#55)
 
 ### Other changes
 
