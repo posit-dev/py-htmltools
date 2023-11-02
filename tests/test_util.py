@@ -1,7 +1,25 @@
-from typing import Any
+from typing import Any, Dict, Union
 
-from htmltools import TagList, div, span
+import pytest
+
+from htmltools import TagList, css, div, span
 from htmltools._util import flatten
+
+
+def test_css_type():
+    for val in (True, False):
+        css_args: Dict[str, Union[str, None]] = {
+            "font_size": "12px" if val else None,
+            "background_color": "red",
+        }
+        expected_val = (
+            "font-size:12px;background-color:red;" if val else "background-color:red;"
+        )
+        # If `css(collapse_=)` does not accept the same type as `**kwargs: str | float | None`,
+        # then this will produce a type error with pyright (for anyone spreading kwargs).
+        assert css(**css_args) == expected_val
+
+    pytest.raises(TypeError, css, collapse_=1, font_size="12px")
 
 
 def test_flatten():

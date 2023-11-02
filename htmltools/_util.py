@@ -19,7 +19,10 @@ HashableT = TypeVar("HashableT", bound=Hashable)
 __all__ = ("css",)
 
 
-def css(collapse_: str = "", **kwargs: str | float | None) -> Optional[str]:
+def css(
+    collapse_: str | float | None = "",
+    **kwargs: str | float | None,
+) -> Optional[str]:
     """
     CSS string helper
 
@@ -30,8 +33,8 @@ def css(collapse_: str = "", **kwargs: str | float | None) -> Optional[str]:
     Parameters
     ----------
     collapse_
-        Character to use to collapse properties into a single string; likely "" (the
-        default) for style attributes, and either "\n" or None for style blocks.
+        String to use to collapse properties into a single string; likely ``""`` (the
+        default) for style attributes, and either ``"\n"`` or ``None`` for style blocks.
     **kwargs
         Named style properties, where the name is the property name and the argument is
         the property value.
@@ -53,6 +56,13 @@ def css(collapse_: str = "", **kwargs: str | float | None) -> Optional[str]:
     in Python's keyword arguments. This function allows you to use '_' (underscore) as a
     separator and/or camelCase notation instead.
     """
+    # Note that _add_ws is marked as a TagAttrValue for the sake of static type
+    # checking, but it must in fact be a bool. This is due to limitations in
+    # Python's type system when passing along **kwargs.
+    # Similar to https://github.com/posit-dev/py-htmltools/pull/67
+    if not isinstance(collapse_, str):
+        raise TypeError("`collapse_` must be of type `str`")
+
     res = ""
     for k, v in kwargs.items():
         if v is None:
