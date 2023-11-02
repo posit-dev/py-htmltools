@@ -3,7 +3,17 @@ import textwrap
 from tempfile import TemporaryDirectory
 from typing import Union
 
-from htmltools import *
+import htmltools as ht
+from htmltools import (
+    HTMLDependency,
+    HTMLDocument,
+    Tag,
+    TagList,
+    div,
+    head_content,
+    span,
+    tags,
+)
 
 
 def saved_html(x: Union[Tag, HTMLDocument]) -> str:
@@ -254,3 +264,41 @@ def test_tagify_first():
         testdep_files = os.listdir(os.path.join(tmpdir, "mylib", "testdep"))
         testdep_files.sort()
         assert testdep_files == ["testdep.css", "testdep.js"]
+
+
+def test_json_roundtrip():
+    testdep = HTMLDependency(
+        "testdep",
+        "1.0",
+        source={"package": "htmltools", "subdir": "libtest/testdep"},
+        script={"src": "testdep.js"},
+        stylesheet={"href": "testdep.css"},
+    )
+    testdep2 = HTMLDependency(
+        "testdep2",
+        "1.0",
+        source={"package": "htmltools", "subdir": "libtest/testdep"},
+        script={"src": "testdep.js"},
+        stylesheet={"href": "testdep.css"},
+    )
+
+    old_mode = ht.html_dependency_render_mode
+    ht.html_dependency_render_mode = "json"
+    try:
+        x = ht.TagList(
+            [
+                ht.HTML('<meta data-foo="">'),
+                div("hello world", testdep),
+                # Also make sure it would work even with indents
+                ht.HTML(testdep2.serialize_to_script_json(indent=2)),
+            ]
+        )
+        x_str = str(x)
+        rendered = ht.HTMLTextDocument(
+            x_str, deps_replace_pattern='<meta data-foo="">'
+        ).render()
+        assert "testdep" in [d.name for d in rendered["dependencies"]]
+        assert "testdep2" in [d.name for d in rendered["dependencies"]]
+
+    finally:
+        ht.html_dependency_render_mode = old_mode

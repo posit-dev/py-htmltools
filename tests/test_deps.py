@@ -1,6 +1,8 @@
+import tempfile
 import textwrap
+from pathlib import Path
 
-from htmltools import *
+from htmltools import HTMLDependency, HTMLDocument, TagList, div, tags
 
 
 def test_init_errors():
@@ -164,6 +166,22 @@ def test_head_output():
     )
     assert b.as_html_tags().get_html_string() == "<script>1 && 1</script>"
 
+    assert (
+        b.serialize_to_script_json(indent=4).get_html_string()
+        == """<script type="application/json" data-html-dependency="">{
+    "name": "a",
+    "version": "1.0",
+    "source": {
+        "subdir": "foo"
+    },
+    "script": [],
+    "stylesheet": [],
+    "meta": [],
+    "all_files": false,
+    "head": "<script>1 && 1<\\/script>"
+}</script>"""
+    )
+
 
 def test_meta_output():
     a = HTMLDependency(
@@ -287,3 +305,52 @@ def test_url_dep_as_dict():
         "meta": [],
         "head": "<script>1 && 1</script>",
     }
+
+
+def test_copy_to():
+    with tempfile.TemporaryDirectory() as tmpdir1:
+        dep1 = HTMLDependency(
+            "w",
+            "1.0",
+            source={"package": "htmltools", "subdir": "libtest/testdep"},
+            all_files=True,
+        )
+        dep1.copy_to(tmpdir1)
+        assert (Path(tmpdir1) / "w-1.0" / "testdep.css").exists()
+        assert (Path(tmpdir1) / "w-1.0" / "testdep.js").exists()
+
+    with tempfile.TemporaryDirectory() as tmpdir2:
+        dep2 = HTMLDependency(
+            "w",
+            "1.0",
+            source={"package": "htmltools", "subdir": "libtest/testdep"},
+            all_files=False,
+        )
+        dep2.copy_to(tmpdir2)
+        assert not (Path(tmpdir2) / "w-1.0" / "testdep.css").exists()
+        assert not (Path(tmpdir2) / "w-1.0" / "testdep.js").exists()
+
+    with tempfile.TemporaryDirectory() as tmpdir3:
+        dep3 = HTMLDependency(
+            "w",
+            "1.0",
+            source={"package": "htmltools", "subdir": "libtest/testdep"},
+            stylesheet={"href": "testdep.css"},
+            all_files=False,
+        )
+        dep3.copy_to(tmpdir3)
+        assert (Path(tmpdir3) / "w-1.0" / "testdep.css").exists()
+        assert not (Path(tmpdir3) / "w-1.0" / "testdep.js").exists()
+
+    with tempfile.TemporaryDirectory() as tmpdir4:
+        dep4 = HTMLDependency(
+            "w",
+            "1.0",
+            source={"package": "htmltools", "subdir": "libtest/testdep"},
+            stylesheet={"href": "testdep.css"},
+            script={"src": "testdep.js"},
+            all_files=False,
+        )
+        dep4.copy_to(tmpdir4)
+        assert (Path(tmpdir4) / "w-1.0" / "testdep.css").exists()
+        assert (Path(tmpdir4) / "w-1.0" / "testdep.js").exists()

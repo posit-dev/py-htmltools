@@ -8,14 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+* Changed the type annotation of `_add_ws` from `bool` to `TagAttrValue`. This makes it easier to write functions which call `Tag` functions and pass along `**kwargs`. (#67)
+
+
+## [0.4.1] 2023-10-30
+
+* Fixed deserialization of JSON HTML dependencies when they contained newline characters. (#65)
+
+
+## [0.4.0] 2023-10-30
+
+* Added `HTMLTextDocument` class, which takes as input a string representation of an HTML document. (#61)
+
+* Added `htmltools.html_dependency_render_mode`. If this is set to `"json"`, then `HTMLDependency` objects will be rendered as JSON inside of `<script>` tags. (#61)
+
+
+## [0.3.0] 2023-08-01
+
 ### New features
 
-### Bug fixes
+* Added `Tag` methods `remove_class` and `add_style`. (#57)
+
+* Added support for `Tag`'s `add_class(prepend=)`. (#57)
 
 * Enhanced the type definition of `TagAttrs` to include `TagAttrDict`, the type of a `Tag`'s `attrs` property. (#55)
 
 ### Other changes
 
+* Dropped support for Python 3.7 (#56)
 
 
 ## [0.2.1] - 2023-04-03

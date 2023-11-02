@@ -73,7 +73,7 @@ _INLINE_TAG_NAMES = {
 
 
 tag_template = '''
-def {name}(*args: TagChild | TagAttrs, _add_ws: bool = {add_ws}, **kwargs: TagAttrValue) -> Tag:
+def {name}(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = {add_ws}, **kwargs: TagAttrValue) -> Tag:
     """
     Create a <{name}> tag.
 
@@ -84,7 +84,7 @@ def {name}(*args: TagChild | TagAttrs, _add_ws: bool = {add_ws}, **kwargs: TagAt
     *args
         Child elements to this tag.
     _add_ws
-        Whether whitespace should be added around this tag.
+        A bool indicating whether whitespace should be added around this tag.
     **kwargs
         Attributes to this tag.
 

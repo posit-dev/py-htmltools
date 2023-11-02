@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import os
 import posixpath
+import re
 import shutil
 import sys
 import tempfile
@@ -32,15 +34,7 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Never, NotRequired, TypedDict
 
-if sys.version_info >= (3, 8):
-    from typing import Literal, Protocol, SupportsIndex, runtime_checkable
-else:
-    from typing_extensions import (
-        SupportsIndex,
-        Protocol,
-        runtime_checkable,
-        Literal,
-    )
+from typing import Literal, Protocol, SupportsIndex, runtime_checkable
 
 from packaging.version import Version
 
@@ -56,6 +50,7 @@ __all__ = (
     "TagList",
     "Tag",
     "HTMLDocument",
+    "HTMLTextDocument",
     "HTML",
     "MetadataNode",
     "HTMLDependency",
@@ -98,8 +93,8 @@ converted to strings before being stored as tag attributes.
 
 TagAttrs = Union[Dict[str, TagAttrValue], "TagAttrDict"]
 """
-For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed as unnamed
-arguments to Tag functions like `div()`.
+For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed as
+unnamed arguments to Tag functions like `div()`.
 """
 
 TagNode = Union["Tagifiable", "Tag", MetadataNode, str]
@@ -214,7 +209,8 @@ class TagList(List[TagNode]):
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
                 if isinstance(tagified_child, TagList):
-                    # If the Tagifiable object returned a TagList, flatten it into this one.
+                    # If the Tagifiable object returned a TagList, flatten it into this
+                    # one.
                     cp[i : i + 1] = _tagchilds_to_tagnodes(tagified_child)
                 else:
                     cp[i] = tagified_child
@@ -250,7 +246,7 @@ class TagList(List[TagNode]):
 
     def render(self) -> RenderedHTML:
         """
-        Get string representation as well as it's HTML dependencies.
+        Get string representation as well as its HTML dependencies.
         """
         cp = self.tagify()
         deps = cp.get_dependencies()
@@ -365,17 +361,17 @@ class TagList(List[TagNode]):
         """
         _tag_show(self, renderer)
 
-    def __str__(self) -> str:
-        return str(self.get_html_string())
-
     def __eq__(self, other: Any) -> bool:
         return _equals_impl(self, other)
 
+    def __str__(self) -> str:
+        return _render_tag_or_taglist(self)
+
     def __repr__(self) -> str:
-        return repr(self.get_html_string())
+        return str(self)
 
     def _repr_html_(self) -> str:
-        return str(self.get_html_string())
+        return str(self)
 
 
 # =============================================================================
@@ -408,7 +404,11 @@ class TagAttrDict(Dict[str, str]):
             nm = self._normalize_attr_name(name)
             super().__setitem__(nm, val)
 
-    def update(self, *args: Mapping[str, TagAttrValue], **kwargs: TagAttrValue) -> None:
+    def update(  # type: ignore[reportIncompatibleMethodOverride] # TODO-future: fix typing
+        self,
+        *args: Mapping[str, TagAttrValue],
+        **kwargs: TagAttrValue,
+    ) -> None:
         if kwargs:
             args = args + (kwargs,)
 
@@ -472,7 +472,8 @@ class Tag:
     *args
         Children for the tag.
     _add_ws
-        Whether to add whitespace surrounding the tag (see Note for details).
+        A ``bool`` indicating whether to add whitespace surrounding the tag (see Note
+        for details).
     **kwargs
         Attributes for the tag.
 
@@ -522,10 +523,18 @@ class Tag:
         self,
         _name: str,
         *args: TagChild | TagAttrs,
-        _add_ws: bool = True,
+        _add_ws: TagAttrValue = True,
         **kwargs: TagAttrValue,
     ) -> None:
         self.name = _name
+
+        # Note that _add_ws is marked as a TagAttrValue for the sake of static type
+        # checking, but it must in fact be a bool. This is due to limitations in
+        # Python's type system when passing along **kwargs.
+        # https://github.com/posit-dev/py-htmltools/pull/67
+        if not isinstance(_add_ws, bool):
+            raise TypeError("`_add_ws` must be `True` or `False`")
+
         self.add_ws = _add_ws
 
         attrs = [x for x in args if isinstance(x, dict)]
@@ -564,29 +573,69 @@ class Tag:
 
         self.children.append(*args)
 
-    def add_class(self, x: str) -> "Tag":
+    def add_class(self: TagT, class_: str, *, prepend: bool = False) -> TagT:
         """
-        Add an HTML class attribute.
+        Add a class value to the HTML class attribute.
 
         Parameters
         ----------
-        x
+        class_
             The class name to add.
+        prepend
+            Bool that determines if the `class` is added to the beginning or end of the
+            class attribute.
 
         Returns
         -------
         :
             The modified tag.
         """
-        cls = self.attrs.get("class")
-        if cls:
-            x = cls + " " + x
-        self.attrs["class"] = x
+        if prepend:
+            self.attrs.update({"class": class_}, {"class": self.attrs.get("class")})
+        else:
+            self.attrs.update({"class": self.attrs.get("class")}, {"class": class_})
+        return self
+
+    def remove_class(self: TagT, class_: str) -> TagT:
+        """
+        Remove a class value from the HTML class attribute.
+
+        Parameters
+        ----------
+        class_
+            The class name to remove.
+
+        Returns
+        -------
+        :
+            The modified tag.
+        """
+        # Nothing to do if no class is specified
+        if not class_:
+            return self
+        cls = self.attrs.get("class") or ""
+
+        # If no class attribute exists, there's nothing to remove
+        if not cls:
+            return self
+
+        # Coerce and clean
+        class_ = str(class_).strip()
+
+        # Remove the class value from the ordered set of class values
+        # Note: .split() splits on any whitespace and removes empty strings
+        new_classes = [cls_val for cls_val in cls.split() if cls_val != class_]
+        if len(new_classes) > 0:
+            # Store the new class value
+            self.attrs.update({"class": " ".join(new_classes)})
+        else:
+            # If no class values remain, remove the class attribute
+            self.attrs.pop("class")
         return self
 
     def has_class(self, class_: str) -> bool:
         """
-        Check if the tag has a particular class.
+        Check if the tag has a particular class value.
 
         Parameters
         ----------
@@ -600,9 +649,43 @@ class Tag:
         """
         cls = self.attrs.get("class")
         if cls:
-            return class_ in cls.split(" ")
+            return class_ in cls.split()
         else:
             return False
+
+    def add_style(self: TagT, style: str, *, prepend: bool = False) -> TagT:
+        """
+        Add a style value(s) to the HTML style attribute.
+
+        Parameters
+        ----------
+        style
+            CSS properties and values already properly formatted. Each should already
+            contain trailing semicolons.
+        prepend
+            Bool that determines if the `style` is added to the beginning or end of the
+            style attribute.
+
+        See Also
+        --------
+        ~htmltools.css
+
+        Returns
+        -------
+        :
+            The modified tag.
+        """
+
+        if isinstance(  # type: ignore[reportUnnecessaryIsInstance]
+            style, str
+        ) and not style.endswith(";"):
+            raise ValueError("`Tag.add_style(style=)` must end with a semicolon")
+
+        if prepend:
+            self.attrs.update({"style": style}, {"style": self.attrs.get("style")})
+        else:
+            self.attrs.update({"style": self.attrs.get("style")}, {"style": style})
+        return self
 
     def tagify(self: TagT) -> TagT:
         """
@@ -672,7 +755,7 @@ class Tag:
 
     def render(self) -> RenderedHTML:
         """
-        Get string representation as well as it's HTML dependencies.
+        Get string representation as well as its HTML dependencies.
         """
         cp = self.tagify()
         deps = cp.get_dependencies()
@@ -719,17 +802,17 @@ class Tag:
         """
         _tag_show(self, renderer)
 
-    def __str__(self) -> str:
-        return str(self.get_html_string())
-
-    def __repr__(self) -> str:
-        return repr(self.get_html_string())
-
-    def _repr_html_(self) -> str:
-        return str(self.get_html_string())
-
     def __eq__(self, other: Any) -> bool:
         return _equals_impl(self, other)
+
+    def __str__(self) -> str:
+        return _render_tag_or_taglist(self)
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def _repr_html_(self) -> str:
+        return str(self)
 
 
 # Tags that have the form <tagname />
@@ -755,12 +838,32 @@ _VOID_TAG_NAMES = {
 _NO_ESCAPE_TAG_NAMES = {"script", "style"}
 
 
+def _render_tag_or_taglist(x: Tag | TagList) -> str:
+    """Render a Tag or TagList to a string.
+
+    This looks at html_dependency_render_mode to see if HTMLDependency objects should be
+    serialized as HTML. This type of serialization is used with Quarto.
+    """
+    rendered = x.render()
+    res = rendered["html"]
+    from . import html_dependency_render_mode
+
+    if html_dependency_render_mode == "json":
+        dep_html = [
+            x.serialize_to_script_json().get_html_string()
+            for x in rendered["dependencies"]
+        ]
+        res += "\n".join(dep_html)
+
+    return str(res)
+
+
 # =============================================================================
 # HTMLDocument class
 # =============================================================================
 class HTMLDocument:
     """
-    Create an HTML document.
+    Create an HTML document from Tag objects.
 
     Parameters
     ----------
@@ -854,7 +957,7 @@ class HTMLDocument:
     # Take the stored content, and generate an <html> tag which contains the correct
     # <head> and <body> content. HTMLDependency items will be extracted out of the body
     # and inserted into the <head>.
-    # - lib_prefix: A directoy prefix to add to <script src="[lib_prefix]/script.js">
+    # - lib_prefix: A directory prefix to add to <script src="[lib_prefix]/script.js">
     #   and <link rel="[lib_prefix]/style.css"> tags.
     def _gen_html_tag_tree(
         self, lib_prefix: Optional[str], include_version: bool
@@ -885,7 +988,7 @@ class HTMLDocument:
 
         body = body.tagify()
 
-        html = Tag("html", Tag("head"), body, **self._html_attr_args)
+        html = Tag("html", Tag("head"), body, _add_ws=True, **self._html_attr_args)
         html = HTMLDocument._hoist_head_content(html, lib_prefix, include_version)
         return html
 
@@ -939,6 +1042,130 @@ class HTMLDocument:
             ]
         )
         return res
+
+
+class HTMLTextDocument:
+    """
+    Create an HTML document object from text.
+
+    The text should be a complete HTML document, with `<html>`. This class is used to
+    insert HTML dependency objects into the head of an existing HTML document.
+
+    Parameters
+    ----------
+    template
+        The template to use.
+    deps
+        HTML dependencies for the document.
+    deps_replace_pattern
+        A string that will be replaced with the head content. The first instance of this
+        string will be replaced with the head content. If this is None, then deps must
+        be provided.
+
+    Examples
+    --------
+    >>> dep = HTMLDependency(name="foo", version="1.0.0", script={"src": "foo.js"})
+    >>> doc = HTMLTextDocument(
+            '<html><head><meta data-foo=""></head><body></body></html>',
+            deps=[dep],
+            deps_replace_pattern='<meta data-foo="">',
+        )
+    >>> res = doc.render()
+    {
+      'dependencies': [<HTMLDependency "foo-1.0.0">],
+      'html': '<html><head><script type="application/html-dependencies">foo[1.0.0]</script>\n<script src="foo.js"></script></head><body></body></html>'
+    }
+    """
+
+    def __init__(
+        self,
+        html: str,
+        deps: Optional[list[HTMLDependency]] = None,
+        deps_replace_pattern: Optional[str] = None,
+    ) -> None:
+        if deps_replace_pattern is None and deps is not None:
+            raise ValueError(
+                "If deps is not None, deps_replace_pattern must also be not None."
+            )
+
+        self._html = html
+        if deps is None:
+            deps = []
+        self._deps = deps
+
+        self._deps_replace_pattern = deps_replace_pattern
+
+        self._extract_serialized_html_deps()
+
+    def render(
+        self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
+    ) -> RenderedHTML:
+        """
+        Render the document.
+
+        Parameters
+        ----------
+        lib_prefix
+            A prefix to add to relative paths to dependency files.
+        include_version
+            Whether to include the version number in the dependency's folder name.
+        """
+
+        dep_tags = TagList()
+        # Add some metadata about the dependencies so that shiny.js' renderDependency
+        # logic knows not to re-render them.
+        if len(self._deps) > 0:
+            dep_tags.append(
+                Tag(
+                    "script",
+                    ";".join([d.name + "[" + str(d.version) + "]" for d in self._deps]),
+                    type="application/html-dependencies",
+                )
+            )
+
+        dep_tags.extend(
+            [
+                d.as_html_tags(lib_prefix=lib_prefix, include_version=include_version)
+                for d in self._deps
+            ]
+        )
+
+        rendered_dep_tags = dep_tags.render()
+
+        html = self._html.replace(
+            cast(str, self._deps_replace_pattern),  # If we got here, we know it's a str
+            rendered_dep_tags["html"],
+            1,
+        )
+
+        return {"dependencies": deepcopy(self._deps), "html": html}
+
+    def _extract_serialized_html_deps(self) -> None:
+        """
+        Search the HTML text for serialized HTML dependency objects, remove the text for
+        those serialized objects, and add the reconstituted dependency objects to
+        self._deps.
+        """
+        self._html, body_deps = self._static_extract_serialized_html_deps(self._html)
+        self._deps.extend(body_deps)
+
+    @staticmethod
+    def _static_extract_serialized_html_deps(
+        html: str,
+    ) -> tuple[str, list[HTMLDependency]]:
+        # Scan for HTML dependencies that were serialized via
+        # HTMLdependency.get_tag_representation()
+        pattern = r'<script type="application/json" data-html-dependency="">((?:.|\r|\n)*?)</script>'
+        dep_strs = re.findall(pattern, html)
+        # html = re.sub(pattern, "", html)
+
+        deps: list[HTMLDependency] = []
+        for dep_str in dep_strs:
+            args = json.loads(dep_str)
+            dep = HTMLDependency(**args)
+            deps.append(dep)
+
+        return (html, deps)
 
 
 # =============================================================================
@@ -1199,7 +1426,6 @@ class HTMLDependency(MetadataNode):
             return {"source": "", "href": ""}
 
         if "href" in src:
-            src = cast(HTMLDependencyUrl, src)
             return {"source": "", "href": src["href"]}
 
         pkg = src.get("package", None)
@@ -1226,6 +1452,29 @@ class HTMLDependency(MetadataNode):
         links = [Tag("link", **s) for s in d["stylesheet"]]
         scripts = [Tag("script", **s) for s in d["script"]]
         return TagList(*metas, *links, *scripts, self.head)
+
+    def serialize_to_script_json(self, indent: int | None = None) -> Tag:
+        res = {
+            "name": self.name,
+            "version": str(self.version),
+            "source": self.source,
+            "script": self.script,
+            "stylesheet": self.stylesheet,
+            "meta": self.meta,
+            "all_files": self.all_files,
+            # Tags cannot be serialized to JSON, so render to HTML
+            "head": (
+                TagList(self.head).get_html_string() if self.head is not None else None
+            ),
+        }
+
+        return Tag(
+            "script",
+            # "</script>" in a script tag must be escaped
+            json.dumps(res, indent=indent).replace("</script>", "<\\/script>"),
+            type="application/json",
+            data_html_dependency=True,
+        )
 
     def as_dict(
         self, *, lib_prefix: Optional[str] = "lib", include_version: bool = True
@@ -1282,8 +1531,8 @@ class HTMLDependency(MetadataNode):
 
         # Collect all the source files
         if self.all_files:
-            src_files = list(Path(paths["source"]).glob("*"))
-            src_files = [str(x) for x in src_files]
+            path_src = Path(paths["source"])
+            src_files = [str(x.relative_to(path_src)) for x in path_src.glob("*")]
         else:
             src_files = [
                 *[s["src"] for s in self.script],

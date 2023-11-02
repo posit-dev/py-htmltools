@@ -1,6 +1,6 @@
 import textwrap
 
-from htmltools import *
+from htmltools import HTMLDependency, HTMLDocument, TagList, css, div, span
 from htmltools._jsx import jsx, jsx_tag_create
 
 
