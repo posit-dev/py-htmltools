@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [UNRELEASED]
 
 * Changed the type annotation of `_add_ws` from `bool` to `TagAttrValue`. This makes it easier to write functions which call `Tag` functions and pass along `**kwargs`. (#67)
+* Changed the type annotation of `collapse_` from `str` to `str | float | None`. This makes it easier to write calls to `css()` pass along `**kwargs`. (#68)
 * Enhanced the type definition of `TagAttrs` to include `TagAttrDict`, the type of a `Tag`'s `attrs` property. (#55)
 
 
