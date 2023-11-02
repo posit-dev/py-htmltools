@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict, Union
 
 import pytest
 
@@ -8,7 +8,7 @@ from htmltools._util import flatten
 
 def test_css_type():
     for val in (True, False):
-        css_args: dict[str, str | None] = {
+        css_args: Dict[str, Union[str, None]] = {
             "font_size": "12px" if val else None,
             "background_color": "red",
         }
