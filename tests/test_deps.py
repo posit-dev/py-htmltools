@@ -78,7 +78,7 @@ def test_inline_deps(snapshot):
     html_ = "\n\n".join(
         [HTMLDocument(t).render(lib_prefix=None)["html"] for t in tests]
     )
-    snapshot.assert_match(html_, "inline_deps")
+    assert html_ == snapshot
 
 
 def test_append_deps():
