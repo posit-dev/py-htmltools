@@ -1,4 +1,5 @@
 import os
+import re
 import textwrap
 from tempfile import TemporaryDirectory
 from typing import Union
@@ -291,14 +292,50 @@ def test_json_roundtrip():
                 div("hello world", testdep),
                 # Also make sure it would work even with indents
                 ht.HTML(testdep2.serialize_to_script_json(indent=2)),
+                # Add another copy of testdep, explicitly serialized to script json.
+                # Normally htmltools will dedupe dependencies when .render() is called,
+                # but we do this here because when these deps are embedded in a Quarto
+                # document, Quarto can add each dep independent of the others and
+                # therefore have duplicates. Since we're using .render, to get
+                # duplicates, we need to force the duplication.
+                #
+                div(
+                    "hello again",
+                    ht.HTML(testdep.serialize_to_script_json()),
+                ),
             ]
         )
+
+        # Get a string representation which hasn't been passed through
+        # HTMLTextDocument().
         x_str = str(x)
+
+        # Make sure that we successfully forced testdep to show up twice in the HTML,
+        # before we pass it to HTMLTextDocument() and call .render().
+        assert x_str.count('"name": "testdep"') == 2
+
+        # Make sure that there are three of these HTML dependency script tags.
+        assert (
+            x_str.count('<script type="application/json" data-html-dependency="">') == 3
+        )
+
         rendered = ht.HTMLTextDocument(
             x_str, deps_replace_pattern='<meta data-foo="">'
         ).render()
+
+        # Make sure both deps are present.
         assert "testdep" in [d.name for d in rendered["dependencies"]]
         assert "testdep2" in [d.name for d in rendered["dependencies"]]
+
+        # Make sure testdep was deduplicated by HTMLTextDocument().render().
+        assert rendered["dependencies"].count(testdep) == 1
+        assert len(rendered["dependencies"]) == 2
+
+        # Make sure the HTML dependency script tags were stripped out.
+        assert (
+            '<script type="application/json" data-html-dependency="">'
+            not in rendered["html"]
+        )
 
     finally:
         ht.html_dependency_render_mode = old_mode
