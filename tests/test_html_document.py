@@ -1,5 +1,4 @@
 import os
-import re
 import textwrap
 from tempfile import TemporaryDirectory
 from typing import Union
