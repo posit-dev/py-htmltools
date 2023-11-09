@@ -45,6 +45,7 @@ test = [
 dev = [
     "black>=23.1.0",
     "flake8>=6.0.0",
+    "Flake8-pyproject",
     "isort>=5.11.2",
     "pyright>=1.1.334",
     "pre-commit>=2.15.0",
