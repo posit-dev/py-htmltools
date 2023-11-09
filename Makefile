@@ -84,6 +84,9 @@ install: dist ## install the package to the active Python's site-packages
 	pip uninstall -y htmltools
 	python3 -m pip install dist/htmltools*.whl
 
+install-editable: ## install the package in editable mode
+	pip install -e ".[dev,test]" --config-settings editable_mode=strict
+
 pyright: ## type check with pyright
 	pyright
 
