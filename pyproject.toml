@@ -56,7 +56,6 @@ dev = [
 [tool.setuptools]
 packages = ["htmltools"]
 include-package-data = true
-# test-suite = "tests"
 zip-safe = false
 
 [tool.setuptools.dynamic]
