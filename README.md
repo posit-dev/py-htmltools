@@ -19,5 +19,5 @@ pip install https://github.com/rstudio/py-htmltools/tarball/main
 If you want to do development on htmltools for Python:
 
 ```sh
-pip install -e ".[dev,test]"
+pip install -e ".[dev,test]" --config-settings editable_mode=strict
 ```

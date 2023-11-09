@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * For `HTMLTextDocument` objects, deduplicate HTML dependencies. (#72)
 
+* Switched from `setup.cfg` and `setup.py` to `pyproject.toml`. (#73)
+
+
 ## [0.4.1] 2023-10-30
 
 * Fixed deserialization of JSON HTML dependencies when they contained newline characters. (#65)

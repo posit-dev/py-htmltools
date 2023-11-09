@@ -1,0 +1,72 @@
+[build-system]
+requires = [
+  "setuptools",
+  "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "htmltools"
+dynamic = ["version"]
+authors = [{name = "Carson Sievert", email = "carson@rstudio.com"}]
+description = "Tools for HTML generation and output."
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["html"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup :: HTML"
+]
+dependencies = [
+  "typing-extensions>=3.10.0.0",
+  "packaging>=20.9",
+]
+requires-python = ">=3.8"
+
+[project.urls]
+"Bug Tracker" = "https://github.com/rstudio/py-htmltools/issues"
+Source = "https://github.com/rstudio/py-htmltools"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=6.2.4",
+    "syrupy>=4.6.0"
+]
+dev = [
+    "black>=23.1.0",
+    "flake8>=6.0.0",
+    "Flake8-pyproject",
+    "isort>=5.11.2",
+    "pyright>=1.1.334",
+    "pre-commit>=2.15.0",
+    "wheel",
+    "build"
+]
+
+[tool.setuptools]
+packages = ["htmltools"]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.dynamic]
+version = {attr = "htmltools.__version__"}
+
+[tool.setuptools.package-data]
+htmltools = ["py.typed"]
+
+[tool.flake8]
+ignore = "E203, E302, E402, E501, F403, F405, W503"
+extend-exclude = "docs, .venv, venv, typings, e2e, build"
+
+[tool.isort]
+profile = "black"
