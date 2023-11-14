@@ -97,7 +97,7 @@ For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed 
 unnamed arguments to Tag functions like `div()`.
 """
 
-TagNode = Union["Tagifiable", "Tag", MetadataNode, str]
+TagNode = Union["Tagifiable", "Tag", MetadataNode, "ReprHtml", str]
 """
 Types of objects that can be a node in a `Tag` tree. Equivalently, these are the valid
 elements of a `TagList`. Note that this type represents the internal structure of items
@@ -147,6 +147,16 @@ class TagFunction(Protocol):
         _add_ws: TagAttrValue = ...,
         **kwargs: TagAttrValue,
     ) -> "Tag":
+        ...
+
+
+@runtime_checkable
+class ReprHtml(Protocol):
+    """
+    Objects with a `_repr_html_()` method.
+    """
+
+    def _repr_html_(self) -> str:
         ...
 
 
@@ -313,10 +323,13 @@ class TagList(List[TagNode]):
                 )
 
             else:
-                # If we get here, x must be a string.
                 if prev_was_add_ws:
                     html_ += "  " * indent
 
+                if isinstance(child, ReprHtml):
+                    child = HTML(child._repr_html_())  # type: ignore
+
+                # At this point, child must be a string/HTML.
                 if _escape_strings:
                     html_ += _normalize_text(child)
                 else:
@@ -1658,7 +1671,7 @@ def _tagchilds_to_tagnodes(x: Iterable[TagChild]) -> list[TagNode]:
     for i, item in enumerate(result):
         if isinstance(item, (int, float)):
             result[i] = str(item)
-        elif not isinstance(item, (Tagifiable, Tag, MetadataNode, str)):
+        elif not isinstance(item, (Tagifiable, Tag, MetadataNode, ReprHtml, str)):
             raise TypeError(
                 f"Invalid tag item type: {type(item)}. "
                 + "Consider calling str() on this value before treating it as a tag item."
