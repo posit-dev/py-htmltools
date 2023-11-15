@@ -733,6 +733,23 @@ def test_metadata_nodes_gone():
     )
 
 
+def test_repr_html():
+    # Make sure that objects with a __repr_html__ method are rendered as HTML.
+    class Foo:
+        def _repr_html_(self) -> str:
+            return "<span>Foo</span>"
+
+    f = Foo()
+    assert str(TagList(f)) == "<span>Foo</span>"
+    assert str(span(f)) == "<span><span>Foo</span></span>"
+    assert str(div(f)) == textwrap.dedent(
+        """\
+        <div>
+          <span>Foo</span>
+        </div>"""
+    )
+
+
 def test_types():
     # When a type checker like pyright is run on this file, this line will make sure
     # that a Tag function like `div()` matches the signature of the TagFunction Protocol
