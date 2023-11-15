@@ -317,19 +317,24 @@ class TagList(List[TagNode]):
 
                 prev_was_add_ws = child.add_ws
 
+            elif isinstance(child, ReprHtml):
+                if prev_was_add_ws:
+                    html_ += "  " * indent
+
+                html_ += child._repr_html_()  # type: ignore
+
+                prev_was_add_ws = False
+
             elif isinstance(child, Tagifiable):
                 raise RuntimeError(
                     "Encountered a non-tagified object. x.tagify() must be called before x.render()"
                 )
 
             else:
+                # If we get here, x must be a string.
                 if prev_was_add_ws:
                     html_ += "  " * indent
 
-                if isinstance(child, ReprHtml):
-                    child = HTML(child._repr_html_())  # type: ignore
-
-                # At this point, child must be a string/HTML.
                 if _escape_strings:
                     html_ += _normalize_text(child)
                 else:
