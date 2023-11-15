@@ -741,6 +741,7 @@ def test_repr_html():
 
     f = Foo()
     assert str(TagList(f)) == "<span>Foo</span>"
+    assert str(span(f)) == "<span><span>Foo</span></span>"
     assert str(div(f)) == textwrap.dedent(
         """\
         <div>
