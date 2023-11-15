@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+* Objects with a `_repr_html_` method can now appear as children of `Tag`/`TagList` objects. (#74)
+
 * Changed the type annotation of `_add_ws` from `bool` to `TagAttrValue`. This makes it easier to write functions which call `Tag` functions and pass along `**kwargs`. (#67)
 
 * Changed the type annotation of `collapse_` from `str` to `str | float | None`. This makes it easier to write calls to `css()` pass along `**kwargs`. (#68)
