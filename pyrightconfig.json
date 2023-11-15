@@ -5,6 +5,5 @@
         "htmltools/",
         "examples/",
     ],
-    "reportImportCycles": false,
-    "reportPrivateUsage": "none",
+    "reportImportCycles": false
 }
