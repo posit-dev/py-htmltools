@@ -15,6 +15,7 @@ from copy import copy, deepcopy
 from pathlib import Path
 from typing import (
     Any,
+    Callable,
     Dict,
     Iterable,
     List,
@@ -561,6 +562,8 @@ class Tag:
         kids = [x for x in args if not isinstance(x, dict)]
         self.children = TagList(*kids)
 
+        self.displayhook_stack: list[Callable[[object], None]] = []
+
     def __copy__(self: TagT) -> TagT:
         cls = self.__class__
         cp = cls.__new__(cls)
@@ -569,6 +572,18 @@ class Tag:
         new_dict = {key: copy(value) for key, value in self.__dict__.items()}
         cp.__dict__.update(new_dict)
         return cp
+
+    def __enter__(self) -> None:
+        self.displayhook_stack.append(sys.displayhook)
+        sys.displayhook = self._displayhook
+
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        sys.displayhook = self.displayhook_stack.pop()
+        sys.displayhook(self)
+
+    def _displayhook(self, x: object) -> None:
+        # TODO: Coerce to TagChild, fail if not possible?
+        self.append(x)
 
     def insert(self, index: SupportsIndex, x: TagChild) -> None:
         """
