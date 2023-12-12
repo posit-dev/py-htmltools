@@ -49,6 +49,11 @@ def test_tag_context_manager_type_validate():
 
     with pytest.raises(TypeError):
         with tags.span():
+            # Can't pass in a dictionary -- this is a TagAttrs object, but not TagChild.
+            sys.displayhook({"class": "foo", "id": "bar"})
+
+    with pytest.raises(TypeError):
+        with tags.span():
             sys.displayhook("A")
             # Pass in a module object, which is not a valid TagChild
             sys.displayhook(tags)
