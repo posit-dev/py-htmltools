@@ -562,7 +562,7 @@ class Tag:
         kids = [x for x in args if not isinstance(x, dict)]
         self.children = TagList(*kids)
 
-        self.displayhook_stack: list[Callable[[object], None]] = []
+        self.prev_displayhook: Callable[[object], None] | None = None
 
     def __copy__(self: TagT) -> TagT:
         cls = self.__class__
@@ -574,11 +574,16 @@ class Tag:
         return cp
 
     def __enter__(self) -> None:
-        self.displayhook_stack.append(sys.displayhook)
+        if self.prev_displayhook is not None:
+            raise RuntimeError(
+                "Attempted to enter a Tag object's context manager, but it has already been entered."
+            )
+        self.prev_displayhook = sys.displayhook
         sys.displayhook = self._displayhook
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
-        sys.displayhook = self.displayhook_stack.pop()
+        # If we got here, then self.prev_displayhook must be not None.
+        sys.displayhook = cast(Callable[[object], None], self.prev_displayhook)
         sys.displayhook(self)
 
     def _displayhook(self, x: object) -> None:
