@@ -587,8 +587,7 @@ class Tag:
         sys.displayhook(self)
 
     def _displayhook(self, x: object) -> None:
-        # TODO: Coerce to TagChild, fail if not possible?
-        self.append(x)
+        self.append(cast(TagChild, x))
 
     def insert(self, index: SupportsIndex, x: TagChild) -> None:
         """
