@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+* `Tag` objects can now be used as context managers, as in `with tags.div():`. When used this way, then inside the `with` block, `sys.displayhook` is replaced with a function which adds items as children to the `Tag`. This is meant to be used with Shiny Express, Quarto, or Jupyter. (#76)
 
 
 ## [0.5.0] 2023-12-07
