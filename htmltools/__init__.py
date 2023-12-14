@@ -1,4 +1,4 @@
-__version__ = "0.5.0.9001"
+__version__ = "0.5.0.9002"
 
 from . import svg, tags
 from ._core import TagAttrArg  # pyright: ignore[reportUnusedImport]  # noqa: F401
@@ -19,6 +19,7 @@ from ._core import (
     TagList,
     TagNode,
     head_content,
+    wrap_displayhook_handler,
 )
 from ._util import css, html_escape
 from .tags import (
@@ -59,6 +60,7 @@ __all__ = (
     "TagList",
     "TagNode",
     "head_content",
+    "wrap_displayhook_handler",
     "css",
     "html_escape",
     "a",

@@ -63,6 +63,7 @@ __all__ = (
     "TagFunction",
     "Tagifiable",
     "head_content",
+    "wrap_displayhook_handler",
 )
 
 
@@ -579,15 +580,16 @@ class Tag:
                 "Attempted to enter a Tag object's context manager, but it has already been entered."
             )
         self.prev_displayhook = sys.displayhook
-        sys.displayhook = self._displayhook
+        sys.displayhook = wrap_displayhook_handler(
+            # self.append takes a TagChild, but the wrapper expects a function that
+            # takes a object.
+            self.append  # pyright: ignore[reportGeneralTypeIssues]
+        )
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         # If we got here, then self.prev_displayhook must be not None.
         sys.displayhook = cast(Callable[[object], None], self.prev_displayhook)
         sys.displayhook(self)
-
-    def _displayhook(self, x: object) -> None:
-        self.append(cast(TagChild, x))
 
     def insert(self, index: SupportsIndex, x: TagChild) -> None:
         """
@@ -893,6 +895,28 @@ def _render_tag_or_taglist(x: Tag | TagList) -> str:
         res += "\n".join(dep_html)
 
     return str(res)
+
+
+def wrap_displayhook_handler(
+    handler: Callable[[object], None]
+) -> Callable[[object], None]:
+    """
+    Wrap a displayhook function to handle different types of input objects
+
+    This function takes a function ``handler`` that would be used as a displayhook, and
+    returns a function which filters/transforms the input object depending on its type,
+    before passing it to ``handler()``.
+    """
+
+    def handler_wrapper(value: object) -> None:
+        if isinstance(value, (Tag, TagList, Tagifiable)):
+            handler(value)
+        elif hasattr(value, "_repr_html_"):
+            handler(HTML(value._repr_html_()))  # pyright: ignore
+        elif value not in (None, ...):
+            handler(value)
+
+    return handler_wrapper
 
 
 # =============================================================================
