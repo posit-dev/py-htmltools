@@ -913,13 +913,8 @@ def wrap_displayhook_handler(
             handler(value)
         elif hasattr(value, "_repr_html_"):
             handler(HTML(value._repr_html_()))  # pyright: ignore
-        else:
-            # We should NOT end up here for objects that were `def`ed, because they
-            # would already have been filtered out by _display_decorator_function_def().
-            # This is only for other kinds of expressions, the kind which would normally
-            # be printed at the console.
-            if value not in (None, ...):
-                handler(value)
+        elif value not in (None, ...):
+            handler(value)
 
     return handler_wrapper
 
