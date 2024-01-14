@@ -1238,7 +1238,31 @@ class HTMLTextDocument:
 # =============================================================================
 # HTML strings
 # =============================================================================
-class HTML(str):
+
+
+class RAW(str):
+    """
+    Base class for raw content.
+    """
+
+    def __str__(self) -> str:
+        return self.as_string()
+
+    def __add__(self, other: "str| RAW") -> str:
+        res = str.__add__(self, other)
+        return self.__class__(res) if isinstance(other, self.__class__) else res
+
+    def __repr__(self) -> str:
+        return self.as_string()
+
+    def _repr_html_(self) -> str:
+        return self.as_string()
+
+    def as_string(self) -> str:
+        return self + ""
+
+
+class HTML(RAW):
     """
     Mark a string as raw HTML. This will prevent the string from being escaped when
     rendered inside an HTML tag.
@@ -1252,22 +1276,15 @@ class HTML(str):
     <div><p>Hello</p></div>
     """
 
-    def __str__(self) -> str:
-        return self.as_string()
+    pass
 
-    # HTML() + HTML() should return HTML()
-    def __add__(self, other: "str| HTML") -> str:
-        res = str.__add__(self, other)
-        return HTML(res) if isinstance(other, HTML) else res
 
-    def __repr__(self) -> str:
-        return self.as_string()
+class JS(RAW):
+    """
+    Mark a string as raw JavaScript.
+    """
 
-    def _repr_html_(self) -> str:
-        return self.as_string()
-
-    def as_string(self) -> str:
-        return self + ""
+    pass
 
 
 # =============================================================================

@@ -5,6 +5,7 @@ from ._core import TagAttrArg  # pyright: ignore[reportUnusedImport]  # noqa: F4
 from ._core import TagChildArg  # pyright: ignore[reportUnusedImport]  # noqa: F401
 from ._core import (
     HTML,
+    JS,
     HTMLDependency,
     HTMLDocument,
     HTMLTextDocument,
@@ -46,6 +47,7 @@ __all__ = (
     "svg",
     "tags",
     "HTML",
+    "JS",
     "HTMLDependency",
     "HTMLDocument",
     "HTMLTextDocument",
