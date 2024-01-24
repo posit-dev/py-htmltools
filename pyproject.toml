@@ -47,7 +47,7 @@ dev = [
     "flake8>=6.0.0",
     "Flake8-pyproject",
     "isort>=5.11.2",
-    "pyright>=1.1.334",
+    "pyright>=1.1.348",
     "pre-commit>=2.15.0",
     "wheel",
     "build"

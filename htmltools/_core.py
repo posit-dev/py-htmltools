@@ -583,7 +583,7 @@ class Tag:
         sys.displayhook = wrap_displayhook_handler(
             # self.append takes a TagChild, but the wrapper expects a function that
             # takes a object.
-            self.append  # pyright: ignore[reportGeneralTypeIssues]
+            self.append  # pyright: ignore[reportArgumentType]
         )
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
