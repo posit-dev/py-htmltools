@@ -91,11 +91,11 @@ def {name}(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = {add_ws}, **kwarg
     Returns
     -------
     :
-        A :func:`~htmltools.Tag` object.
+        A :class:`~htmltools.Tag` object.
 
     See Also
     --------
-    ~htmltools.Tag
+    * :class:`~htmltools.Tag`
     """
 
     return Tag("{name}", *args, _add_ws=_add_ws, **kwargs)
