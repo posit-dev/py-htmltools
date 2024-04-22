@@ -268,7 +268,7 @@ class TagList(List[TagNode]):
         *,
         add_ws: bool = True,
         _escape_strings: bool = True,
-    ) -> "HTML":
+    ) -> str:
         """
         Return the HTML string for this tag list.
 
@@ -341,7 +341,7 @@ class TagList(List[TagNode]):
 
                 prev_was_add_ws = False
 
-        return HTML(html_)
+        return html_
 
     def get_dependencies(self, *, dedup: bool = True) -> list["HTMLDependency"]:
         """
@@ -732,7 +732,7 @@ class Tag:
         cp.children = cp.children.tagify()
         return cp
 
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "HTML":
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
         """
         Get the HTML string representation of the tag.
 
@@ -758,20 +758,20 @@ class Tag:
 
         # Don't enclose JSX/void elements if there are no children
         if len(children) == 0 and self.name in _VOID_TAG_NAMES:
-            return HTML(html_ + "/>")
+            return html_ + "/>"
 
         # Other empty tags are enclosed
         html_ += ">"
         close = "</" + self.name + ">"
         if len(children) == 0:
-            return HTML(html_ + close)
+            return html_ + close
 
         # Inline a single/empty child text node
         if len(children) == 1 and isinstance(children[0], str):
             if self.name in _NO_ESCAPE_TAG_NAMES:
-                return HTML(html_ + children[0] + close)
+                return html_ + children[0] + close
             else:
-                return HTML(html_ + _normalize_text(children[0]) + close)
+                return html_ + _normalize_text(children[0]) + close
 
         # Write children
         if self.add_ws:
@@ -787,7 +787,7 @@ class Tag:
         if self.add_ws:
             html_ += eol + indent_str
 
-        return HTML(html_ + close)
+        return html_ + close
 
     def render(self) -> RenderedHTML:
         """
