@@ -25,6 +25,7 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    overload,
 )
 
 # Even though TypedDict is available in Python 3.8, because it's used with NotRequired,
@@ -1235,7 +1236,9 @@ class HTMLTextDocument:
 # =============================================================================
 # HTML strings
 # =============================================================================
-class HTML(str):
+
+
+class HTML:
     """
     Mark a string as raw HTML. This will prevent the string from being escaped when
     rendered inside an HTML tag.
@@ -1249,13 +1252,30 @@ class HTML(str):
     <div><p>Hello</p></div>
     """
 
+    _html: str
+
+    def __init__(self, html: str | HTML) -> None:
+        if isinstance(html, HTML):
+            html = html.as_string()
+        self._html = html
+
     def __str__(self) -> str:
         return self.as_string()
 
+    # This class is a building block for other classes, therefore it should not tagifiable!
+    # If this method is added, HTML strings are escaped within Shiny and not kept "as is"
+    # def tagify(self) -> Tag:
+    #     return self.as_string()
+
     # HTML() + HTML() should return HTML()
-    def __add__(self, other: "str| HTML") -> str:
-        res = str.__add__(self, other)
-        return HTML(res) if isinstance(other, HTML) else res
+    @overload
+    def __add__(self, other: str) -> str: ...
+    @overload
+    def __add__(self, other: HTML) -> HTML: ...
+    def __add__(self, other: str | HTML) -> str | HTML:
+        if isinstance(other, HTML):
+            return HTML(self.as_string() + other.as_string())
+        return str.__add__(self.as_string(), other)
 
     def __repr__(self) -> str:
         return self.as_string()
@@ -1264,7 +1284,7 @@ class HTML(str):
         return self.as_string()
 
     def as_string(self) -> str:
-        return self + ""
+        return self._html + ""
 
 
 # =============================================================================
@@ -1716,7 +1736,7 @@ def _tagchilds_to_tagnodes(x: Iterable[TagChild]) -> list[TagNode]:
     for i, item in enumerate(result):
         if isinstance(item, (int, float)):
             result[i] = str(item)
-        elif not isinstance(item, (Tagifiable, Tag, MetadataNode, ReprHtml, str)):
+        elif not isinstance(item, (HTML, Tagifiable, Tag, MetadataNode, ReprHtml, str)):
             raise TypeError(
                 f"Invalid tag item type: {type(item)}. "
                 + "Consider calling str() on this value before treating it as a tag item."
