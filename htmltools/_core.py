@@ -133,8 +133,7 @@ class Tagifiable(Protocol):
     returns a `TagList`, the children of the `TagList` must also be tagified.
     """
 
-    def tagify(self) -> "TagList | Tag | MetadataNode | str":
-        ...
+    def tagify(self) -> "TagList | Tag | MetadataNode | str": ...
 
 
 @runtime_checkable
@@ -148,8 +147,7 @@ class TagFunction(Protocol):
         *args: TagChild | TagAttrs,
         _add_ws: TagAttrValue = ...,
         **kwargs: TagAttrValue,
-    ) -> "Tag":
-        ...
+    ) -> "Tag": ...
 
 
 @runtime_checkable
@@ -158,8 +156,7 @@ class ReprHtml(Protocol):
     Objects with a `_repr_html_()` method.
     """
 
-    def _repr_html_(self) -> str:
-        ...
+    def _repr_html_(self) -> str: ...
 
 
 # =============================================================================
@@ -583,7 +580,7 @@ class Tag:
         sys.displayhook = wrap_displayhook_handler(
             # self.append takes a TagChild, but the wrapper expects a function that
             # takes a object.
-            self.append  # pyright: ignore[reportArgumentType]
+            self.append  # pyright: ignore[reportArgumentType,reportGeneralTypeIssues]
         )
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
