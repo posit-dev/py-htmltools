@@ -5,6 +5,21 @@ All notable changes to htmltools for Python will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] YYYY-MM-DD
+
+### Breaking changes
+
+* `HTML` no longer inherits from `str`. This was done to avoid confusion between strings and `HTML` objects. (#TODO)
+
+* `Tag` and `TagList`'s method `.get_html_string()` now both return `str` instead of `HTML`. (#TODO)
+
+* `TagAttrDict` no longer silently supports `HTML` values for attrs. Only `str` values are supported. (#TODO)
+
+### New features
+
+* Exported `ReprHtml` protocol class. If an object has a `_repr_html_` method, then it is of instance `ReprHtml`. (#TODO)
+
+
 ## [0.5.1] 2023-12-18
 
 * `Tag` objects can now be used as context managers, as in `with tags.div():`. When used this way, then inside the `with` block, `sys.displayhook` is replaced with a function which adds items as children to the `Tag`. This is meant to be used with Shiny Express, Quarto, or Jupyter. (#76)
