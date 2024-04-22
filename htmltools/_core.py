@@ -429,7 +429,7 @@ class TagAttrDict(Dict[str, str]):
         if kwargs:
             args = args + (kwargs,)
 
-        attrz: dict[str, str | HTML] = {}
+        attrz: dict[str, str] = {}
         for arg in args:
             for k, v in arg.items():
                 val = self._normalize_attr_value(v)
@@ -439,7 +439,7 @@ class TagAttrDict(Dict[str, str]):
 
                 # Preserve the HTML() when combining two HTML() attributes
                 if nm in attrz:
-                    val = attrz[nm] + HTML(" ") + val
+                    val = attrz[nm] + " " + val
 
                 attrz[nm] = val
 
@@ -453,14 +453,14 @@ class TagAttrDict(Dict[str, str]):
         return x.replace("_", "-")
 
     @staticmethod
-    def _normalize_attr_value(x: TagAttrValue) -> Optional[str]:
+    def _normalize_attr_value(x: TagAttrValue) -> str | None:
         if x is None or x is False:
             return None
         if x is True:
             return ""
         if isinstance(x, (int, float)):
             return str(x)
-        if isinstance(x, (HTML, str)):
+        if isinstance(x, str):  # pyright: ignore[reportUnnecessaryIsInstance]
             return x
         raise TypeError(
             f"Invalid type for attribute: {type(x)}."
