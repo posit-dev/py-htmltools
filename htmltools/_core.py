@@ -1272,10 +1272,10 @@ class HTML:
 
     _html: str
 
-    def __init__(self, html: str | HTML) -> None:
+    def __init__(self, html: object) -> None:
         if isinstance(html, HTML):
             html = html.as_string()
-        self._html = html
+        self._html = str(html)
 
     def __str__(self) -> str:
         return self.as_string()
