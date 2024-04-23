@@ -9,15 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
-* `HTML` no longer inherits from `str`. This was done to avoid confusion between strings and `HTML` objects. (#TODO)
+* `HTML` no longer inherits from `str`. This was done to avoid confusion between strings and `HTML` objects. (#86)
 
-* `Tag` and `TagList`'s method `.get_html_string()` now both return `str` instead of `HTML`. (#TODO)
+* `Tag` attributes no longer silently support `HTML` as values. (#86)
 
-* `TagAttrDict` no longer silently supports `HTML` values for attrs. Only `str` values are supported. (#TODO)
+* `Tag` and `TagList`'s method `.get_html_string()` now both return `str` instead of `HTML`. (#86)
+
+* `TagAttrDict` no longer silently supports `HTML` values for attrs. Only `str` values are supported. (#86)
 
 ### New features
 
-* Exported `ReprHtml` protocol class. If an object has a `_repr_html_` method, then it is of instance `ReprHtml`. (#TODO)
+* Exported `ReprHtml` protocol class. If an object has a `_repr_html_` method, then it is of instance `ReprHtml`. (#86)
 
 
 ## [0.5.1] 2023-12-18
