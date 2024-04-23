@@ -79,7 +79,7 @@ def test_basic_tag_api():
         and not x1.has_class("missing")
     )
     # Add odd white space
-    x1.attrs["class"] = " " + x1.attrs["class"] + " "
+    x1.attrs["class"] = " " + str(x1.attrs["class"]) + " "
     x1.remove_class(" foo")  # leading space
     assert x1.has_class("bar") and not x1.has_class("foo") and x1.has_class("baz")
     x1.remove_class("baz ")  # trailing space
@@ -156,13 +156,53 @@ def test_tag_multiple_repeated_attrs():
     assert z.attrs == {"class": "foo bar baz"}
     x.attrs.update({"class": "bap", "class_": "bas"}, class_="bat")
     assert x.attrs == {"class": "bap bas bat"}
-    x.attrs.update({"class": HTML("&")}, class_=HTML("<"))
-    assert str(x) == '<div class="& <"></div>'
-    x.attrs.update({"class": HTML("&")}, class_="<")
-    # Combining HTML() with non-HTML() currently forces everything to be escaped,
-    # but it'd be good to change this behavior if we can manage to change it
-    # in general https://github.com/rstudio/py-htmltools/issues/15
-    assert str(x) == '<div class="&amp; &lt;"></div>'
+
+
+def test_non_escaped_text_is_escaped_when_added_to_html():
+    x = HTML("&") + " &"
+    x_str = str(x)
+    assert isinstance(x, HTML)
+    assert x_str == "& &amp;"
+
+
+def test_html_equals_html():
+    x = "<h1>a top level</h1>\n"
+    a = HTML(x)
+    b = HTML(x)
+    assert a == b
+    assert a == x
+    assert x == b
+    assert x == x  # for completeness
+
+
+def test_html_adds_str_or_html():
+    # first = "first"
+    # second = "second"
+    # firstsecond = first + second
+
+    amp = "&"
+    esc_amp = "&amp;"
+
+    none = amp + amp
+    first_html = HTML(amp) + amp
+    with pytest.raises(TypeError, match='not "HTML"'):
+        _ = amp + HTML(amp)  # pyright: ignore[reportOperatorIssue]
+        # # Can not run code as it causes an error
+        # second_html = amp + HTML(amp)
+
+    both_html = HTML(amp) + HTML(amp)
+
+    assert TagList(none).get_html_string() == f"{esc_amp}{esc_amp}"
+    assert isinstance(none, str)
+
+    assert TagList(first_html).get_html_string() == f"{amp}{esc_amp}"
+    assert isinstance(first_html, HTML)
+
+    # assert TagList(second_html).get_html_string() == f"{esc_amp}{amp}"
+    # assert isinstance(second_html, HTML)
+
+    assert TagList(both_html).get_html_string() == f"{amp}{amp}"
+    assert isinstance(both_html, HTML)
 
 
 def test_tag_shallow_copy():
@@ -505,8 +545,14 @@ def test_tag_escaping():
     # Attributes are HTML escaped
     expect_html(div("text", class_="<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
     expect_html(div("text", class_="'ab'"), '<div class="&apos;ab&apos;">text</div>')
-    # Unless they are wrapped in HTML()
-    expect_html(div("text", class_=HTML("<a&b>")), '<div class="<a&b>">text</div>')
+    # Sending in HTML causes an error
+    with pytest.raises(TypeError):
+        div(
+            "text",
+            class_=HTML(
+                "<a&b>"
+            ),  # pyright: ignore[reportArgumentType,reportGeneralTypeIssues]
+        )
 
     # script and style tags are not escaped
     assert str(tags.script("a && b > 3")) == "<script>a && b > 3</script>"

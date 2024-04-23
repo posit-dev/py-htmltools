@@ -65,7 +65,7 @@ version = {attr = "htmltools.__version__"}
 htmltools = ["py.typed"]
 
 [tool.flake8]
-ignore = "E203, E302, E402, E501, F403, F405, W503"
+ignore = "E203, E302, E402, E501, E704, F403, F405, W503"
 extend-exclude = "docs, .venv, venv, typings, e2e, build"
 
 [tool.isort]

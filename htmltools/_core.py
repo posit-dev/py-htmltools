@@ -133,8 +133,7 @@ class Tagifiable(Protocol):
     returns a `TagList`, the children of the `TagList` must also be tagified.
     """
 
-    def tagify(self) -> "TagList | Tag | MetadataNode | str":
-        ...
+    def tagify(self) -> "TagList | Tag | MetadataNode | str": ...
 
 
 @runtime_checkable
@@ -148,8 +147,7 @@ class TagFunction(Protocol):
         *args: TagChild | TagAttrs,
         _add_ws: TagAttrValue = ...,
         **kwargs: TagAttrValue,
-    ) -> "Tag":
-        ...
+    ) -> "Tag": ...
 
 
 @runtime_checkable
@@ -158,8 +156,7 @@ class ReprHtml(Protocol):
     Objects with a `_repr_html_()` method.
     """
 
-    def _repr_html_(self) -> str:
-        ...
+    def _repr_html_(self) -> str: ...
 
 
 # =============================================================================
@@ -271,7 +268,7 @@ class TagList(List[TagNode]):
         *,
         add_ws: bool = True,
         _escape_strings: bool = True,
-    ) -> "HTML":
+    ) -> str:
         """
         Return the HTML string for this tag list.
 
@@ -344,7 +341,7 @@ class TagList(List[TagNode]):
 
                 prev_was_add_ws = False
 
-        return HTML(html_)
+        return html_
 
     def get_dependencies(self, *, dedup: bool = True) -> list["HTMLDependency"]:
         """
@@ -432,7 +429,7 @@ class TagAttrDict(Dict[str, str]):
         if kwargs:
             args = args + (kwargs,)
 
-        attrz: dict[str, str | HTML] = {}
+        attrz: dict[str, str] = {}
         for arg in args:
             for k, v in arg.items():
                 val = self._normalize_attr_value(v)
@@ -441,8 +438,9 @@ class TagAttrDict(Dict[str, str]):
                 nm = self._normalize_attr_name(k)
 
                 # Preserve the HTML() when combining two HTML() attributes
+                # Escape any non-HTML values before combining
                 if nm in attrz:
-                    val = attrz[nm] + HTML(" ") + val
+                    val = attrz[nm] + " " + val
 
                 attrz[nm] = val
 
@@ -456,15 +454,15 @@ class TagAttrDict(Dict[str, str]):
         return x.replace("_", "-")
 
     @staticmethod
-    def _normalize_attr_value(x: TagAttrValue) -> Optional[str]:
+    def _normalize_attr_value(x: TagAttrValue) -> str | None:
         if x is None or x is False:
             return None
         if x is True:
             return ""
-        if isinstance(x, (int, float)):
-            return str(x)
-        if isinstance(x, (HTML, str)):
+        if isinstance(x, str):
             return x
+        if isinstance(x, (int, float)):  # pyright: ignore[reportUnnecessaryIsInstance]
+            return str(x)
         raise TypeError(
             f"Invalid type for attribute: {type(x)}."
             + "Consider calling str() on this value before treating it as a tag attribute."
@@ -583,7 +581,7 @@ class Tag:
         sys.displayhook = wrap_displayhook_handler(
             # self.append takes a TagChild, but the wrapper expects a function that
             # takes a object.
-            self.append  # pyright: ignore[reportArgumentType]
+            self.append  # pyright: ignore[reportArgumentType,reportGeneralTypeIssues]
         )
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
@@ -663,6 +661,9 @@ class Tag:
 
         # Remove the class value from the ordered set of class values
         # Note: .split() splits on any whitespace and removes empty strings
+        cls_is_html = isinstance(cls, HTML)
+        if cls_is_html:
+            cls = cls.as_string()
         new_classes = [cls_val for cls_val in cls.split() if cls_val != class_]
         if len(new_classes) > 0:
             # Store the new class value
@@ -688,7 +689,7 @@ class Tag:
         """
         cls = self.attrs.get("class")
         if cls:
-            return class_ in cls.split()
+            return class_ in str(cls).split()
         else:
             return False
 
@@ -735,7 +736,7 @@ class Tag:
         cp.children = cp.children.tagify()
         return cp
 
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "HTML":
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
         """
         Get the HTML string representation of the tag.
 
@@ -752,8 +753,7 @@ class Tag:
 
         # Write attributes
         for key, val in self.attrs.items():
-            if not isinstance(val, HTML):
-                val = html_escape(val, attr=True)
+            val = html_escape(val, attr=True)
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output
@@ -761,20 +761,20 @@ class Tag:
 
         # Don't enclose JSX/void elements if there are no children
         if len(children) == 0 and self.name in _VOID_TAG_NAMES:
-            return HTML(html_ + "/>")
+            return html_ + "/>"
 
         # Other empty tags are enclosed
         html_ += ">"
         close = "</" + self.name + ">"
         if len(children) == 0:
-            return HTML(html_ + close)
+            return html_ + close
 
         # Inline a single/empty child text node
-        if len(children) == 1 and isinstance(children[0], str):
+        if len(children) == 1 and isinstance(children[0], (str, HTML)):
             if self.name in _NO_ESCAPE_TAG_NAMES:
-                return HTML(html_ + children[0] + close)
+                return html_ + str(children[0]) + close
             else:
-                return HTML(html_ + _normalize_text(children[0]) + close)
+                return html_ + _normalize_text(children[0]) + close
 
         # Write children
         if self.add_ws:
@@ -790,7 +790,7 @@ class Tag:
         if self.add_ws:
             html_ += eol + indent_str
 
-        return HTML(html_ + close)
+        return html_ + close
 
     def render(self) -> RenderedHTML:
         """
@@ -1238,7 +1238,9 @@ class HTMLTextDocument:
 # =============================================================================
 # HTML strings
 # =============================================================================
-class HTML(str):
+
+
+class HTML:
     """
     Mark a string as raw HTML. This will prevent the string from being escaped when
     rendered inside an HTML tag.
@@ -1252,13 +1254,33 @@ class HTML(str):
     <div><p>Hello</p></div>
     """
 
+    _html: str
+
+    def __init__(self, html: object) -> None:
+        if isinstance(html, HTML):
+            html = html.as_string()
+        self._html = str(html)
+
     def __str__(self) -> str:
         return self.as_string()
 
+    # This class is a building block for other classes, therefore it should not tagifiable!
+    # If this method is added, HTML strings are escaped within Shiny and not kept "as is"
+    # def tagify(self) -> Tag:
+    #     return self.as_string()
+
     # HTML() + HTML() should return HTML()
-    def __add__(self, other: "str| HTML") -> str:
-        res = str.__add__(self, other)
-        return HTML(res) if isinstance(other, HTML) else res
+    # HTML() + str should return HTML()
+    # str + HTML() should return HTML() # THis is not implemented and hard to catch!
+    def __add__(self, other: str | HTML) -> HTML:
+        if isinstance(other, HTML):
+            return HTML(self.as_string() + other.as_string())
+        # Non-HTML text added to HTML should be escaped before being added
+        return HTML(str.__add__(self.as_string(), html_escape(other)))
+
+    def __eq__(self, x: object) -> bool:
+        # Set `x` first so that it can dispatch to the other object's __eq__ method as we've upgraded to `str`
+        return x == self.as_string()
 
     def __repr__(self) -> str:
         return self.as_string()
@@ -1267,7 +1289,7 @@ class HTML(str):
         return self.as_string()
 
     def as_string(self) -> str:
-        return self + ""
+        return self._html + ""
 
 
 # =============================================================================
@@ -1719,7 +1741,7 @@ def _tagchilds_to_tagnodes(x: Iterable[TagChild]) -> list[TagNode]:
     for i, item in enumerate(result):
         if isinstance(item, (int, float)):
             result[i] = str(item)
-        elif not isinstance(item, (Tagifiable, Tag, MetadataNode, ReprHtml, str)):
+        elif not isinstance(item, (HTML, Tagifiable, Tag, MetadataNode, ReprHtml, str)):
             raise TypeError(
                 f"Invalid tag item type: {type(item)}. "
                 + "Consider calling str() on this value before treating it as a tag item."
@@ -1771,9 +1793,9 @@ def _tag_show(
     raise Exception(f"Unknown renderer {renderer}")
 
 
-def _normalize_text(txt: str) -> str:
+def _normalize_text(txt: str | HTML) -> str:
     if isinstance(txt, HTML):
-        return txt
+        return txt.as_string()
     else:
         return html_escape(txt, attr=False)
 
