@@ -1807,9 +1807,9 @@ def _tag_show(
     raise Exception(f"Unknown renderer {renderer}")
 
 
-def _normalize_text(txt: str) -> str:
+def _normalize_text(txt: str | HTML) -> str:
     if isinstance(txt, HTML):
-        return txt
+        return txt.as_string()
     else:
         return html_escape(txt, attr=False)
 
