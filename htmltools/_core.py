@@ -87,7 +87,7 @@ T = TypeVar("T")
 
 TagT = TypeVar("TagT", bound="Tag")
 
-TagAttrValue = Union[str, float, bool, "HTML", None]
+TagAttrValue = Union[str, float, bool, None]
 """
 Types that can be passed in as attributes to `Tag` functions. These values will be
 converted to strings before being stored as tag attributes.
@@ -394,7 +394,7 @@ class TagList(List[TagNode]):
 # =============================================================================
 # TagAttrDict class
 # =============================================================================
-class TagAttrDict(Dict[str, "str | HTML"]):
+class TagAttrDict(Dict[str, str]):
     """
     A dictionary-like object that can be used to store attributes for a tag. All
     attribute values will be stored as strings.
@@ -429,7 +429,7 @@ class TagAttrDict(Dict[str, "str | HTML"]):
         if kwargs:
             args = args + (kwargs,)
 
-        attrz: dict[str, str | HTML] = {}
+        attrz: dict[str, str] = {}
         for arg in args:
             for k, v in arg.items():
                 val = self._normalize_attr_value(v)
@@ -440,24 +440,7 @@ class TagAttrDict(Dict[str, "str | HTML"]):
                 # Preserve the HTML() when combining two HTML() attributes
                 # Escape any non-HTML values before combining
                 if nm in attrz:
-
-                    attrz_nm = attrz[nm]
-                    if isinstance(attrz_nm, HTML) or isinstance(val, HTML):
-                        attrz_nm_html = (
-                            attrz_nm
-                            if isinstance(attrz_nm, HTML)
-                            else HTML(html_escape(attrz_nm, attr=True))
-                        )
-                        val_html = (
-                            val
-                            if isinstance(val, HTML)
-                            else HTML(html_escape(val, attr=True))
-                        )
-                        val = HTML(
-                            attrz_nm_html.as_string() + " " + val_html.as_string()
-                        )
-                    else:
-                        val = attrz_nm + " " + val
+                    val = attrz[nm] + " " + val
 
                 attrz[nm] = val
 
@@ -471,12 +454,12 @@ class TagAttrDict(Dict[str, "str | HTML"]):
         return x.replace("_", "-")
 
     @staticmethod
-    def _normalize_attr_value(x: TagAttrValue) -> str | HTML | None:
+    def _normalize_attr_value(x: TagAttrValue) -> str | None:
         if x is None or x is False:
             return None
         if x is True:
             return ""
-        if isinstance(x, (str, HTML)):
+        if isinstance(x, str):
             return x
         if isinstance(x, (int, float)):  # pyright: ignore[reportUnnecessaryIsInstance]
             return str(x)
@@ -683,11 +666,8 @@ class Tag:
             cls = cls.as_string()
         new_classes = [cls_val for cls_val in cls.split() if cls_val != class_]
         if len(new_classes) > 0:
-            new_class_val = " ".join(new_classes)
-            if cls_is_html:
-                new_class_val = HTML(new_class_val)
             # Store the new class value
-            self.attrs.update({"class": new_class_val})
+            self.attrs.update({"class": " ".join(new_classes)})
         else:
             # If no class values remain, remove the class attribute
             self.attrs.pop("class")
@@ -773,8 +753,7 @@ class Tag:
 
         # Write attributes
         for key, val in self.attrs.items():
-            if not isinstance(val, HTML):
-                val = html_escape(val, attr=True)
+            val = html_escape(val, attr=True)
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output

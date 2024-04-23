@@ -156,13 +156,6 @@ def test_tag_multiple_repeated_attrs():
     assert z.attrs == {"class": "foo bar baz"}
     x.attrs.update({"class": "bap", "class_": "bas"}, class_="bat")
     assert x.attrs == {"class": "bap bas bat"}
-    x.attrs.update({"class": HTML("&")}, class_=HTML("<"))
-    assert str(x) == '<div class="& <"></div>'
-    x.attrs.update({"class": HTML("&")}, class_="<")
-    # Combining HTML() with non-HTML() currently forces everything to be escaped,
-    # but it'd be good to change this behavior if we can manage to change it
-    # in general https://github.com/rstudio/py-htmltools/issues/15
-    assert str(x) == '<div class="& &lt;"></div>'
 
 
 def test_non_escaped_text_is_escaped_when_added_to_html():
@@ -552,8 +545,14 @@ def test_tag_escaping():
     # Attributes are HTML escaped
     expect_html(div("text", class_="<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
     expect_html(div("text", class_="'ab'"), '<div class="&apos;ab&apos;">text</div>')
-    # Unless they are wrapped in HTML()
-    expect_html(div("text", class_=HTML("<a&b>")), '<div class="<a&b>">text</div>')
+    # Sending in HTML causes an error
+    with pytest.raises(TypeError):
+        div(
+            "text",
+            class_=HTML(
+                "<a&b>"
+            ),  # pyright: ignore[reportArgumentType,reportGeneralTypeIssues]
+        )
 
     # script and style tags are not escaped
     assert str(tags.script("a && b > 3")) == "<script>a && b > 3</script>"
