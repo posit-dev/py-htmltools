@@ -58,8 +58,12 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
+          path: htmltools
+      - uses: actions/checkout@v4
+        with:
           repository: posit-dev/py-shiny
           path: shiny
+
       - name: Install dev Shiny
         run: |
           python -m pip install --upgrade pip
@@ -70,21 +74,18 @@ jobs:
         continue-on-error: true
         run: |
           cd shiny
-          make check
+          make test check
 
-      - uses: actions/checkout@v4
       - name: Install dev htmltools dependencies
         run: |
+          cd htmltools
           python -m pip install --upgrade pip
           pip install -e ".[dev,test]"
-      - name: Install dev htmltools
-        run: |
-          make install
 
       - name: Check dev Shiny w/ dev Htmltools
         run: |
           cd shiny
-          make check
+          make test check
 
   deploy:
     name: "Deploy to PyPI"
