@@ -79,6 +79,12 @@ jobs:
           pip install -e ".[dev,test]"
       - name: Install dev htmltools
         run: |
+          make install
+
+      - name: Check dev Shiny w/ dev Htmltools
+        run: |
+          cd shiny
+          make check
 
   deploy:
     name: "Deploy to PyPI"
