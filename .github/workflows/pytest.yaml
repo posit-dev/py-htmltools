@@ -81,6 +81,7 @@ jobs:
           cd htmltools
           python -m pip install --upgrade pip
           pip install -e ".[dev,test]"
+          make install
 
       - name: Check dev Shiny w/ dev Htmltools
         run: |
