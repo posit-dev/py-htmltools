@@ -786,9 +786,9 @@ class Tag:
             return html_ + close
 
         # Inline a single/empty child text node
-        if len(children) == 1 and isinstance(children[0], str):
+        if len(children) == 1 and isinstance(children[0], (str, HTML)):
             if self.name in _NO_ESCAPE_TAG_NAMES:
-                return html_ + children[0] + close
+                return html_ + str(children[0]) + close
             else:
                 return html_ + _normalize_text(children[0]) + close
 
