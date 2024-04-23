@@ -79,7 +79,7 @@ def test_basic_tag_api():
         and not x1.has_class("missing")
     )
     # Add odd white space
-    x1.attrs["class"] = " " + x1.attrs["class"] + " "
+    x1.attrs["class"] = " " + str(x1.attrs["class"]) + " "
     x1.remove_class(" foo")  # leading space
     assert x1.has_class("bar") and not x1.has_class("foo") and x1.has_class("baz")
     x1.remove_class("baz ")  # trailing space

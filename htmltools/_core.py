@@ -679,10 +679,16 @@ class Tag:
 
         # Remove the class value from the ordered set of class values
         # Note: .split() splits on any whitespace and removes empty strings
+        cls_is_html = isinstance(cls, HTML)
+        if cls_is_html:
+            cls = cls.as_string()
         new_classes = [cls_val for cls_val in cls.split() if cls_val != class_]
         if len(new_classes) > 0:
+            new_class_val = " ".join(new_classes)
+            if cls_is_html:
+                new_class_val = HTML(new_class_val)
             # Store the new class value
-            self.attrs.update({"class": " ".join(new_classes)})
+            self.attrs.update({"class": new_class_val})
         else:
             # If no class values remain, remove the class attribute
             self.attrs.pop("class")
@@ -704,7 +710,7 @@ class Tag:
         """
         cls = self.attrs.get("class")
         if cls:
-            return class_ in cls.split()
+            return class_ in str(cls).split()
         else:
             return False
 
@@ -1290,6 +1296,7 @@ class HTML:
     def __add__(self, other: str) -> str: ...
     @overload
     def __add__(self, other: HTML) -> HTML: ...
+
     def __add__(self, other: str | HTML) -> str | HTML:
         if isinstance(other, HTML):
             return HTML(self.as_string() + other.as_string())
