@@ -171,6 +171,14 @@ def test_non_escaped_text_is_escaped_when_added_to_html():
     assert isinstance(x, HTML)
     assert x_str == "& &amp;"
 
+def test_html_equals_html():
+    x = "<h1>a top level</h1>\n"
+    a = HTML(x)
+    b = HTML(x)
+    assert a == b
+    assert a == x
+    assert x == b
+    assert x == x
 
 def test_tag_shallow_copy():
     dep = HTMLDependency(

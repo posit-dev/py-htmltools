@@ -1303,6 +1303,10 @@ class HTML:
         # Non-HTML text added to HTML should be escaped before being added
         return HTML(str.__add__(self.as_string(), html_escape(other)))
 
+    def __eq__(self, x: object) -> bool:
+        # Set `x` first so that it can dispatch to the other object's __eq__ method as we've upgraded to `str`
+        return x == self.as_string()
+
     def __repr__(self) -> str:
         return self.as_string()
 
