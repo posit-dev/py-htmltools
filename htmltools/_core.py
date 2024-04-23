@@ -25,7 +25,6 @@ from typing import (
     TypeVar,
     Union,
     cast,
-    overload,
 )
 
 # Even though TypedDict is available in Python 3.8, because it's used with NotRequired,
@@ -1292,12 +1291,9 @@ class HTML:
     #     return self.as_string()
 
     # HTML() + HTML() should return HTML()
-    @overload
-    def __add__(self, other: str) -> str: ...
-    @overload
-    def __add__(self, other: HTML) -> HTML: ...
-
-    def __add__(self, other: str | HTML) -> str | HTML:
+    # HTML() + str should return HTML()
+    # str + HTML() should return HTML() # THis is not implemented and hard to catch!
+    def __add__(self, other: str | HTML) -> HTML:
         if isinstance(other, HTML):
             return HTML(self.as_string() + other.as_string())
         # Non-HTML text added to HTML should be escaped before being added

@@ -171,6 +171,7 @@ def test_non_escaped_text_is_escaped_when_added_to_html():
     assert isinstance(x, HTML)
     assert x_str == "& &amp;"
 
+
 def test_html_equals_html():
     x = "<h1>a top level</h1>\n"
     a = HTML(x)
@@ -178,7 +179,38 @@ def test_html_equals_html():
     assert a == b
     assert a == x
     assert x == b
-    assert x == x
+    assert x == x  # for completeness
+
+
+def test_html_adds_str_or_html():
+    # first = "first"
+    # second = "second"
+    # firstsecond = first + second
+
+    amp = "&"
+    esc_amp = "&amp;"
+
+    none = amp + amp
+    first_html = HTML(amp) + amp
+    with pytest.raises(TypeError, match='not "HTML"'):
+        _ = amp + HTML(amp)  # pyright: ignore[reportOperatorIssue]
+        # # Can not run code as it causes an error
+        # second_html = amp + HTML(amp)
+
+    both_html = HTML(amp) + HTML(amp)
+
+    assert TagList(none).get_html_string() == f"{esc_amp}{esc_amp}"
+    assert isinstance(none, str)
+
+    assert TagList(first_html).get_html_string() == f"{amp}{esc_amp}"
+    assert isinstance(first_html, HTML)
+
+    # assert TagList(second_html).get_html_string() == f"{esc_amp}{amp}"
+    # assert isinstance(second_html, HTML)
+
+    assert TagList(both_html).get_html_string() == f"{amp}{amp}"
+    assert isinstance(both_html, HTML)
+
 
 def test_tag_shallow_copy():
     dep = HTMLDependency(
