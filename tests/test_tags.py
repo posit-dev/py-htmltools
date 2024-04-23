@@ -162,7 +162,14 @@ def test_tag_multiple_repeated_attrs():
     # Combining HTML() with non-HTML() currently forces everything to be escaped,
     # but it'd be good to change this behavior if we can manage to change it
     # in general https://github.com/rstudio/py-htmltools/issues/15
-    assert str(x) == '<div class="&amp; &lt;"></div>'
+    assert str(x) == '<div class="& &lt;"></div>'
+
+
+def test_non_escaped_text_is_escaped_when_added_to_html():
+    x = HTML("&") + " &"
+    x_str = str(x)
+    assert isinstance(x, HTML)
+    assert x_str == "& &amp;"
 
 
 def test_tag_shallow_copy():
