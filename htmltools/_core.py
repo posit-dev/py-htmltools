@@ -1740,7 +1740,7 @@ def _tag_show(
             import IPython  # pyright: ignore[reportUnknownVariableType]
 
             ipy = (  # pyright: ignore[reportUnknownVariableType]
-                IPython.get_ipython()  # pyright: ignore[reportPrivateImportUsage]
+                IPython.get_ipython()  # pyright: ignore[reportUnknownMemberType, reportPrivateImportUsage]
             )
             renderer = "ipython" if ipy else "browser"
         except ImportError:
