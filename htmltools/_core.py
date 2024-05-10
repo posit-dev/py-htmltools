@@ -1626,7 +1626,10 @@ class HTMLDependency(MetadataNode):
             src_file = os.path.join(paths["source"], f)
             target_file = os.path.join(target_dir, f)
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
-            shutil.copy2(src_file, target_file)
+            if os.path.isfile(src_file):
+                shutil.copy2(src_file, target_file)
+            elif os.path.isdir(src_file):
+                shutil.copytree(src_file, target_file)
 
     def _validate_dicts(self, ld: Iterable[object], req_attr: list[str]) -> None:
         for d in ld:
