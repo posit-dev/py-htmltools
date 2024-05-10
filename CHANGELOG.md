@@ -5,6 +5,10 @@ All notable changes to htmltools for Python will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+* The `HTMLDependency.copy()` method can now correctly copy folders in depenendencies that both include directories and have `all_files=True`. (#87)
+
 ## [0.5.1] 2023-12-18
 
 * `Tag` objects can now be used as context managers, as in `with tags.div():`. When used this way, then inside the `with` block, `sys.displayhook` is replaced with a function which adds items as children to the `Tag`. This is meant to be used with Shiny Express, Quarto, or Jupyter. (#76)
