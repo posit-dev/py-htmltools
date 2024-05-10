@@ -4,6 +4,7 @@ components. Although JSXTag currently allows for HTML tags on attributes and chi
 that's an issue for HTML() and <script> tags, so using normal HTML tags inside JSX
 components may become unsupported in a future version (see #26 and #28)
 """
+
 from __future__ import annotations
 
 import copy
