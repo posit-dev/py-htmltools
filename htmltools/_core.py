@@ -133,8 +133,7 @@ class Tagifiable(Protocol):
     returns a `TagList`, the children of the `TagList` must also be tagified.
     """
 
-    def tagify(self) -> "TagList | Tag | MetadataNode | str":
-        ...
+    def tagify(self) -> "TagList | Tag | MetadataNode | str": ...
 
 
 @runtime_checkable
@@ -148,8 +147,7 @@ class TagFunction(Protocol):
         *args: TagChild | TagAttrs,
         _add_ws: TagAttrValue = ...,
         **kwargs: TagAttrValue,
-    ) -> "Tag":
-        ...
+    ) -> "Tag": ...
 
 
 @runtime_checkable
@@ -158,8 +156,7 @@ class ReprHtml(Protocol):
     Objects with a `_repr_html_()` method.
     """
 
-    def _repr_html_(self) -> str:
-        ...
+    def _repr_html_(self) -> str: ...
 
 
 # =============================================================================
@@ -1609,7 +1606,7 @@ class HTMLDependency(MetadataNode):
         # Verify they all exist
         for f in src_files:
             src_file = os.path.join(paths["source"], f)
-            if not os.path.isfile(src_file):
+            if not os.path.exists(src_file):
                 raise Exception(
                     f"Failed to copy HTML dependency {self.name}-{str(self.version)} "
                     + f"because {src_file} doesn't exist."
@@ -1626,7 +1623,10 @@ class HTMLDependency(MetadataNode):
             src_file = os.path.join(paths["source"], f)
             target_file = os.path.join(target_dir, f)
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
-            shutil.copy2(src_file, target_file)
+            if os.path.isfile(src_file):
+                shutil.copy2(src_file, target_file)
+            elif os.path.isdir(src_file):
+                shutil.copytree(src_file, target_file)
 
     def _validate_dicts(self, ld: Iterable[object], req_attr: list[str]) -> None:
         for d in ld:
@@ -1740,7 +1740,7 @@ def _tag_show(
             import IPython  # pyright: ignore[reportUnknownVariableType]
 
             ipy = (  # pyright: ignore[reportUnknownVariableType]
-                IPython.get_ipython()  # pyright: ignore[reportUnknownMemberType]
+                IPython.get_ipython()  # pyright: ignore[reportUnknownMemberType, reportPrivateImportUsage]
             )
             renderer = "ipython" if ipy else "browser"
         except ImportError:
