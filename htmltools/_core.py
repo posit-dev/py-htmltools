@@ -1609,7 +1609,7 @@ class HTMLDependency(MetadataNode):
         # Verify they all exist
         for f in src_files:
             src_file = os.path.join(paths["source"], f)
-            if not os.path.isfile(src_file):
+            if not os.path.exists(src_file):
                 raise Exception(
                     f"Failed to copy HTML dependency {self.name}-{str(self.version)} "
                     + f"because {src_file} doesn't exist."
