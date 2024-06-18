@@ -12,9 +12,9 @@ from ._core import Tag, TagAttrs, TagAttrValue, TagChild
 
 def a(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = False, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <a> tag.
+    Create a `<a>` tag.
 
-    Creates the <a> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a
+    Creates the `<a>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a
 
     Parameters
     ----------
@@ -40,9 +40,9 @@ def a(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = False, **kwargs: TagAt
 
 def animate(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <animate> tag.
+    Create a `<animate>` tag.
 
-    Creates the <animate> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animate
+    Creates the `<animate>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animate
 
     Parameters
     ----------
@@ -68,9 +68,9 @@ def animate(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def animateMotion(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <animateMotion> tag.
+    Create a `<animateMotion>` tag.
 
-    Creates the <animateMotion> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animateMotion
+    Creates the `<animateMotion>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animateMotion
 
     Parameters
     ----------
@@ -96,9 +96,9 @@ def animateMotion(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kw
 
 def animateTransform(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <animateTransform> tag.
+    Create a `<animateTransform>` tag.
 
-    Creates the <animateTransform> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animateTransform
+    Creates the `<animateTransform>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animateTransform
 
     Parameters
     ----------
@@ -124,9 +124,9 @@ def animateTransform(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, *
 
 def circle(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <circle> tag.
+    Create a `<circle>` tag.
 
-    Creates the <circle> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
+    Creates the `<circle>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
 
     Parameters
     ----------
@@ -152,9 +152,9 @@ def circle(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: T
 
 def clipPath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <clipPath> tag.
+    Create a `<clipPath>` tag.
 
-    Creates the <clipPath> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/clipPath
+    Creates the `<clipPath>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/clipPath
 
     Parameters
     ----------
@@ -180,9 +180,9 @@ def clipPath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs:
 
 def defs(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <defs> tag.
+    Create a `<defs>` tag.
 
-    Creates the <defs> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs
+    Creates the `<defs>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs
 
     Parameters
     ----------
@@ -208,9 +208,9 @@ def defs(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Tag
 
 def desc(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <desc> tag.
+    Create a `<desc>` tag.
 
-    Creates the <desc> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/desc
+    Creates the `<desc>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/desc
 
     Parameters
     ----------
@@ -236,9 +236,9 @@ def desc(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Tag
 
 def discard(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <discard> tag.
+    Create a `<discard>` tag.
 
-    Creates the <discard> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/discard
+    Creates the `<discard>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/discard
 
     Parameters
     ----------
@@ -264,9 +264,9 @@ def discard(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def ellipse(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <ellipse> tag.
+    Create a `<ellipse>` tag.
 
-    Creates the <ellipse> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/ellipse
+    Creates the `<ellipse>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/ellipse
 
     Parameters
     ----------
@@ -292,9 +292,9 @@ def ellipse(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def feBlend(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feBlend> tag.
+    Create a `<feBlend>` tag.
 
-    Creates the <feBlend> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feBlend
+    Creates the `<feBlend>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feBlend
 
     Parameters
     ----------
@@ -320,9 +320,9 @@ def feBlend(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def feColorMatrix(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feColorMatrix> tag.
+    Create a `<feColorMatrix>` tag.
 
-    Creates the <feColorMatrix> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feColorMatrix
+    Creates the `<feColorMatrix>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feColorMatrix
 
     Parameters
     ----------
@@ -348,9 +348,9 @@ def feColorMatrix(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kw
 
 def feComponentTransfer(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feComponentTransfer> tag.
+    Create a `<feComponentTransfer>` tag.
 
-    Creates the <feComponentTransfer> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feComponentTransfer
+    Creates the `<feComponentTransfer>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feComponentTransfer
 
     Parameters
     ----------
@@ -376,9 +376,9 @@ def feComponentTransfer(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True
 
 def feComposite(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feComposite> tag.
+    Create a `<feComposite>` tag.
 
-    Creates the <feComposite> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feComposite
+    Creates the `<feComposite>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feComposite
 
     Parameters
     ----------
@@ -404,9 +404,9 @@ def feComposite(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwar
 
 def feConvolveMatrix(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feConvolveMatrix> tag.
+    Create a `<feConvolveMatrix>` tag.
 
-    Creates the <feConvolveMatrix> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feConvolveMatrix
+    Creates the `<feConvolveMatrix>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feConvolveMatrix
 
     Parameters
     ----------
@@ -432,9 +432,9 @@ def feConvolveMatrix(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, *
 
 def feDiffuseLighting(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feDiffuseLighting> tag.
+    Create a `<feDiffuseLighting>` tag.
 
-    Creates the <feDiffuseLighting> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feDiffuseLighting
+    Creates the `<feDiffuseLighting>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feDiffuseLighting
 
     Parameters
     ----------
@@ -460,9 +460,9 @@ def feDiffuseLighting(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, 
 
 def feDisplacementMap(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feDisplacementMap> tag.
+    Create a `<feDisplacementMap>` tag.
 
-    Creates the <feDisplacementMap> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feDisplacementMap
+    Creates the `<feDisplacementMap>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feDisplacementMap
 
     Parameters
     ----------
@@ -488,9 +488,9 @@ def feDisplacementMap(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, 
 
 def feDistantLight(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feDistantLight> tag.
+    Create a `<feDistantLight>` tag.
 
-    Creates the <feDistantLight> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feDistantLight
+    Creates the `<feDistantLight>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feDistantLight
 
     Parameters
     ----------
@@ -516,9 +516,9 @@ def feDistantLight(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **k
 
 def feDropShadow(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feDropShadow> tag.
+    Create a `<feDropShadow>` tag.
 
-    Creates the <feDropShadow> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feDropShadow
+    Creates the `<feDropShadow>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feDropShadow
 
     Parameters
     ----------
@@ -544,9 +544,9 @@ def feDropShadow(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwa
 
 def feFlood(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feFlood> tag.
+    Create a `<feFlood>` tag.
 
-    Creates the <feFlood> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feFlood
+    Creates the `<feFlood>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feFlood
 
     Parameters
     ----------
@@ -572,9 +572,9 @@ def feFlood(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def feFuncA(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feFuncA> tag.
+    Create a `<feFuncA>` tag.
 
-    Creates the <feFuncA> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feFuncA
+    Creates the `<feFuncA>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feFuncA
 
     Parameters
     ----------
@@ -600,9 +600,9 @@ def feFuncA(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def feFuncB(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feFuncB> tag.
+    Create a `<feFuncB>` tag.
 
-    Creates the <feFuncB> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feFuncB
+    Creates the `<feFuncB>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feFuncB
 
     Parameters
     ----------
@@ -628,9 +628,9 @@ def feFuncB(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def feFuncG(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feFuncG> tag.
+    Create a `<feFuncG>` tag.
 
-    Creates the <feFuncG> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feFuncG
+    Creates the `<feFuncG>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feFuncG
 
     Parameters
     ----------
@@ -656,9 +656,9 @@ def feFuncG(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def feFuncR(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feFuncR> tag.
+    Create a `<feFuncR>` tag.
 
-    Creates the <feFuncR> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feFuncR
+    Creates the `<feFuncR>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feFuncR
 
     Parameters
     ----------
@@ -684,9 +684,9 @@ def feFuncR(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def feGaussianBlur(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feGaussianBlur> tag.
+    Create a `<feGaussianBlur>` tag.
 
-    Creates the <feGaussianBlur> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feGaussianBlur
+    Creates the `<feGaussianBlur>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feGaussianBlur
 
     Parameters
     ----------
@@ -712,9 +712,9 @@ def feGaussianBlur(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **k
 
 def feImage(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feImage> tag.
+    Create a `<feImage>` tag.
 
-    Creates the <feImage> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feImage
+    Creates the `<feImage>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feImage
 
     Parameters
     ----------
@@ -740,9 +740,9 @@ def feImage(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def feMerge(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feMerge> tag.
+    Create a `<feMerge>` tag.
 
-    Creates the <feMerge> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feMerge
+    Creates the `<feMerge>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feMerge
 
     Parameters
     ----------
@@ -768,9 +768,9 @@ def feMerge(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def feMergeNode(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feMergeNode> tag.
+    Create a `<feMergeNode>` tag.
 
-    Creates the <feMergeNode> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feMergeNode
+    Creates the `<feMergeNode>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feMergeNode
 
     Parameters
     ----------
@@ -796,9 +796,9 @@ def feMergeNode(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwar
 
 def feMorphology(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feMorphology> tag.
+    Create a `<feMorphology>` tag.
 
-    Creates the <feMorphology> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feMorphology
+    Creates the `<feMorphology>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feMorphology
 
     Parameters
     ----------
@@ -824,9 +824,9 @@ def feMorphology(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwa
 
 def feOffset(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feOffset> tag.
+    Create a `<feOffset>` tag.
 
-    Creates the <feOffset> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feOffset
+    Creates the `<feOffset>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feOffset
 
     Parameters
     ----------
@@ -852,9 +852,9 @@ def feOffset(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs:
 
 def fePointLight(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <fePointLight> tag.
+    Create a `<fePointLight>` tag.
 
-    Creates the <fePointLight> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/fePointLight
+    Creates the `<fePointLight>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/fePointLight
 
     Parameters
     ----------
@@ -880,9 +880,9 @@ def fePointLight(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwa
 
 def feSpecularLighting(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feSpecularLighting> tag.
+    Create a `<feSpecularLighting>` tag.
 
-    Creates the <feSpecularLighting> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feSpecularLighting
+    Creates the `<feSpecularLighting>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feSpecularLighting
 
     Parameters
     ----------
@@ -908,9 +908,9 @@ def feSpecularLighting(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True,
 
 def feSpotLight(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feSpotLight> tag.
+    Create a `<feSpotLight>` tag.
 
-    Creates the <feSpotLight> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feSpotLight
+    Creates the `<feSpotLight>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feSpotLight
 
     Parameters
     ----------
@@ -936,9 +936,9 @@ def feSpotLight(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwar
 
 def feTile(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feTile> tag.
+    Create a `<feTile>` tag.
 
-    Creates the <feTile> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feTile
+    Creates the `<feTile>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feTile
 
     Parameters
     ----------
@@ -964,9 +964,9 @@ def feTile(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: T
 
 def feTurbulence(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <feTurbulence> tag.
+    Create a `<feTurbulence>` tag.
 
-    Creates the <feTurbulence> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feTurbulence
+    Creates the `<feTurbulence>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/feTurbulence
 
     Parameters
     ----------
@@ -992,9 +992,9 @@ def feTurbulence(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwa
 
 def filter(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <filter> tag.
+    Create a `<filter>` tag.
 
-    Creates the <filter> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/filter
+    Creates the `<filter>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/filter
 
     Parameters
     ----------
@@ -1020,9 +1020,9 @@ def filter(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: T
 
 def foreignObject(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <foreignObject> tag.
+    Create a `<foreignObject>` tag.
 
-    Creates the <foreignObject> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject
+    Creates the `<foreignObject>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject
 
     Parameters
     ----------
@@ -1048,9 +1048,9 @@ def foreignObject(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kw
 
 def g(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <g> tag.
+    Create a `<g>` tag.
 
-    Creates the <g> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/g
+    Creates the `<g>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/g
 
     Parameters
     ----------
@@ -1076,9 +1076,9 @@ def g(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAtt
 
 def hatch(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <hatch> tag.
+    Create a `<hatch>` tag.
 
-    Creates the <hatch> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/hatch
+    Creates the `<hatch>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/hatch
 
     Parameters
     ----------
@@ -1104,9 +1104,9 @@ def hatch(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Ta
 
 def hatchpath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <hatchpath> tag.
+    Create a `<hatchpath>` tag.
 
-    Creates the <hatchpath> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/hatchpath
+    Creates the `<hatchpath>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/hatchpath
 
     Parameters
     ----------
@@ -1132,9 +1132,9 @@ def hatchpath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs
 
 def image(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <image> tag.
+    Create a `<image>` tag.
 
-    Creates the <image> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/image
+    Creates the `<image>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/image
 
     Parameters
     ----------
@@ -1160,9 +1160,9 @@ def image(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Ta
 
 def line(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <line> tag.
+    Create a `<line>` tag.
 
-    Creates the <line> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/line
+    Creates the `<line>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/line
 
     Parameters
     ----------
@@ -1188,9 +1188,9 @@ def line(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Tag
 
 def linearGradient(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <linearGradient> tag.
+    Create a `<linearGradient>` tag.
 
-    Creates the <linearGradient> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/linearGradient
+    Creates the `<linearGradient>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/linearGradient
 
     Parameters
     ----------
@@ -1216,9 +1216,9 @@ def linearGradient(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **k
 
 def marker(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <marker> tag.
+    Create a `<marker>` tag.
 
-    Creates the <marker> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/marker
+    Creates the `<marker>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/marker
 
     Parameters
     ----------
@@ -1244,9 +1244,9 @@ def marker(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: T
 
 def mask(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <mask> tag.
+    Create a `<mask>` tag.
 
-    Creates the <mask> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mask
+    Creates the `<mask>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mask
 
     Parameters
     ----------
@@ -1272,9 +1272,9 @@ def mask(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Tag
 
 def metadata(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <metadata> tag.
+    Create a `<metadata>` tag.
 
-    Creates the <metadata> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/metadata
+    Creates the `<metadata>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/metadata
 
     Parameters
     ----------
@@ -1300,9 +1300,9 @@ def metadata(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs:
 
 def mpath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <mpath> tag.
+    Create a `<mpath>` tag.
 
-    Creates the <mpath> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mpath
+    Creates the `<mpath>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mpath
 
     Parameters
     ----------
@@ -1328,9 +1328,9 @@ def mpath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Ta
 
 def path(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <path> tag.
+    Create a `<path>` tag.
 
-    Creates the <path> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/path
+    Creates the `<path>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/path
 
     Parameters
     ----------
@@ -1356,9 +1356,9 @@ def path(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Tag
 
 def pattern(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <pattern> tag.
+    Create a `<pattern>` tag.
 
-    Creates the <pattern> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/pattern
+    Creates the `<pattern>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/pattern
 
     Parameters
     ----------
@@ -1384,9 +1384,9 @@ def pattern(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def polygon(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <polygon> tag.
+    Create a `<polygon>` tag.
 
-    Creates the <polygon> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polygon
+    Creates the `<polygon>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polygon
 
     Parameters
     ----------
@@ -1412,9 +1412,9 @@ def polygon(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: 
 
 def polyline(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <polyline> tag.
+    Create a `<polyline>` tag.
 
-    Creates the <polyline> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline
+    Creates the `<polyline>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline
 
     Parameters
     ----------
@@ -1440,9 +1440,9 @@ def polyline(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs:
 
 def radialGradient(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <radialGradient> tag.
+    Create a `<radialGradient>` tag.
 
-    Creates the <radialGradient> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/radialGradient
+    Creates the `<radialGradient>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/radialGradient
 
     Parameters
     ----------
@@ -1468,9 +1468,9 @@ def radialGradient(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **k
 
 def rect(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <rect> tag.
+    Create a `<rect>` tag.
 
-    Creates the <rect> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect
+    Creates the `<rect>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect
 
     Parameters
     ----------
@@ -1496,9 +1496,9 @@ def rect(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Tag
 
 def script(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <script> tag.
+    Create a `<script>` tag.
 
-    Creates the <script> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/script
+    Creates the `<script>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/script
 
     Parameters
     ----------
@@ -1524,9 +1524,9 @@ def script(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: T
 
 def set(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <set> tag.
+    Create a `<set>` tag.
 
-    Creates the <set> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/set
+    Creates the `<set>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/set
 
     Parameters
     ----------
@@ -1552,9 +1552,9 @@ def set(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagA
 
 def stop(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <stop> tag.
+    Create a `<stop>` tag.
 
-    Creates the <stop> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/stop
+    Creates the `<stop>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/stop
 
     Parameters
     ----------
@@ -1580,9 +1580,9 @@ def stop(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Tag
 
 def style(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <style> tag.
+    Create a `<style>` tag.
 
-    Creates the <style> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/style
+    Creates the `<style>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/style
 
     Parameters
     ----------
@@ -1608,9 +1608,9 @@ def style(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Ta
 
 def svg(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = False, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <svg> tag.
+    Create a `<svg>` tag.
 
-    Creates the <svg> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/svg
+    Creates the `<svg>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/svg
 
     Parameters
     ----------
@@ -1636,9 +1636,9 @@ def svg(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = False, **kwargs: Tag
 
 def switch(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <switch> tag.
+    Create a `<switch>` tag.
 
-    Creates the <switch> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/switch
+    Creates the `<switch>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/switch
 
     Parameters
     ----------
@@ -1664,9 +1664,9 @@ def switch(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: T
 
 def symbol(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <symbol> tag.
+    Create a `<symbol>` tag.
 
-    Creates the <symbol> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/symbol
+    Creates the `<symbol>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/symbol
 
     Parameters
     ----------
@@ -1692,9 +1692,9 @@ def symbol(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: T
 
 def text(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <text> tag.
+    Create a `<text>` tag.
 
-    Creates the <text> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
+    Creates the `<text>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
 
     Parameters
     ----------
@@ -1720,9 +1720,9 @@ def text(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Tag
 
 def textPath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <textPath> tag.
+    Create a `<textPath>` tag.
 
-    Creates the <textPath> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/textPath
+    Creates the `<textPath>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/textPath
 
     Parameters
     ----------
@@ -1748,9 +1748,9 @@ def textPath(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs:
 
 def title(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <title> tag.
+    Create a `<title>` tag.
 
-    Creates the <title> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/title
+    Creates the `<title>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/title
 
     Parameters
     ----------
@@ -1776,9 +1776,9 @@ def title(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Ta
 
 def tspan(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <tspan> tag.
+    Create a `<tspan>` tag.
 
-    Creates the <tspan> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/tspan
+    Creates the `<tspan>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/tspan
 
     Parameters
     ----------
@@ -1804,9 +1804,9 @@ def tspan(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: Ta
 
 def use(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <use> tag.
+    Create a `<use>` tag.
 
-    Creates the <use> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use
+    Creates the `<use>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use
 
     Parameters
     ----------
@@ -1832,9 +1832,9 @@ def use(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagA
 
 def view(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = True, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <view> tag.
+    Create a `<view>` tag.
 
-    Creates the <view> SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/view
+    Creates the `<view>` SVG element. Learn more at https://developer.mozilla.org/en-US/docs/Web/SVG/Element/view
 
     Parameters
     ----------
