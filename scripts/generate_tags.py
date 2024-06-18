@@ -114,11 +114,10 @@ def generate_tag_code(url: str) -> str:
         # The descriptions sometimes have multiple lines, with inconsistent indentation
         # on lines after the first. We need to make the indentation consistently four
         # spaces, or else it will confuse Sphinx when generating docs.
-        if "\n" in x["desc"]:
-            x["desc"] = re.sub("\n\\s+", "\n    ", x["desc"])
-            # Escape HTML tags so they don't wreck our docs
-            x["desc"] = re.sub("<", "&lt;", x["desc"])
-            x["desc"] = re.sub(">", "&gt;", x["desc"])
+        x["desc"] = re.sub("\n\\s+", "\n    ", x["desc"])
+        # Escape HTML tags so they don't wreck our docs
+        x["desc"] = re.sub("<", "&lt;", x["desc"])
+        x["desc"] = re.sub(">", "&gt;", x["desc"])
 
         code += "\n" + tag_template.format(
             name=x["name"],
