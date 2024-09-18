@@ -63,6 +63,7 @@ jobs:
         with:
           repository: posit-dev/py-shiny
           path: shiny
+          fetch-depth: 0
 
       - name: Install dev Shiny
         run: |
