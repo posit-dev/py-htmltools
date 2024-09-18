@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Exported `ReprHtml` protocol class. If an object has a `_repr_html_` method, then it is of instance `ReprHtml`. (#86)
 
+### Bug fixes
+
+* Fixed an issue with `HTMLTextDocument()` returning extracted `HTMLDependency()`s in a non-determistic order. (#95)
+
 ## [0.5.3] 2024-07-18
 
 * HTML tags in docstrings are now escaped. (#90)
