@@ -460,7 +460,7 @@ class TagAttrDict(Dict[str, str]):
             return ""
         if isinstance(x, (int, float)):
             return str(x)
-        if isinstance(x, (HTML, str)):
+        if isinstance(x, (HTML, str)):  # type: ignore[reportUnnecessaryIsInstance]
             return x
         raise TypeError(
             f"Invalid type for attribute: {type(x)}."
@@ -1512,7 +1512,7 @@ class HTMLDependency(MetadataNode):
         Render the dependency as a ``TagList()``.
         """
         d = self.as_dict(lib_prefix=lib_prefix, include_version=include_version)
-        metas = [Tag("meta", **m) for m in self.meta]
+        metas = [Tag("meta", **m) for m in d["meta"]]
         links = [Tag("link", **s) for s in d["stylesheet"]]
         scripts = [Tag("script", **s) for s in d["script"]]
         return TagList(*metas, *links, *scripts, self.head)
