@@ -99,7 +99,7 @@ def test_basic_tag_api():
     assert "style" not in x4.attrs.keys()
     try:
         x4.add_style("color: red")
-        assert False, "Expected ValueError for missing semicolon"
+        raise AssertionError("Expected ValueError for missing semicolon")
     except ValueError as e:
         assert "must end with a semicolon" in str(e)
 

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
-* `HTML` no longer inherits from `str`. This was done to avoid confusion between strings and `HTML` objects. (#86)
+* `HTML` no longer inherits from `str`. It now inherits from `collections.UserString`. This was done to avoid confusion between `str` and `HTML` objects. (#86)
 
 * `Tag` attributes no longer silently support `HTML` as values. (#86)
 
@@ -21,6 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Exported `ReprHtml` protocol class. If an object has a `_repr_html_` method, then it is of instance `ReprHtml`. (#86)
 
+## [0.5.3] 2024-07-18
+
+* HTML tags in docstrings are now escaped. (#90)
+
+## [0.5.2] 2024-05-23
+
+* The `HTMLDependency.copy()` method can now correctly copy folders in depenendencies that both include directories and have `all_files=True`. (#87)
 
 ## [0.5.1] 2023-12-18
 

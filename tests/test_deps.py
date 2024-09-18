@@ -354,3 +354,15 @@ def test_copy_to():
         dep4.copy_to(tmpdir4)
         assert (Path(tmpdir4) / "w-1.0" / "testdep.css").exists()
         assert (Path(tmpdir4) / "w-1.0" / "testdep.js").exists()
+
+    with tempfile.TemporaryDirectory() as tmpdir5:
+        path_testdep_nested = Path(__file__).parent / "assets" / "testdep-nested"
+        dep5 = HTMLDependency(
+            "w",
+            "1.0",
+            source={"subdir": str(path_testdep_nested)},
+            all_files=True,
+        )
+        dep5.copy_to(tmpdir5)
+        assert (Path(tmpdir5) / "w-1.0" / "css" / "my-styles.css").exists()
+        assert (Path(tmpdir5) / "w-1.0" / "js" / "my-js.js").exists()

@@ -75,7 +75,7 @@ _INLINE_TAG_NAMES = {
 tag_template = '''
 def {name}(*args: TagChild | TagAttrs, _add_ws: TagAttrValue = {add_ws}, **kwargs: TagAttrValue) -> Tag:
     """
-    Create a <{name}> tag.
+    Create a `<{name}>` tag.
 
     {desc}
 
@@ -111,11 +111,18 @@ def generate_tag_code(url: str) -> str:
         # TODO: still provide this, but with underscores?
         if x["name"] == "del":
             continue
+
         # The descriptions sometimes have multiple lines, with inconsistent indentation
         # on lines after the first. We need to make the indentation consistently four
         # spaces, or else it will confuse Sphinx when generating docs.
-        if "\n" in x["desc"]:
-            x["desc"] = re.sub("\n\\s+", "\n    ", x["desc"])
+        x["desc"] = re.sub("\n\\s+", "\n    ", x["desc"])
+
+        # Escape HTML tags so they don't wreck our docs
+        # Wrap HTML tags in code block
+        x["desc"] = re.sub(r"<([^>\n ]+)>", r"`<\1>`", x["desc"])
+        # Escape rogue < and >
+        x["desc"] = re.sub("(?<!`)<", "&lt;", x["desc"])
+        x["desc"] = re.sub(">(?!`)", "&gt;", x["desc"])
 
         code += "\n" + tag_template.format(
             name=x["name"],
