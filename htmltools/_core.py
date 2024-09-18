@@ -1255,31 +1255,44 @@ class HTML(UserString):
     <div><p>Hello</p></div>
     """
 
-    _html: str
-
     def __init__(self, html: object) -> None:
         if isinstance(html, HTML):
             html = html.as_string()
-        self._html = str(html)
+        super().__init__(str(html))
 
     def __str__(self) -> str:
         return self.as_string()
 
-    # This class is a building block for other classes, therefore it should not tagifiable!
-    # If this method is added, HTML strings are escaped within Shiny and not kept "as is"
+    # DEV NOTE: 2024/09 -
+    #   This class is a building block for other classes, therefore it should not
+    #   tagifiable! If this method is added, HTML strings are escaped within Shiny and
+    #   not kept "as is"
     # def tagify(self) -> Tag:
     #     return self.as_string()
 
-    # HTML() + HTML() should return HTML()
-    # HTML() + str should return HTML()
-    # str + HTML() should return HTML() # This is not implemented and hard to catch!
+    # Cases:
+    # * `str + str` should return str # Not HTML's responsibility!
+    # * `str + HTML()` should return HTML() # Handled by HTML.__radd__()
+    # * `HTML() + str` should return HTML()
+    # * `HTML() + HTML()` should return HTML()
     def __add__(self, other: object) -> HTML:
         if isinstance(other, HTML):
             # HTML strings should be concatenated without escaping
+            # Convert each element to strings, then concatenate them, and return HTML
+            # Case: `HTML() + HTML()`
             return HTML(self.as_string() + other.as_string())
 
         # Non-HTML text added to HTML should be escaped before being added
-        return HTML(str.__add__(self.as_string(), html_escape(str(other))))
+        # Convert each element to strings, then concatenate them, and return HTML
+        # Case: `HTML() + str`
+        return HTML(self.as_string() + html_escape(str(other)))
+
+    # Right side addition for when types are: `str + HTML()` or `unknown + HTML()`
+    def __radd__(self, other: object) -> HTML:
+        # Non-HTML text added to HTML should be escaped before being added
+        # Convert each element to strings, then concatenate them, and return HTML
+        # Case: `str + HTML()`
+        return HTML(html_escape(str(other)) + self.as_string())
 
     def __eq__(self, x: object) -> bool:
         # Set `x` first so that it can dispatch to the other object's __eq__ method as we've upgraded to `str`
@@ -1292,7 +1305,8 @@ class HTML(UserString):
         return self.as_string()
 
     def as_string(self) -> str:
-        return self._html + ""
+        # Returns a new string
+        return self.data + ""
 
 
 # =============================================================================

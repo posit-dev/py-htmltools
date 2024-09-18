@@ -185,10 +185,7 @@ def test_html_adds_str_or_html():
 
     none = amp + amp
     first_html = HTML(amp) + amp
-    with pytest.raises(TypeError, match='not "HTML"'):
-        _ = amp + HTML(amp)  # pyright: ignore[reportOperatorIssue]
-        # # Can not run code as it causes an error
-        # second_html = amp + HTML(amp)
+    second_html = amp + HTML(amp)
 
     both_html = HTML(amp) + HTML(amp)
 
@@ -198,8 +195,8 @@ def test_html_adds_str_or_html():
     assert TagList(first_html).get_html_string() == f"{amp}{esc_amp}"
     assert isinstance(first_html, HTML)
 
-    # assert TagList(second_html).get_html_string() == f"{esc_amp}{amp}"
-    # assert isinstance(second_html, HTML)
+    assert TagList(second_html).get_html_string() == f"{esc_amp}{amp}"
+    assert isinstance(second_html, HTML)
 
     assert TagList(both_html).get_html_string() == f"{amp}{amp}"
     assert isinstance(both_html, HTML)
