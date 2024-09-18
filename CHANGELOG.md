@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * `HTML` no longer inherits from `str`. It now inherits from `collections.UserString`. This was done to avoid confusion between `str` and `HTML` objects. (#86)
 
-* `Tag` attributes no longer silently support `HTML` as values. (#86)
+* `Tag` attributes now error when given an `HTML()` object. To fix, use `str()` to get a string (e.g., `div(foo=str(HTML("bar")))`. (#86)
 
 * `Tag` and `TagList`'s method `.get_html_string()` now both return `str` instead of `HTML`. (#86)
 

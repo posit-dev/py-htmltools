@@ -438,8 +438,6 @@ class TagAttrDict(Dict[str, str]):
                     continue
                 nm = self._normalize_attr_name(k)
 
-                # Preserve the HTML() when combining two HTML() attributes
-                # Escape any non-HTML values before combining
                 if nm in attrz:
                     val = attrz[nm] + " " + val
 
@@ -662,9 +660,6 @@ class Tag:
 
         # Remove the class value from the ordered set of class values
         # Note: .split() splits on any whitespace and removes empty strings
-        cls_is_html = isinstance(cls, HTML)
-        if cls_is_html:
-            cls = cls.as_string()
         new_classes = [cls_val for cls_val in cls.split() if cls_val != class_]
         if len(new_classes) > 0:
             # Store the new class value
@@ -690,7 +685,7 @@ class Tag:
         """
         cls = self.attrs.get("class")
         if cls:
-            return class_ in str(cls).split()
+            return class_ in cls.split()
         else:
             return False
 
@@ -1261,8 +1256,6 @@ class HTML(UserString):
     """
 
     def __init__(self, html: object) -> None:
-        if isinstance(html, HTML):
-            html = html.as_string()
         super().__init__(str(html))
 
     def __str__(self) -> str:
@@ -1299,9 +1292,6 @@ class HTML(UserString):
         # Case: `str + HTML()`
         return HTML(html_escape(str(other)) + self.as_string())
 
-    def __eq__(self, x: object) -> bool:
-        # Set `x` first so that it can dispatch to the other object's __eq__ method as we've upgraded to `str`
-        return x == self.as_string()
 
     def __repr__(self) -> str:
         return self.as_string()
