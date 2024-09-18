@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * `TagAttrDict` no longer silently supports `HTML` values for attrs. Only `str` values are supported. (#86)
 
+* Strings added to `HTML` objects, now return `HTML` objects. E.g. `HTML_value + str_value` and `str_value_ + HTML_value` both return `HTML` objects. To maintain a `str` result, call `str()` on your `HTML` objects before adding the two `str` values. (#86) 
+
 ### New features
 
 * Exported `ReprHtml` protocol class. If an object has a `_repr_html_` method, then it is of instance `ReprHtml`. (#86)
