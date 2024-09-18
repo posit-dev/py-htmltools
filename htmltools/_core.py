@@ -1540,7 +1540,13 @@ class HTMLDependency(MetadataNode):
         Render the dependency as a ``TagList()``.
         """
         d = self.as_dict(lib_prefix=lib_prefix, include_version=include_version)
-        metas = [Tag("meta", **m) for m in self.meta]
+        metas = [
+            Tag(
+                "meta",
+                **m,  # pyright: ignore[reportArgumentType]
+            )
+            for m in self.meta
+        ]
         links = [Tag("link", **s) for s in d["stylesheet"]]
         scripts = [Tag("script", **s) for s in d["script"]]
         return TagList(*metas, *links, *scripts, self.head)
