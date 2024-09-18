@@ -11,6 +11,7 @@ import sys
 import tempfile
 import urllib.parse
 import webbrowser
+from collections import UserString
 from copy import copy, deepcopy
 from pathlib import Path
 from typing import (
@@ -1240,7 +1241,7 @@ class HTMLTextDocument:
 # =============================================================================
 
 
-class HTML:
+class HTML(UserString):
     """
     Mark a string as raw HTML. This will prevent the string from being escaped when
     rendered inside an HTML tag.
@@ -1271,12 +1272,14 @@ class HTML:
 
     # HTML() + HTML() should return HTML()
     # HTML() + str should return HTML()
-    # str + HTML() should return HTML() # THis is not implemented and hard to catch!
-    def __add__(self, other: str | HTML) -> HTML:
+    # str + HTML() should return HTML() # This is not implemented and hard to catch!
+    def __add__(self, other: object) -> HTML:
         if isinstance(other, HTML):
+            # HTML strings should be concatenated without escaping
             return HTML(self.as_string() + other.as_string())
+
         # Non-HTML text added to HTML should be escaped before being added
-        return HTML(str.__add__(self.as_string(), html_escape(other)))
+        return HTML(str.__add__(self.as_string(), html_escape(str(other))))
 
     def __eq__(self, x: object) -> bool:
         # Set `x` first so that it can dispatch to the other object's __eq__ method as we've upgraded to `str`
