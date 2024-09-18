@@ -322,9 +322,9 @@ def test_json_roundtrip():
             x_str, deps_replace_pattern='<meta data-foo="">'
         ).render()
 
-        # Make sure both deps are present.
-        assert "testdep" in [d.name for d in rendered["dependencies"]]
-        assert "testdep2" in [d.name for d in rendered["dependencies"]]
+        # Make sure both deps are present and in the order they appear in x_str.
+        assert "testdep2" == rendered["dependencies"][0].name
+        assert "testdep" == rendered["dependencies"][1].name
 
         # Make sure testdep was deduplicated by HTMLTextDocument().render().
         assert rendered["dependencies"].count(testdep) == 1
