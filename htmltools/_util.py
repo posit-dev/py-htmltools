@@ -123,6 +123,10 @@ def html_escape(text: str, attr: bool = False) -> str:
     return text
 
 
+# Backwards compatibility with faicons 0.2.1
+_html_escape = html_escape
+
+
 # similar to base::system.file()
 def package_dir(package: str) -> str:
     with tempfile.TemporaryDirectory():
