@@ -97,7 +97,7 @@ T = TypeVar("T")
 
 TagT = TypeVar("TagT", bound="Tag")
 
-TagAttrValue = Union[str, float, bool, None]
+TagAttrValue = Union[str, float, bool, "HTML", None]
 """
 Types that can be passed in as attributes to `Tag` functions. These values will be
 converted to strings before being stored as tag attributes.
@@ -225,7 +225,7 @@ class Tagifiable(Protocol):
     returns a `TagList`, the children of the `TagList` must also be tagified.
     """
 
-    def tagify(self) -> "TagList | Tag | MetadataNode | str": ...
+    def tagify(self) -> "TagList | Tag | MetadataNode | str | HTML": ...
 
 
 @runtime_checkable
@@ -486,7 +486,7 @@ class TagList(List[TagNode]):
 # =============================================================================
 # TagAttrDict class
 # =============================================================================
-class TagAttrDict(Dict[str, str]):
+class TagAttrDict(Dict[str, "str | HTML"]):
     """
     A dictionary-like object that can be used to store attributes for a tag. All
     attribute values will be stored as strings.
@@ -521,7 +521,7 @@ class TagAttrDict(Dict[str, str]):
         if kwargs:
             args = args + (kwargs,)
 
-        attrz: dict[str, str] = {}
+        attrz: dict[str, str | HTML] = {}
         for arg in args:
             for k, v in arg.items():
                 val = self._normalize_attr_value(v)
@@ -544,12 +544,14 @@ class TagAttrDict(Dict[str, str]):
         return x.replace("_", "-")
 
     @staticmethod
-    def _normalize_attr_value(x: TagAttrValue) -> str | None:
+    def _normalize_attr_value(x: TagAttrValue) -> str | HTML | None:
         if x is None or x is False:
             return None
         if x is True:
             return ""
-        if isinstance(x, str):
+        # Return both str and HTML objects as is.
+        # HTML objects will handle value escaping when added to other values
+        if isinstance(x, (str, HTML)):
             return x
         if isinstance(x, (int, float)):  # pyright: ignore[reportUnnecessaryIsInstance]
             return str(x)
@@ -671,7 +673,7 @@ class Tag:
         sys.displayhook = wrap_displayhook_handler(
             # self.append takes a TagChild, but the wrapper expects a function that
             # takes a object.
-            self.append  # pyright: ignore[reportArgumentType,reportGeneralTypeIssues]
+            self.append  # pyright: ignore[reportArgumentType]
         )
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
@@ -840,7 +842,8 @@ class Tag:
 
         # Write attributes
         for key, val in self.attrs.items():
-            val = html_escape(val, attr=True)
+            if not isinstance(val, HTML):
+                val = html_escape(val, attr=True)
             html_ += f' {key}="{val}"'
 
         # Dependencies are ignored in the HTML output
@@ -1383,7 +1386,6 @@ class HTML(UserString):
         # Case: `str + HTML()`
         return HTML(html_escape(str(other)) + self.as_string())
 
-
     def __repr__(self) -> str:
         return self.as_string()
 
@@ -1923,7 +1925,7 @@ def _tag_show(
             import IPython  # pyright: ignore[reportUnknownVariableType]
 
             ipy = (  # pyright: ignore[reportUnknownVariableType]
-                IPython.get_ipython()  # pyright: ignore[reportUnknownMemberType, reportPrivateImportUsage]
+                IPython.get_ipython()  # pyright: ignore[reportUnknownMemberType, reportPrivateImportUsage, reportAttributeAccessIssue]
             )
             renderer = "ipython" if ipy else "browser"
         except ImportError:

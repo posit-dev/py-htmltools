@@ -108,6 +108,25 @@ def test_basic_tag_api():
     x4.add_style("color: blue;", prepend=True)
     assert x4.attrs["style"] == "color: blue; color: red; color: green;"
 
+    x5 = div()
+    x5.add_style("color: &purple;")
+    assert isinstance(x5.attrs["style"], str)
+    assert x5.attrs["style"] == "color: &purple;"
+    x5.add_style(HTML("color: &green;"))
+    assert isinstance(x5.attrs["style"], HTML)
+    assert x5.attrs["style"] == HTML("color: &amp;purple; color: &green;")
+
+    x6 = div()
+    x6.add_style("color: &red;")
+    assert isinstance(x6.attrs["style"], str)
+    assert x6.attrs["style"] == "color: &red;"
+    x6.add_style(HTML("color: &green;"), prepend=True)
+    assert isinstance(x6.attrs["style"], HTML)
+    assert x6.attrs["style"] == HTML("color: &green; color: &amp;red;")
+    assert isinstance(x6.attrs["style"], HTML)
+    x6.add_style(HTML("color: &blue;"))
+    assert x6.attrs["style"] == HTML("color: &green; color: &amp;red; color: &blue;")
+
 
 def test_tag_list_dict():
     # Dictionaries allowed at top level
@@ -542,14 +561,8 @@ def test_tag_escaping():
     # Attributes are HTML escaped
     expect_html(div("text", class_="<a&b>"), '<div class="&lt;a&amp;b&gt;">text</div>')
     expect_html(div("text", class_="'ab'"), '<div class="&apos;ab&apos;">text</div>')
-    # Sending in HTML causes an error
-    with pytest.raises(TypeError):
-        div(
-            "text",
-            class_=HTML(
-                "<a&b>"
-            ),  # pyright: ignore[reportArgumentType,reportGeneralTypeIssues]
-        )
+    # Attributes support `HTML()` values
+    expect_html(div("text", class_=HTML("<a&b>")), '<div class="<a&b>">text</div>')
 
     # script and style tags are not escaped
     assert str(tags.script("a && b > 3")) == "<script>a && b > 3</script>"
@@ -654,7 +667,7 @@ def _walk_mutate(x: TagNode, fn: Callable[[TagNode], TagNode]) -> TagNode:
             x.children[i] = _walk_mutate(child, fn)
     elif isinstance(x, list):
         for i, child in enumerate(x):
-            x[i] = _walk_mutate(child, fn)
+            x[i] = _walk_mutate(child, fn)  # pyright: ignore[reportArgumentType]
     return x
 
 
