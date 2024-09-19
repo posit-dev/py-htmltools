@@ -27,11 +27,12 @@ jobs:
       - name: Checkout dev branch of py-htmltools
         uses: actions/checkout@v4
         with:
-          path: htmltools
+          path: _dev/htmltools
 
       - name: Install dev py-htmltools htmltools dependencies
         run: |
-          cd htmltools
+          cd _dev/htmltools
+          pip uninstall htmltools
           pip install -e ".[dev,test]"
           make install
 
