@@ -5,7 +5,27 @@ All notable changes to htmltools for Python will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [Unreleased] YYYY-MM-DD
+
+### Breaking changes
+
+* `HTML` no longer inherits from `str`. It now inherits from `collections.UserString`. This was done to avoid confusion between `str` and `HTML` objects. (#86)
+
+* `Tag` and `TagList`'s method `.get_html_string()` now both return `str` instead of `HTML`. (#86)
+
+* Strings added to `HTML` objects, now return `HTML` objects. E.g. `HTML_value + str_value` and `str_value_ + HTML_value` both return `HTML` objects. To maintain a `str` result, call `str()` on your `HTML` objects before adding them to strings. (#86)
+
+### New features
+
+* Exported `ReprHtml` protocol class. If an object has a `_repr_html_` method, then it is of instance `ReprHtml`. (#86)
+
+* Exported `is_tag_node()` and `is_tag_child()` functions that utilize `typing.TypeIs` to narrow `TagNode` and `TagChild` type variables, respectively. (#86)
+
+* Exported `consolidate_attrs(*args, **kwargs)` function. This function will combine the `TagAttrs` (supplied in `*args`) with `TagAttrValues` (supplied in `**kwargs`) into a single `TagAttrs` object. In addition, it will also return all `*args` that are not dictionary as a list of unaltered `TagChild` objects. (#86)
+
+* The `Tag` method `.add_style(style=)` added support for `HTML` objects in addition to `str` values. (#86)
+
+### Bug fixes
 
 * Fixed an issue with `HTMLTextDocument()` returning extracted `HTMLDependency()`s in a non-determistic order. (#95)
 

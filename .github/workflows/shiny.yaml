@@ -1,0 +1,40 @@
+name: Bleeding Edge Shiny
+
+on:
+  push:
+    branches: "shiny-**"
+  pull_request:
+
+jobs:
+  htmltools-pr:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout py-shiny@main
+        uses: actions/checkout@v4
+        with:
+          repository: posit-dev/py-shiny
+          ref: main
+          fetch-depth: 0 # Required for shiny version
+      - name: Setup py-shiny@main
+        uses: posit-dev/py-shiny/.github/py-shiny/setup@main
+        with:
+          python-version: "3.12"
+
+      - name: Checkout dev branch of py-htmltools
+        uses: actions/checkout@v4
+        with:
+          path: _dev/htmltools
+
+      - name: Install dev py-htmltools htmltools dependencies
+        run: |
+          cd _dev/htmltools
+          pip uninstall -y htmltools
+          pip install -e ".[dev,test]"
+          make install
+
+      - name: Check py-shiny@main
+        uses: posit-dev/py-shiny/.github/py-shiny/check@main

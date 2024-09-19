@@ -11,6 +11,7 @@ import sys
 import tempfile
 import urllib.parse
 import webbrowser
+from collections import UserString
 from copy import copy, deepcopy
 from pathlib import Path
 from typing import (
@@ -25,6 +26,7 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    overload,
 )
 
 # Even though TypedDict is available in Python 3.8, because it's used with NotRequired,
@@ -34,6 +36,11 @@ if sys.version_info >= (3, 11):
     from typing import Never, NotRequired, TypedDict
 else:
     from typing_extensions import Never, NotRequired, TypedDict
+
+if sys.version_info >= (3, 13):
+    from typing import TypeIs
+else:
+    from typing_extensions import TypeIs
 
 from typing import Literal, Protocol, SupportsIndex, runtime_checkable
 
@@ -62,7 +69,10 @@ __all__ = (
     "TagNode",
     "TagFunction",
     "Tagifiable",
+    "consolidate_attrs",
     "head_content",
+    "is_tag_child",
+    "is_tag_node",
     "wrap_displayhook_handler",
 )
 
@@ -87,7 +97,7 @@ T = TypeVar("T")
 
 TagT = TypeVar("TagT", bound="Tag")
 
-TagAttrValue = Union[str, float, bool, None]
+TagAttrValue = Union[str, float, bool, "HTML", None]
 """
 Types that can be passed in as attributes to `Tag` functions. These values will be
 converted to strings before being stored as tag attributes.
@@ -99,13 +109,24 @@ For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed 
 unnamed arguments to Tag functions like `div()`.
 """
 
-TagNode = Union["Tagifiable", "Tag", MetadataNode, "ReprHtml", str]
+# NOTE: If this type is updated, please update `is_tag_node()`
+TagNode = Union[
+    "Tagifiable",
+    # "Tag", # Tag is Tagifiable, do not include here
+    # "TagList" is Tagifiable, so it is included in practice.
+    #   But in reality it should be excluded because a TagList cannot contain a TagList.
+    MetadataNode,
+    "ReprHtml",
+    str,
+    "HTML",
+]
 """
 Types of objects that can be a node in a `Tag` tree. Equivalently, these are the valid
 elements of a `TagList`. Note that this type represents the internal structure of items
 in a `TagList`; the user-facing type is `TagChild`.
 """
 
+# NOTE: If this type is updated, please update `is_tag_child()`
 TagChild = Union[
     TagNode,
     "TagList",
@@ -119,11 +140,83 @@ functions and the `TagList()` constructor can accept these as unnamed arguments;
 will be flattened and normalized to `TagNode` objects.
 """
 
+
 # These two types existed in htmltools 0.14.0 and earlier. They are here so that
 # existing versions of Shiny will be able to load, but users of those existing packages
 # will see type errors, which should encourage them to upgrade Shiny.
 TagChildArg = Never
 TagAttrArg = Never
+
+
+# # No use yet, so keeping code commented for now
+# TagNodeT = TypeVar("TagNodeT", bound=TagNode)
+# """
+# Type variable for `TagNode`.
+# """
+
+TagChildT = TypeVar("TagChildT", bound=TagChild)
+"""
+Type variable for `TagChild`.
+"""
+
+
+def is_tag_node(x: object) -> TypeIs[TagNode]:
+    """
+    Check if an object is a `TagNode`.
+
+    Note: The type hint is `TypeIs[TagNode]` to allow for type checking of the
+    return value. (`TypeIs` is imported from `typing_extensions` for Python < 3.13.)
+
+    Parameters
+    ----------
+    x
+        Object to check.
+
+    Returns
+    -------
+    :
+        `True` if the object is a `TagNode`, `False` otherwise.
+    """
+    # Note: Tag and TagList are both Tagifiable
+    return isinstance(x, (Tagifiable, MetadataNode, ReprHtml, str, HTML))
+
+
+def is_tag_child(x: object) -> TypeIs[TagChild]:
+    """
+    Check if an object is a `TagChild`.
+
+    Note: The type hint is `TypeIs[TagChild]` to allow for type checking of the
+    return value. (`TypeIs` is imported from `typing_extensions` for Python < 3.13.)
+
+    Parameters
+    ----------
+    x
+        Object to check.
+
+    Returns
+    -------
+    :
+        `True` if the object is a `TagChild`, `False` otherwise.
+    """
+
+    if is_tag_node(x):
+        return True
+    if x is None:
+        return True
+    if isinstance(
+        x,
+        (
+            # TagNode, # Handled above
+            TagList,
+            float,
+            # None, # Handled above
+            Sequence,
+        ),
+    ):
+        return True
+
+    # Could not determine the type
+    return False
 
 
 @runtime_checkable
@@ -133,7 +226,7 @@ class Tagifiable(Protocol):
     returns a `TagList`, the children of the `TagList` must also be tagified.
     """
 
-    def tagify(self) -> "TagList | Tag | MetadataNode | str": ...
+    def tagify(self) -> "TagList | Tag | MetadataNode | str | HTML": ...
 
 
 @runtime_checkable
@@ -268,7 +361,7 @@ class TagList(List[TagNode]):
         *,
         add_ws: bool = True,
         _escape_strings: bool = True,
-    ) -> "HTML":
+    ) -> str:
         """
         Return the HTML string for this tag list.
 
@@ -320,7 +413,7 @@ class TagList(List[TagNode]):
                 if prev_was_add_ws:
                     html_ += "  " * indent
 
-                html_ += child._repr_html_()  # type: ignore
+                html_ += child._repr_html_()  # pyright: ignore[reportPrivateUsage]
 
                 prev_was_add_ws = False
 
@@ -341,7 +434,7 @@ class TagList(List[TagNode]):
 
                 prev_was_add_ws = False
 
-        return HTML(html_)
+        return html_
 
     def get_dependencies(self, *, dedup: bool = True) -> list["HTMLDependency"]:
         """
@@ -394,7 +487,7 @@ class TagList(List[TagNode]):
 # =============================================================================
 # TagAttrDict class
 # =============================================================================
-class TagAttrDict(Dict[str, str]):
+class TagAttrDict(Dict[str, "str | HTML"]):
     """
     A dictionary-like object that can be used to store attributes for a tag. All
     attribute values will be stored as strings.
@@ -437,9 +530,8 @@ class TagAttrDict(Dict[str, str]):
                     continue
                 nm = self._normalize_attr_name(k)
 
-                # Preserve the HTML() when combining two HTML() attributes
                 if nm in attrz:
-                    val = attrz[nm] + HTML(" ") + val
+                    val = attrz[nm] + " " + val
 
                 attrz[nm] = val
 
@@ -453,15 +545,17 @@ class TagAttrDict(Dict[str, str]):
         return x.replace("_", "-")
 
     @staticmethod
-    def _normalize_attr_value(x: TagAttrValue) -> Optional[str]:
+    def _normalize_attr_value(x: TagAttrValue) -> str | HTML | None:
         if x is None or x is False:
             return None
         if x is True:
             return ""
-        if isinstance(x, (int, float)):
-            return str(x)
-        if isinstance(x, (HTML, str)):  # type: ignore[reportUnnecessaryIsInstance]
+        # Return both str and HTML objects as is.
+        # HTML objects will handle value escaping when added to other values
+        if isinstance(x, (str, HTML)):
             return x
+        if isinstance(x, (int, float)):  # pyright: ignore[reportUnnecessaryIsInstance]
+            return str(x)
         raise TypeError(
             f"Invalid type for attribute: {type(x)}."
             + "Consider calling str() on this value before treating it as a tag attribute."
@@ -689,7 +783,7 @@ class Tag:
         else:
             return False
 
-    def add_style(self: TagT, style: str, *, prepend: bool = False) -> TagT:
+    def add_style(self: TagT, style: str | HTML, *, prepend: bool = False) -> TagT:
         """
         Add a style value(s) to the HTML style attribute.
 
@@ -713,7 +807,7 @@ class Tag:
         """
 
         if isinstance(  # type: ignore[reportUnnecessaryIsInstance]
-            style, str
+            style, (str, HTML)
         ) and not style.endswith(";"):
             raise ValueError("`Tag.add_style(style=)` must end with a semicolon")
 
@@ -732,7 +826,7 @@ class Tag:
         cp.children = cp.children.tagify()
         return cp
 
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> "HTML":
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
         """
         Get the HTML string representation of the tag.
 
@@ -758,20 +852,20 @@ class Tag:
 
         # Don't enclose JSX/void elements if there are no children
         if len(children) == 0 and self.name in _VOID_TAG_NAMES:
-            return HTML(html_ + "/>")
+            return html_ + "/>"
 
         # Other empty tags are enclosed
         html_ += ">"
         close = "</" + self.name + ">"
         if len(children) == 0:
-            return HTML(html_ + close)
+            return html_ + close
 
         # Inline a single/empty child text node
-        if len(children) == 1 and isinstance(children[0], str):
+        if len(children) == 1 and isinstance(children[0], (str, HTML)):
             if self.name in _NO_ESCAPE_TAG_NAMES:
-                return HTML(html_ + children[0] + close)
+                return html_ + str(children[0]) + close
             else:
-                return HTML(html_ + _normalize_text(children[0]) + close)
+                return html_ + _normalize_text(children[0]) + close
 
         # Write children
         if self.add_ws:
@@ -787,7 +881,7 @@ class Tag:
         if self.add_ws:
             html_ += eol + indent_str
 
-        return HTML(html_ + close)
+        return html_ + close
 
     def render(self) -> RenderedHTML:
         """
@@ -908,8 +1002,8 @@ def wrap_displayhook_handler(
     def handler_wrapper(value: object) -> None:
         if isinstance(value, (Tag, TagList, Tagifiable)):
             handler(value)
-        elif hasattr(value, "_repr_html_"):
-            handler(HTML(value._repr_html_()))  # pyright: ignore
+        elif isinstance(value, ReprHtml):
+            handler(HTML(value._repr_html_()))  # pyright: ignore[reportPrivateUsage]
         elif value not in (None, ...):
             handler(value)
 
@@ -1240,7 +1334,9 @@ class HTMLTextDocument:
 # =============================================================================
 # HTML strings
 # =============================================================================
-class HTML(str):
+
+
+class HTML(UserString):
     """
     Mark a string as raw HTML. This will prevent the string from being escaped when
     rendered inside an HTML tag.
@@ -1254,13 +1350,42 @@ class HTML(str):
     <div><p>Hello</p></div>
     """
 
+    def __init__(self, html: object) -> None:
+        super().__init__(str(html))
+
     def __str__(self) -> str:
         return self.as_string()
 
-    # HTML() + HTML() should return HTML()
-    def __add__(self, other: "str| HTML") -> str:
-        res = str.__add__(self, other)
-        return HTML(res) if isinstance(other, HTML) else res
+    # DEV NOTE: 2024/09 -
+    #   This class is a building block for other classes, therefore it should not
+    #   tagifiable! If this method is added, HTML strings are escaped within Shiny and
+    #   not kept "as is"
+    # def tagify(self) -> Tag:
+    #     return self.as_string()
+
+    # Cases:
+    # * `str + str` should return str # Not HTML's responsibility!
+    # * `str + HTML()` should return HTML() # Handled by HTML.__radd__()
+    # * `HTML() + str` should return HTML()
+    # * `HTML() + HTML()` should return HTML()
+    def __add__(self, other: object) -> HTML:
+        if isinstance(other, HTML):
+            # HTML strings should be concatenated without escaping
+            # Convert each element to strings, then concatenate them, and return HTML
+            # Case: `HTML() + HTML()`
+            return HTML(self.as_string() + other.as_string())
+
+        # Non-HTML text added to HTML should be escaped before being added
+        # Convert each element to strings, then concatenate them, and return HTML
+        # Case: `HTML() + str`
+        return HTML(self.as_string() + html_escape(str(other)))
+
+    # Right side addition for when types are: `str + HTML()` or `unknown + HTML()`
+    def __radd__(self, other: object) -> HTML:
+        # Non-HTML text added to HTML should be escaped before being added
+        # Convert each element to strings, then concatenate them, and return HTML
+        # Case: `str + HTML()`
+        return HTML(html_escape(str(other)) + self.as_string())
 
     def __repr__(self) -> str:
         return self.as_string()
@@ -1269,7 +1394,8 @@ class HTML(str):
         return self.as_string()
 
     def as_string(self) -> str:
-        return self + ""
+        # Returns a new string
+        return self.data + ""
 
 
 # =============================================================================
@@ -1712,6 +1838,61 @@ def head_content(*args: TagChild) -> HTMLDependency:
     return HTMLDependency(name=name, version="0.0", head=head)
 
 
+# If no children are provided, it will not be able to infer the type of `TagChildT`.
+# Using `TagChild`, even though the list will be empty.
+@overload
+def consolidate_attrs(
+    *args: TagAttrs,
+    **kwargs: TagAttrValue,
+) -> tuple[TagAttrs, list[TagChild]]: ...
+
+
+# Same as original definition
+@overload
+def consolidate_attrs(
+    *args: TagChildT | TagAttrs,
+    **kwargs: TagAttrValue,
+) -> tuple[TagAttrs, list[TagChildT]]: ...
+
+
+def consolidate_attrs(
+    *args: TagChildT | TagAttrs,
+    **kwargs: TagAttrValue,
+) -> tuple[TagAttrs, list[TagChildT]]:
+    """
+    Consolidate attributes and children into a single tuple.
+
+    Convenience function to consolidate attributes and children into a single tuple. All
+    `args` that are not dictionaries are considered children. This helps preserve the
+    non-attribute elements within `args`. To extract the attributes, all `args` and
+    `kwargs` are passed to `Tag` function and the attributes (`.attrs`) are extracted
+    from the resulting `Tag` object.
+
+    Parameters
+    ----------
+    *args
+        Child elements to this tag and attribute dictionaries.
+    **kwargs
+        Named attributes to this tag.
+
+    Returns
+    -------
+    :
+        A tuple of attributes and children. The attributes are a dictionary of combined
+        named attributes, and the children are a list of unaltered child elements.
+    """
+    tag = Tag("consolidate_attrs", *args, **kwargs)
+
+    # Convert to a plain dict to avoid getting custom methods from TagAttrDict
+    # Cast to `TagAttrs` as that is the common type used by py-shiny
+    attrs = cast(TagAttrs, dict(tag.attrs))
+
+    # Do not alter/flatten children structure (like `TagList` does)
+    # Instead, return all `args` who are not dictionaries
+    children = [child for child in args if not isinstance(child, dict)]
+    return (attrs, children)
+
+
 # =============================================================================
 # Utility functions
 # =============================================================================
@@ -1724,7 +1905,7 @@ def _tagchilds_to_tagnodes(x: Iterable[TagChild]) -> list[TagNode]:
     for i, item in enumerate(result):
         if isinstance(item, (int, float)):
             result[i] = str(item)
-        elif not isinstance(item, (Tagifiable, Tag, MetadataNode, ReprHtml, str)):
+        elif not is_tag_node(item):
             raise TypeError(
                 f"Invalid tag item type: {type(item)}. "
                 + "Consider calling str() on this value before treating it as a tag item."
@@ -1745,7 +1926,7 @@ def _tag_show(
             import IPython  # pyright: ignore[reportUnknownVariableType]
 
             ipy = (  # pyright: ignore[reportUnknownVariableType]
-                IPython.get_ipython()  # pyright: ignore[reportUnknownMemberType, reportPrivateImportUsage]
+                IPython.get_ipython()  # pyright: ignore[reportUnknownMemberType, reportPrivateImportUsage, reportAttributeAccessIssue]
             )
             renderer = "ipython" if ipy else "browser"
         except ImportError:
@@ -1776,9 +1957,9 @@ def _tag_show(
     raise Exception(f"Unknown renderer {renderer}")
 
 
-def _normalize_text(txt: str) -> str:
+def _normalize_text(txt: str | HTML) -> str:
     if isinstance(txt, HTML):
-        return txt
+        return txt.as_string()
     else:
         return html_escape(txt, attr=False)
 

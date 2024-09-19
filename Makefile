@@ -95,3 +95,10 @@ check: pyright lint ## check code quality with pyright, flake8, black and isort
 	black --check .
 	echo "Sorting imports with isort."
 	isort --check-only --diff .
+
+check-fix: ## check/fix code quality with pyright, flake8, black and isort
+	@echo "Fixing code with black."
+	black .
+	@echo "Sorting imports with isort."
+	isort .
+	$(MAKE) pyright lint
