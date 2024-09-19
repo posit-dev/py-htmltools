@@ -32,7 +32,7 @@ jobs:
       - name: Install dev py-htmltools htmltools dependencies
         run: |
           cd _dev/htmltools
-          pip uninstall htmltools
+          pip uninstall -y htmltools
           pip install -e ".[dev,test]"
           make install
 
