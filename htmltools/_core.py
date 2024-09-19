@@ -26,6 +26,7 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    overload,
 )
 
 # Even though TypedDict is available in Python 3.8, because it's used with NotRequired,
@@ -35,6 +36,11 @@ if sys.version_info >= (3, 11):
     from typing import Never, NotRequired, TypedDict
 else:
     from typing_extensions import Never, NotRequired, TypedDict
+
+if sys.version_info >= (3, 13):
+    from typing import TypeIs
+else:
+    from typing_extensions import TypeIs
 
 from typing import Literal, Protocol, SupportsIndex, runtime_checkable
 
@@ -63,7 +69,10 @@ __all__ = (
     "TagNode",
     "TagFunction",
     "Tagifiable",
+    "consolidate_attrs",
     "head_content",
+    "is_tag_child",
+    "is_tag_node",
     "wrap_displayhook_handler",
 )
 
@@ -100,13 +109,23 @@ For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed 
 unnamed arguments to Tag functions like `div()`.
 """
 
-TagNode = Union["Tagifiable", "Tag", MetadataNode, "ReprHtml", str]
+# NOTE: If this type is updated, please update `is_tag_node()`
+TagNode = Union[
+    "Tagifiable",
+    # "Tag", # Tag is Tagifiable, do not include here
+    # "TagList", # TagList is Tagifiable, do not include here
+    MetadataNode,
+    "ReprHtml",
+    str,
+    "HTML",
+]
 """
 Types of objects that can be a node in a `Tag` tree. Equivalently, these are the valid
 elements of a `TagList`. Note that this type represents the internal structure of items
 in a `TagList`; the user-facing type is `TagChild`.
 """
 
+# NOTE: If this type is updated, please update `is_tag_child()`
 TagChild = Union[
     TagNode,
     "TagList",
@@ -120,11 +139,83 @@ functions and the `TagList()` constructor can accept these as unnamed arguments;
 will be flattened and normalized to `TagNode` objects.
 """
 
+
 # These two types existed in htmltools 0.14.0 and earlier. They are here so that
 # existing versions of Shiny will be able to load, but users of those existing packages
 # will see type errors, which should encourage them to upgrade Shiny.
 TagChildArg = Never
 TagAttrArg = Never
+
+
+# # No use yet, so keeping code commented for now
+# TagNodeT = TypeVar("TagNodeT", bound=TagNode)
+# """
+# Type variable for `TagNode`.
+# """
+
+TagChildT = TypeVar("TagChildT", bound=TagChild)
+"""
+Type variable for `TagChild`.
+"""
+
+
+def is_tag_node(x: object) -> TypeIs[TagNode]:
+    """
+    Check if an object is a `TagNode`.
+
+    Note: The type hint is `TypeIs[TagNode]` to allow for type checking of the
+    return value. (`TypeIs` is imported from `typing_extensions` for Python < 3.13.)
+
+    Parameters
+    ----------
+    x
+        Object to check.
+
+    Returns
+    -------
+    :
+        `True` if the object is a `TagNode`, `False` otherwise.
+    """
+    # Note: Tag and TagList are both Tagifiable
+    return isinstance(x, (Tagifiable, MetadataNode, ReprHtml, str, HTML))
+
+
+def is_tag_child(x: object) -> TypeIs[TagChild]:
+    """
+    Check if an object is a `TagChild`.
+
+    Note: The type hint is `TypeIs[TagChild]` to allow for type checking of the
+    return value. (`TypeIs` is imported from `typing_extensions` for Python < 3.13.)
+
+    Parameters
+    ----------
+    x
+        Object to check.
+
+    Returns
+    -------
+    :
+        `True` if the object is a `TagChild`, `False` otherwise.
+    """
+
+    if is_tag_node(x):
+        return True
+    if x is None:
+        return True
+    if isinstance(
+        x,
+        (
+            # TagNode, # Handled above
+            TagList,
+            float,
+            # None, # Handled above
+            Sequence,
+        ),
+    ):
+        return True
+
+    # Could not determine the type
+    return False
 
 
 @runtime_checkable
@@ -1744,6 +1835,61 @@ def head_content(*args: TagChild) -> HTMLDependency:
     return HTMLDependency(name=name, version="0.0", head=head)
 
 
+# If no children are provided, it will not be able to infer the type of `TagChildT`.
+# Using `TagChild`, even though the list will be empty.
+@overload
+def consolidate_attrs(
+    *args: TagAttrs,
+    **kwargs: TagAttrValue,
+) -> tuple[TagAttrs, list[TagChild]]: ...
+
+
+# Same as original definition
+@overload
+def consolidate_attrs(
+    *args: TagChildT | TagAttrs,
+    **kwargs: TagAttrValue,
+) -> tuple[TagAttrs, list[TagChildT]]: ...
+
+
+def consolidate_attrs(
+    *args: TagChildT | TagAttrs,
+    **kwargs: TagAttrValue,
+) -> tuple[TagAttrs, list[TagChildT]]:
+    """
+    Consolidate attributes and children into a single tuple.
+
+    Convenience function to consolidate attributes and children into a single tuple. All
+    `args` that are not dictionaries are considered children. This helps preserve the
+    non-attribute elements within `args`. To extract the attributes, all `args` and
+    `kwargs` are passed to `Tag` function and the attributes (`.attrs`) are extracted
+    from the resulting `Tag` object.
+
+    Parameters
+    ----------
+    *args
+        Child elements to this tag and attribute dictionaries.
+    **kwargs
+        Named attributes to this tag.
+
+    Returns
+    -------
+    :
+        A tuple of attributes and children. The attributes are a dictionary of combined
+        named attributes, and the children are a list of unaltered child elements.
+    """
+    tag = Tag("consolidate_attrs", *args, **kwargs)
+
+    # Convert to a plain dict to avoid getting custom methods from TagAttrDict
+    # Cast to `TagAttrs` as that is the common type used by py-shiny
+    attrs = cast(TagAttrs, dict(tag.attrs))
+
+    # Do not alter/flatten children structure (like `TagList` does)
+    # Instead, return all `args` who are not dictionaries
+    children = [child for child in args if not isinstance(child, dict)]
+    return (attrs, children)
+
+
 # =============================================================================
 # Utility functions
 # =============================================================================
@@ -1756,7 +1902,7 @@ def _tagchilds_to_tagnodes(x: Iterable[TagChild]) -> list[TagNode]:
     for i, item in enumerate(result):
         if isinstance(item, (int, float)):
             result[i] = str(item)
-        elif not isinstance(item, (HTML, Tagifiable, Tag, MetadataNode, ReprHtml, str)):
+        elif not is_tag_node(item):
             raise TypeError(
                 f"Invalid tag item type: {type(item)}. "
                 + "Consider calling str() on this value before treating it as a tag item."

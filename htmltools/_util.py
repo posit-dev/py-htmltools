@@ -16,7 +16,10 @@ T = TypeVar("T")
 
 HashableT = TypeVar("HashableT", bound=Hashable)
 
-__all__ = ("css",)
+__all__ = (
+    "css",
+    "html_escape",
+)
 
 
 def css(

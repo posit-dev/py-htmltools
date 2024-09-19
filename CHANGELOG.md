@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Exported `ReprHtml` protocol class. If an object has a `_repr_html_` method, then it is of instance `ReprHtml`. (#86)
 
+* Exported `is_tag_node()` and `is_tag_child()` functions that utilize `typing.TypeIs` to narrow `TagNode` and `TagChild` type variables, respectively. (#86)
+
+* Exported `consolidate_attrs(*args, **kwargs)` function. This function will combine the `TagAttrs` (supplied in `*args`) with `TagAttrValues` (supplied in `**kwargs`) into a single `TagAttrs` object. In addition, it will also return all `*args` that are not dictionary as a list of unaltered `TagChild` objects. (#86)
+* This function takes a list of `TagAttrs` and returns a single `TagAttrs` object. (#86)
+
 ### Bug fixes
 
 * Fixed an issue with `HTMLTextDocument()` returning extracted `HTMLDependency()`s in a non-determistic order. (#95)

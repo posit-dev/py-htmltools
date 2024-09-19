@@ -19,7 +19,10 @@ from ._core import (
     Tagifiable,
     TagList,
     TagNode,
+    consolidate_attrs,
     head_content,
+    is_tag_child,
+    is_tag_node,
     wrap_displayhook_handler,
 )
 from ._util import css, html_escape
@@ -61,7 +64,10 @@ __all__ = (
     "TagList",
     "TagNode",
     "ReprHtml",
+    "consolidate_attrs",
     "head_content",
+    "is_tag_child",
+    "is_tag_node",
     "wrap_displayhook_handler",
     "css",
     "html_escape",
