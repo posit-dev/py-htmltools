@@ -13,9 +13,11 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout py-shiny@htmltools_type_changes
+        uses: actions/checkout@v4
         with:
-          repository: posit-dev/py-shiny@htmltools_type_changes
+          repository: posit-dev/py-shiny
+          ref: htmltools_type_changes
           fetch-depth: 0 # Required for shiny version
       - name: Setup py-shiny@main
         id: install
@@ -23,7 +25,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - uses: actions/checkout@v4
+      - name: Checkout dev branch of py-htmltools
+        uses: actions/checkout@v4
         with:
           path: htmltools
 
