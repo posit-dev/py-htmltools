@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0 # Required for shiny version
       - name: Setup py-shiny@main
         id: install
-        uses: posit-dev/py-shiny/.github/py-shiny/setup
+        uses: posit-dev/py-shiny/.github/py-shiny/setup@main
         with:
           python-version: "3.12"
 
