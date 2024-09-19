@@ -1,0 +1,52 @@
+name: Bleeding Edge Shiny
+
+on:
+  push:
+    branches: "shiny-**"
+  pull_request:
+
+jobs:
+  shiny:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/checkout@v4
+        with:
+          path: htmltools
+      - uses: actions/checkout@v4
+        with:
+          repository: posit-dev/py-shiny
+          path: shiny
+          fetch-depth: 0 # Required for shiny version
+
+      - name: Install py-shiny@main
+        run: |
+          python -m pip install --upgrade pip
+          cd shiny
+          pip install -e ".[dev,test]"
+
+      - name: Check py-shiny@main w/ PyPi Htmltools (This should pass)
+        continue-on-error: true
+        run: |
+          cd shiny
+          make test check
+
+      - name: Install dev py-htmltools htmltools dependencies
+        run: |
+          cd htmltools
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,test]"
+          make install
+
+      - name: Check py-shiny@main w/ dev py-htmltools
+        run: |
+          cd shiny
+          make test check
