@@ -780,7 +780,7 @@ class Tag:
         else:
             return False
 
-    def add_style(self: TagT, style: str, *, prepend: bool = False) -> TagT:
+    def add_style(self: TagT, style: str | HTML, *, prepend: bool = False) -> TagT:
         """
         Add a style value(s) to the HTML style attribute.
 
@@ -804,7 +804,7 @@ class Tag:
         """
 
         if isinstance(  # type: ignore[reportUnnecessaryIsInstance]
-            style, str
+            style, (str, HTML)
         ) and not style.endswith(";"):
             raise ValueError("`Tag.add_style(style=)` must end with a semicolon")
 

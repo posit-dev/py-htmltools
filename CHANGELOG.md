@@ -26,7 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Exported `is_tag_node()` and `is_tag_child()` functions that utilize `typing.TypeIs` to narrow `TagNode` and `TagChild` type variables, respectively. (#86)
 
 * Exported `consolidate_attrs(*args, **kwargs)` function. This function will combine the `TagAttrs` (supplied in `*args`) with `TagAttrValues` (supplied in `**kwargs`) into a single `TagAttrs` object. In addition, it will also return all `*args` that are not dictionary as a list of unaltered `TagChild` objects. (#86)
-* This function takes a list of `TagAttrs` and returns a single `TagAttrs` object. (#86)
+
+* The `Tag` method `.add_style(style=)` added support for `HTML` objects in addition to `str` values. (#86)
 
 ### Bug fixes
 
