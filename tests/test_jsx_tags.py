@@ -214,7 +214,7 @@ def test_jsx_tagifiable_children():
     x = Foo(div(TagifiableDep(), TagifiableDep2()))
     # Make sure that calling render() doesn't alter the object in place and result in
     # output that changes from run to run.
-    assert str(x.tagify()) == str(x.tagify())
+    assert x.tagify() == x.tagify()
     assert HTMLDocument(x).render() == HTMLDocument(x).render()
 
     # Make sure that the dependency (which is added to the tree when MyTag.tagify() is
