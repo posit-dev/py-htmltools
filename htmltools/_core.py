@@ -113,8 +113,8 @@ unnamed arguments to Tag functions like `div()`.
 TagNode = Union[
     "Tagifiable",
     # "Tag", # Tag is Tagifiable, do not include here
-    # "TagList" is Tagifiable, so it is included in practice, but in reality it should not be,
-    #   because a TagList cannot contain a TagList.
+    # "TagList" is Tagifiable, so it is included in practice.
+    #   But in reality it should be excluded because a TagList cannot contain a TagList.
     MetadataNode,
     "ReprHtml",
     str,
