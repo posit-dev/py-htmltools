@@ -13,14 +13,13 @@ jobs:
         shell: bash
 
     steps:
-      - name: Checkout py-shiny@htmltools_type_changes
+      - name: Checkout py-shiny@main
         uses: actions/checkout@v4
         with:
           repository: posit-dev/py-shiny
-          ref: htmltools_type_changes
+          ref: main
           fetch-depth: 0 # Required for shiny version
       - name: Setup py-shiny@main
-        id: install
         uses: posit-dev/py-shiny/.github/py-shiny/setup@main
         with:
           python-version: "3.12"
@@ -36,7 +35,5 @@ jobs:
           pip install -e ".[dev,test]"
           make install
 
-      - name: Check py-shiny@main w/ dev py-htmltools
-        run: |
-          # Run test before check, so that linting is performed last
-          make test check
+      - name: Check py-shiny@main
+        uses: posit-dev/py-shiny/.github/py-shiny/check@main
