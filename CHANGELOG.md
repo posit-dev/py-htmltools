@@ -15,8 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * `Tag` and `TagList`'s method `.get_html_string()` now both return `str` instead of `HTML`. (#86)
 
-* `TagAttrDict` no longer silently supports `HTML` values for attrs. Only `str` values are supported. (#86)
-
 * Strings added to `HTML` objects, now return `HTML` objects. E.g. `HTML_value + str_value` and `str_value_ + HTML_value` both return `HTML` objects. To maintain a `str` result, call `str()` on your `HTML` objects before adding them to strings. (#86)
 
 ### New features
