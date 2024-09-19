@@ -412,7 +412,7 @@ class TagList(List[TagNode]):
                 if prev_was_add_ws:
                     html_ += "  " * indent
 
-                html_ += child._repr_html_()  # type: ignore
+                html_ += child._repr_html_()  # pyright: ignore[reportPrivateUsage]
 
                 prev_was_add_ws = False
 
@@ -998,8 +998,8 @@ def wrap_displayhook_handler(
     def handler_wrapper(value: object) -> None:
         if isinstance(value, (Tag, TagList, Tagifiable)):
             handler(value)
-        elif hasattr(value, "_repr_html_"):
-            handler(HTML(value._repr_html_()))  # pyright: ignore
+        elif isinstance(value, ReprHtml):
+            handler(HTML(value._repr_html_()))  # pyright: ignore[reportPrivateUsage]
         elif value not in (None, ...):
             handler(value)
 
