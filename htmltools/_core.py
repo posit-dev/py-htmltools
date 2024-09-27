@@ -254,14 +254,7 @@ class ReprHtml(Protocol):
 # =============================================================================
 # TagList class
 # =============================================================================
-if sys.version_info > (3, 8):
-    _TagListParentClass = UserList[TagNode]
-else:
-    # In Python 3.8 and earlier, `UserList` does not like to be subclassed
-    _TagListParentClass = UserList
-
-
-class TagList(_TagListParentClass):
+class TagList(UserList[TagNode]):
     """
     Create an HTML tag list (i.e., a fragment of HTML)
 

@@ -1,56 +1,47 @@
 [build-system]
-requires = [
-  "setuptools",
-  "wheel"
-]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "htmltools"
 dynamic = ["version"]
-authors = [{name = "Carson Sievert", email = "carson@rstudio.com"}]
+authors = [{ name = "Carson Sievert", email = "carson@rstudio.com" }]
 description = "Tools for HTML generation and output."
 readme = "README.md"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 keywords = ["html"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: Implementation :: PyPy",
-    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Text Processing :: Markup :: HTML"
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Text Processing :: Markup :: HTML",
 ]
-dependencies = [
-  "typing-extensions>=3.10.0.0",
-  "packaging>=20.9",
-]
-requires-python = ">=3.8"
+dependencies = ["typing-extensions>=3.10.0.0", "packaging>=20.9"]
+requires-python = ">=3.9"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/rstudio/py-htmltools/issues"
 Source = "https://github.com/rstudio/py-htmltools"
 
 [project.optional-dependencies]
-test = [
-    "pytest>=6.2.4",
-    "syrupy>=4.6.0"
-]
+test = ["pytest>=6.2.4", "syrupy>=4.6.0"]
 dev = [
-    "black>=24.2.0",
-    "flake8>=6.0.0",
-    "Flake8-pyproject",
-    "isort>=5.11.2",
-    "pyright>=1.1.348",
-    "pre-commit>=2.15.0",
-    "wheel",
-    "build"
+  "black>=24.2.0",
+  "flake8>=6.0.0",
+  "Flake8-pyproject",
+  "isort>=5.11.2",
+  "pyright>=1.1.348",
+  "pre-commit>=2.15.0",
+  "wheel",
+  "build",
 ]
 
 [tool.setuptools]
@@ -59,7 +50,7 @@ include-package-data = true
 zip-safe = false
 
 [tool.setuptools.dynamic]
-version = {attr = "htmltools.__version__"}
+version = { attr = "htmltools.__version__" }
 
 [tool.setuptools.package-data]
 htmltools = ["py.typed"]
