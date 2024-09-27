@@ -293,7 +293,7 @@ class TagList(UserList[TagNode]):
         Insert tag children before a given index.
         """
 
-        self.data[i:i] = _tagchilds_to_tagnodes([item])
+        self[i:i] = _tagchilds_to_tagnodes([item])
 
     def tagify(self) -> "TagList":
         """
@@ -305,16 +305,16 @@ class TagList(UserList[TagNode]):
         # Iterate backwards because if we hit a Tagifiable object, it may be replaced
         # with 0, 1, or more items (if it returns TagList).
         for i in reversed(range(len(cp))):
-            child = cp.data[i]
+            child = cp[i]
 
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
                 if isinstance(tagified_child, TagList):
                     # If the Tagifiable object returned a TagList, flatten it into this
                     # one.
-                    cp.data[i : i + 1] = _tagchilds_to_tagnodes(tagified_child)
+                    cp[i : i + 1] = _tagchilds_to_tagnodes(tagified_child)
                 else:
-                    cp.data[i] = tagified_child
+                    cp[i] = tagified_child
 
             elif isinstance(child, MetadataNode):
                 cp[i] = copy(child)
@@ -341,7 +341,7 @@ class TagList(UserList[TagNode]):
             The path to the generated HTML file.
         """
 
-        return HTMLDocument(self.data).save_html(
+        return HTMLDocument(self).save_html(
             file, libdir=libdir, include_version=include_version
         )
 
@@ -381,7 +381,7 @@ class TagList(UserList[TagNode]):
         first_child = True
         prev_was_add_ws = add_ws
 
-        for child in self.data:
+        for child in self:
             if isinstance(child, MetadataNode):
                 continue
 
@@ -446,7 +446,7 @@ class TagList(UserList[TagNode]):
         """
 
         deps: list[HTMLDependency] = []
-        for x in self.data:
+        for x in self:
             if isinstance(x, HTMLDependency):
                 deps.append(x)
             elif isinstance(x, Tag):
