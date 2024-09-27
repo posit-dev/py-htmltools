@@ -89,12 +89,13 @@ def _flatten_recurse(x: Iterable[T | None], result: list[T]) -> None:
     from ._core import TagList
 
     for item in x:
-        if isinstance(item, TagList):
-            _flatten_recurse(item.data, result)  # pyright: ignore[reportArgumentType]
-        elif isinstance(item, (list, tuple)):
+        if isinstance(item, (list, tuple, TagList)):
             # Don't yet know how to specify recursive generic types, so we'll tell
             # the type checker to ignore this line.
-            _flatten_recurse(item, result)  # pyright: ignore[reportUnknownArgumentType]
+            _flatten_recurse(
+                item,  # pyright: ignore[reportUnknownArgumentType]
+                result,  # pyright: ignore[reportArgumentType]
+            )
         elif item is not None:
             result.append(item)
 
