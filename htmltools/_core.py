@@ -254,7 +254,11 @@ class ReprHtml(Protocol):
 # =============================================================================
 # TagList class
 # =============================================================================
-_TagListParentClass = UserList if sys.version_info <= (3, 8) else UserList[TagNode]
+if sys.version_info > (3, 8):
+    _TagListParentClass = UserList[TagNode]
+else:
+    # In Python 3.8 and earlier, `UserList` does not like to be subclassed
+    _TagListParentClass = UserList
 
 
 class TagList(_TagListParentClass):
