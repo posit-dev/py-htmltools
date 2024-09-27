@@ -11,7 +11,7 @@ import sys
 import tempfile
 import urllib.parse
 import webbrowser
-from collections import UserString
+from collections import UserList, UserString
 from copy import copy, deepcopy
 from pathlib import Path
 from typing import (
@@ -19,7 +19,6 @@ from typing import (
     Callable,
     Dict,
     Iterable,
-    List,
     Mapping,
     Optional,
     Sequence,
@@ -255,7 +254,7 @@ class ReprHtml(Protocol):
 # =============================================================================
 # TagList class
 # =============================================================================
-class TagList(List[TagNode]):
+class TagList(UserList[TagNode]):
     """
     Create an HTML tag list (i.e., a fragment of HTML)
 
@@ -275,26 +274,26 @@ class TagList(List[TagNode]):
     def __init__(self, *args: TagChild) -> None:
         super().__init__(_tagchilds_to_tagnodes(args))
 
-    def extend(self, x: Iterable[TagChild]) -> None:
+    def extend(self, other: Iterable[TagChild]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
 
-        super().extend(_tagchilds_to_tagnodes(x))
+        super().extend(_tagchilds_to_tagnodes(other))
 
-    def append(self, *args: TagChild) -> None:
+    def append(self, item: TagChild, *args: TagChild) -> None:
         """
         Append tag children to the end of the list.
         """
 
-        self.extend(args)
+        self.extend([item, *args])
 
-    def insert(self, index: SupportsIndex, x: TagChild) -> None:
+    def insert(self, i: SupportsIndex, item: TagChild) -> None:
         """
         Insert tag children before a given index.
         """
 
-        self[index:index] = _tagchilds_to_tagnodes([x])
+        self.data[i:i] = _tagchilds_to_tagnodes([item])
 
     def tagify(self) -> "TagList":
         """
@@ -306,16 +305,16 @@ class TagList(List[TagNode]):
         # Iterate backwards because if we hit a Tagifiable object, it may be replaced
         # with 0, 1, or more items (if it returns TagList).
         for i in reversed(range(len(cp))):
-            child = cp[i]
+            child = cp.data[i]
 
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
                 if isinstance(tagified_child, TagList):
                     # If the Tagifiable object returned a TagList, flatten it into this
                     # one.
-                    cp[i : i + 1] = _tagchilds_to_tagnodes(tagified_child)
+                    cp.data[i : i + 1] = _tagchilds_to_tagnodes(tagified_child)
                 else:
-                    cp[i] = tagified_child
+                    cp.data[i] = tagified_child
 
             elif isinstance(child, MetadataNode):
                 cp[i] = copy(child)
@@ -342,7 +341,7 @@ class TagList(List[TagNode]):
             The path to the generated HTML file.
         """
 
-        return HTMLDocument(self).save_html(
+        return HTMLDocument(self.data).save_html(
             file, libdir=libdir, include_version=include_version
         )
 
@@ -382,7 +381,7 @@ class TagList(List[TagNode]):
         first_child = True
         prev_was_add_ws = add_ws
 
-        for child in self:
+        for child in self.data:
             if isinstance(child, MetadataNode):
                 continue
 
@@ -447,7 +446,7 @@ class TagList(List[TagNode]):
         """
 
         deps: list[HTMLDependency] = []
-        for x in self:
+        for x in self.data:
             if isinstance(x, HTMLDependency):
                 deps.append(x)
             elif isinstance(x, Tag):
