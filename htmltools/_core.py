@@ -254,7 +254,10 @@ class ReprHtml(Protocol):
 # =============================================================================
 # TagList class
 # =============================================================================
-class TagList(UserList[TagNode]):
+_TagListParentClass = UserList if sys.version_info <= (3, 8) else UserList[TagNode]
+
+
+class TagList(_TagListParentClass):
     """
     Create an HTML tag list (i.e., a fragment of HTML)
 
