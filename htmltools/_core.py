@@ -299,6 +299,28 @@ class TagList(UserList[TagNode]):
 
         self[i:i] = _tagchilds_to_tagnodes([item])
 
+    def __add__(self, item: Iterable[TagChild]) -> TagList:
+        """
+        Return a new TagList with the item added at the end.
+        """
+
+        should_not_expand = isinstance(item, str)
+        if should_not_expand:
+            return TagList(self, item)
+
+        return TagList(self, *item)
+
+    def __radd__(self, item: Iterable[TagChild]) -> TagList:
+        """
+        Return a new TagList with the item added to the beginning.
+        """
+
+        should_not_expand = isinstance(item, str)
+        if should_not_expand:
+            return TagList(item, self)
+
+        return TagList(*item, self)
+
     def tagify(self) -> "TagList":
         """
         Convert any tagifiable children to Tag/TagList objects.
