@@ -763,6 +763,56 @@ def test_taglist_add():
     assert_tag_list("foo" + tl_bar, ["foo", "bar"])
 
 
+def test_taglist_methods():
+    # Testing methods from https://docs.python.org/3/library/stdtypes.html#common-sequence-operations
+    #
+    # Operation | Result | Notes
+    # --------- | ------ | -----
+    # x in s    | True if an item of s is equal to x, else False | (1)
+    # x not in s | False if an item of s is equal to x, else True | (1)
+    # s + t     | the concatenation of s and t | (6)(7)
+    # s * n or n * s | equivalent to adding s to itself n times | (2)(7)
+    # s[i]      | ith item of s, origin 0 | (3)
+    # s[i:j]    | slice of s from i to j | (3)(4)
+    # s[i:j:k]  | slice of s from i to j with step k | (3)(5)
+    # len(s)    | length of s
+    # min(s)    | smallest item of s
+    # max(s)    | largest item of s
+    # s.index(x[, i[, j]]) | index of the first occurrence of x in s (at or after index i and before index j) | (8)
+    # s.count(x) | total number of occurrences of x in s
+
+    x = TagList("foo", "bar", "foo", "baz")
+    y = TagList("a", "b", "c")
+
+    assert "bar" in x
+    assert "qux" not in x
+
+    add = x + y
+    assert isinstance(add, TagList)
+    assert list(add) == ["foo", "bar", "foo", "baz", "a", "b", "c"]
+
+    mul = x * 2
+    assert isinstance(mul, TagList)
+    assert list(mul) == ["foo", "bar", "foo", "baz", "foo", "bar", "foo", "baz"]
+
+    assert x[1] == "bar"
+    assert x[1:3] == TagList("bar", "foo")
+    assert mul[1:6:2] == TagList("bar", "baz", "bar")
+
+    assert len(x) == 4
+
+    assert min(x) == "bar"  # pyright: ignore[reportArgumentType]
+    assert max(x) == "foo"  # pyright: ignore[reportArgumentType]
+
+    assert x.index("foo") == 0
+    assert x.index("foo", 1) == 2
+    with pytest.raises(ValueError):
+        x.index("foo", 1, 1)
+
+    assert x.count("foo") == 2
+    assert mul.count("foo") == 4
+
+
 def test_taglist_extend():
     x = TagList("foo")
     y = ["bar", "baz"]
