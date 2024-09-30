@@ -279,6 +279,10 @@ class TagList(UserList[TagNode]):
         Extend the children by appending an iterable of children.
         """
 
+        # If other is a string (an iterable), convert it to a list of s.
+        if isinstance(other, str):
+            other = [other]
+
         super().extend(_tagchilds_to_tagnodes(other))
 
     def append(self, item: TagChild, *args: TagChild) -> None:
