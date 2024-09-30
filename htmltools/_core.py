@@ -271,6 +271,12 @@ class TagList(UserList[TagNode]):
     <div id="foo" class="bar"></div>
     """
 
+    def _should_not_expand(self, x: object) -> TypeIs[str]:
+        """
+        Check if an object should not be expanded into a list of children.
+        """
+        return isinstance(x, str)
+
     def __init__(self, *args: TagChild) -> None:
         super().__init__(_tagchilds_to_tagnodes(args))
 
@@ -278,11 +284,6 @@ class TagList(UserList[TagNode]):
         """
         Extend the children by appending an iterable of children.
         """
-
-        # If other is a string (an iterable), convert it to a list of s.
-        if isinstance(other, str):
-            other = [other]
-
         super().extend(_tagchilds_to_tagnodes(other))
 
     def append(self, item: TagChild, *args: TagChild) -> None:
@@ -304,8 +305,7 @@ class TagList(UserList[TagNode]):
         Return a new TagList with the item added at the end.
         """
 
-        should_not_expand = isinstance(item, str)
-        if should_not_expand:
+        if self._should_not_expand(item):
             return TagList(self, item)
 
         return TagList(self, *item)
@@ -315,8 +315,7 @@ class TagList(UserList[TagNode]):
         Return a new TagList with the item added to the beginning.
         """
 
-        should_not_expand = isinstance(item, str)
-        if should_not_expand:
+        if self._should_not_expand(item):
             return TagList(item, self)
 
         return TagList(*item, self)
@@ -1926,6 +1925,9 @@ def consolidate_attrs(
 # Convert a list of TagChild objects to a list of TagNode objects. Does not alter input
 # object.
 def _tagchilds_to_tagnodes(x: Iterable[TagChild]) -> list[TagNode]:
+    if isinstance(x, str):
+        return [x]
+
     result = flatten(x)
     for i, item in enumerate(result):
         if isinstance(item, (int, float)):
