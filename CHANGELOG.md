@@ -11,9 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * `HTML` no longer inherits from `str`. It now inherits from `collections.UserString`. This was done to avoid confusion between `str` and `HTML` objects. (#86)
 
+* `TagList` no longer inherits from `list`. It now inherits from `collections.UserList`. This was done to avoid confusion between `list` and `TagList` objects. (#97)
+
 * `Tag` and `TagList`'s method `.get_html_string()` now both return `str` instead of `HTML`. (#86)
 
-* Strings added to `HTML` objects, now return `HTML` objects. E.g. `HTML_value + str_value` and `str_value_ + HTML_value` both return `HTML` objects. To maintain a `str` result, call `str()` on your `HTML` objects before adding them to strings. (#86)
+* Strings added to `HTML` objects, now return `HTML` objects. E.g. `HTML_value + str_value` and `str_value + HTML_value` both return `HTML` objects. To maintain a `str` result, call `str()` on your `HTML` objects before adding them to other strings values. (#86)
+
+* Items added to `TagList` objects, now return `TagList` objects. E.g. `TagList_value + arr_value` and `arr_value + TagList_value` both return new `TagList` objects. To maintain a `list` result, call `list()` on your `TagList` objects before combining them to other list objects. (#97)
 
 ### New features
 

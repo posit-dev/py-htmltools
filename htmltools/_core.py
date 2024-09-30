@@ -11,7 +11,7 @@ import sys
 import tempfile
 import urllib.parse
 import webbrowser
-from collections import UserString
+from collections import UserList, UserString
 from copy import copy, deepcopy
 from pathlib import Path
 from typing import (
@@ -19,7 +19,6 @@ from typing import (
     Callable,
     Dict,
     Iterable,
-    List,
     Mapping,
     Optional,
     Sequence,
@@ -255,7 +254,7 @@ class ReprHtml(Protocol):
 # =============================================================================
 # TagList class
 # =============================================================================
-class TagList(List[TagNode]):
+class TagList(UserList[TagNode]):
     """
     Create an HTML tag list (i.e., a fragment of HTML)
 
@@ -272,29 +271,54 @@ class TagList(List[TagNode]):
     <div id="foo" class="bar"></div>
     """
 
+    def _should_not_expand(self, x: object) -> TypeIs[str]:
+        """
+        Check if an object should not be expanded into a list of children.
+        """
+        return isinstance(x, str)
+
     def __init__(self, *args: TagChild) -> None:
         super().__init__(_tagchilds_to_tagnodes(args))
 
-    def extend(self, x: Iterable[TagChild]) -> None:
+    def extend(self, other: Iterable[TagChild]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
+        super().extend(_tagchilds_to_tagnodes(other))
 
-        super().extend(_tagchilds_to_tagnodes(x))
-
-    def append(self, *args: TagChild) -> None:
+    def append(self, item: TagChild, *args: TagChild) -> None:
         """
         Append tag children to the end of the list.
         """
 
-        self.extend(args)
+        self.extend([item, *args])
 
-    def insert(self, index: SupportsIndex, x: TagChild) -> None:
+    def insert(self, i: SupportsIndex, item: TagChild) -> None:
         """
         Insert tag children before a given index.
         """
 
-        self[index:index] = _tagchilds_to_tagnodes([x])
+        self[i:i] = _tagchilds_to_tagnodes([item])
+
+    def __add__(self, item: Iterable[TagChild]) -> TagList:
+        """
+        Return a new TagList with the item added at the end.
+        """
+
+        if self._should_not_expand(item):
+            return TagList(self, item)
+
+        return TagList(self, *item)
+
+    def __radd__(self, item: Iterable[TagChild]) -> TagList:
+        """
+        Return a new TagList with the item added to the beginning.
+        """
+
+        if self._should_not_expand(item):
+            return TagList(item, self)
+
+        return TagList(*item, self)
 
     def tagify(self) -> "TagList":
         """
@@ -1901,6 +1925,9 @@ def consolidate_attrs(
 # Convert a list of TagChild objects to a list of TagNode objects. Does not alter input
 # object.
 def _tagchilds_to_tagnodes(x: Iterable[TagChild]) -> list[TagNode]:
+    if isinstance(x, str):
+        return [x]
+
     result = flatten(x)
     for i, item in enumerate(result):
         if isinstance(item, (int, float)):
