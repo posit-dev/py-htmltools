@@ -698,6 +698,97 @@ def test_tag_walk():
     assert cast_tag(x.children[1]).children[0] == "WORLD"
 
 
+def test_taglist_constructor():
+
+    # From docs.python.org/3/library/collections.html#collections.UserList:
+    # > Subclasses of UserList are expected to offer a constructor which can be called
+    # > with either no arguments or one argument. List operations which return a new
+    # > sequence attempt to create an instance of the actual implementation class. To do
+    # > so, it assumes that the constructor can be called with a single parameter, which
+    # > is a sequence object used as a data source.
+
+    x = TagList()
+    assert isinstance(x, TagList)
+    assert len(x) == 0
+    assert x.get_html_string() == ""
+
+    x = TagList("foo")
+    assert isinstance(x, TagList)
+    assert len(x) == 1
+    assert x.get_html_string() == "foo"
+
+    x = TagList(["foo", "bar"])
+    assert isinstance(x, TagList)
+    assert len(x) == 2
+    assert x.get_html_string() == "foobar"
+
+    # Also support multiple inputs
+    x = TagList("foo", "bar")
+    assert isinstance(x, TagList)
+    assert len(x) == 2
+    assert x.get_html_string() == "foobar"
+
+
+def test_taglist_add():
+
+    # Similar to `HTML(UserString)`, a `TagList(UserList)` should be the result when
+    # adding to anything else.
+
+    empty_arr = []
+    int_arr = [1]
+    tl_foo = TagList("foo")
+    tl_bar = TagList("bar")
+
+    def assert_tag_list(x: TagList, contents: list[str]) -> None:
+        assert isinstance(x, TagList)
+        assert len(x) == len(contents)
+        for i, content_item in enumerate(contents):
+            assert x[i] == content_item
+
+        # Make sure the TagLists are not altered over time
+        assert len(empty_arr) == 0
+        assert len(int_arr) == 1
+        assert len(tl_foo) == 1
+        assert len(tl_bar) == 1
+        assert int_arr[0] == 1
+        assert tl_foo[0] == "foo"
+        assert tl_bar[0] == "bar"
+
+    assert_tag_list(empty_arr + tl_foo, ["foo"])
+    assert_tag_list(tl_foo + empty_arr, ["foo"])
+    assert_tag_list(int_arr + tl_foo, ["1", "foo"])
+    assert_tag_list(tl_foo + int_arr, ["foo", "1"])
+    assert_tag_list(tl_foo + tl_bar, ["foo", "bar"])
+    assert_tag_list(tl_foo + "bar", ["foo", "bar"])
+    assert_tag_list("foo" + tl_bar, ["foo", "bar"])
+
+
+def test_taglist_extend():
+    x = TagList("foo")
+    y = ["bar", "baz"]
+    x.extend(y)
+    assert isinstance(x, TagList)
+    assert list(x) == ["foo", "bar", "baz"]
+    assert y == ["bar", "baz"]
+
+    x = TagList("foo")
+    y = TagList("bar", "baz")
+    x.extend(y)
+    assert isinstance(x, TagList)
+    assert list(x) == ["foo", "bar", "baz"]
+    assert list(y) == ["bar", "baz"]
+
+    x = TagList("foo")
+    y = "bar"
+    x.extend(y)
+    assert list(x) == ["foo", "bar"]
+    assert y == "bar"
+
+    x = TagList("foo")
+    x.extend(TagList("bar"))
+    assert list(x) == ["foo", "bar"]
+
+
 def test_taglist_flatten():
     x = div(1, TagList(2, TagList(span(3), 4)))
     assert list(x.children) == ["1", "2", span("3"), "4"]
