@@ -1,4 +1,4 @@
-__version__ = "0.5.3.9002"
+__version__ = "0.5.3.9003"
 
 from . import svg, tags
 from ._core import TagAttrArg  # pyright: ignore[reportUnusedImport] # noqa: F401
