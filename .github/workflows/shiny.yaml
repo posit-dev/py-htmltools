@@ -22,7 +22,7 @@ jobs:
       - name: Setup py-shiny@main
         uses: posit-dev/py-shiny/.github/py-shiny/setup@main
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: Checkout dev branch of py-htmltools
         uses: actions/checkout@v4
