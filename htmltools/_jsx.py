@@ -262,7 +262,7 @@ def _serialize_attr(x: object) -> str:
             "[" + ", ".join([_serialize_attr(y) for y in cast(Iterable[Any], x)]) + "]"
         )
     if isinstance(x, dict):
-        x1: dict[str, Any] = x  # make pyright happy
+        x1 = cast(Dict[str, Any], x)
         return "{" + ", ".join([f'"{y}": ' + _serialize_attr(x1[y]) for y in x1]) + "}"
     if isinstance(x, bool):
         return str(x).lower()
