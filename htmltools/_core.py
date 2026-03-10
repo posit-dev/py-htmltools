@@ -1126,7 +1126,7 @@ class HTMLDocument:
         for dep in rendered["dependencies"]:
             dep.copy_to(destdir, include_version=include_version)
 
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             f.write(rendered["html"])
         return file
 
