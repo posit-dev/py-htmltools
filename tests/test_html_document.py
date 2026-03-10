@@ -356,7 +356,7 @@ def test_save_html_utf8_encoding(monkeypatch):
     import builtins
 
     original_open = builtins.open
-    open_calls: list[call] = []
+    open_calls: list = []
 
     def tracking_open(*args, **kwargs):
         open_calls.append(call(*args, **kwargs))
