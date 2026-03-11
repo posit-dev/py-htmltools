@@ -1013,7 +1013,7 @@ def _render_tag_or_taglist(x: Tag | TagList) -> str:
 
 
 def wrap_displayhook_handler(
-    handler: Callable[[object], None]
+    handler: Callable[[object], None],
 ) -> Callable[[object], None]:
     """
     Wrap a displayhook function to handle different types of input objects

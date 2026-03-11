@@ -34,8 +34,7 @@ def test_html_document_html_input():
         ),
         lang="en",
     )
-    assert doc.render()["html"] == textwrap.dedent(
-        """\
+    assert doc.render()["html"] == textwrap.dedent("""\
         <!DOCTYPE html>
         <html myattr="value" lang="en">
           <head>
@@ -47,8 +46,7 @@ def test_html_document_html_input():
           <body>
             <div>Body content</div>
           </body>
-        </html>"""
-    )
+        </html>""")
 
     doc = HTMLDocument(
         tags.html(
@@ -59,8 +57,7 @@ def test_html_document_html_input():
         ),
         lang="en",
     )
-    assert doc.render()["html"] == textwrap.dedent(
-        """\
+    assert doc.render()["html"] == textwrap.dedent("""\
         <!DOCTYPE html>
         <html myattr="value" lang="en">
           <head>
@@ -72,8 +69,7 @@ def test_html_document_html_input():
           <body>
             <div>Body content</div>
           </body>
-        </html>"""
-    )
+        </html>""")
 
     doc = HTMLDocument(
         tags.html(
@@ -83,8 +79,7 @@ def test_html_document_html_input():
         ),
         lang="en",
     )
-    assert doc.render()["html"] == textwrap.dedent(
-        """\
+    assert doc.render()["html"] == textwrap.dedent("""\
         <!DOCTYPE html>
         <html myattr="value" lang="en">
           <head>
@@ -95,8 +90,7 @@ def test_html_document_html_input():
           <body>
             <div>Body content</div>
           </body>
-        </html>"""
-    )
+        </html>""")
 
     doc = HTMLDocument(
         tags.html(
@@ -105,24 +99,21 @@ def test_html_document_html_input():
         ),
         lang="en",
     )
-    assert doc.render()["html"] == textwrap.dedent(
-        """\
+    assert doc.render()["html"] == textwrap.dedent("""\
         <!DOCTYPE html>
         <html myattr="value" lang="en">
           <head>
             <meta charset="utf-8"/>
           </head>
           <div>Body content</div>
-        </html>"""
-    )
+        </html>""")
 
     # HTMLDocument with a <body> tag.
     doc = HTMLDocument(
         tags.body(div("Body content"), head_content("abcd")),
         lang="en",
     )
-    assert doc.render()["html"] == textwrap.dedent(
-        """\
+    assert doc.render()["html"] == textwrap.dedent("""\
         <!DOCTYPE html>
         <html lang="en">
           <head>
@@ -133,16 +124,14 @@ def test_html_document_html_input():
           <body>
             <div>Body content</div>
           </body>
-        </html>"""
-    )
+        </html>""")
 
     # HTMLDocument with a TagList.
     doc = HTMLDocument(
         TagList(div("Body content"), head_content("abcd")),
         lang="en",
     )
-    assert doc.render()["html"] == textwrap.dedent(
-        """\
+    assert doc.render()["html"] == textwrap.dedent("""\
         <!DOCTYPE html>
         <html lang="en">
           <head>
@@ -153,8 +142,7 @@ def test_html_document_html_input():
           <body>
             <div>Body content</div>
           </body>
-        </html>"""
-    )
+        </html>""")
 
 
 def test_html_document_head_hoisting():
@@ -170,8 +158,7 @@ def test_html_document_head_hoisting():
         )
     )
 
-    assert doc.render()["html"] == textwrap.dedent(
-        """\
+    assert doc.render()["html"] == textwrap.dedent("""\
         <!DOCTYPE html>
         <html>
           <head>
@@ -186,8 +173,7 @@ def test_html_document_head_hoisting():
               Hello, <span>world</span>
             </div>
           </body>
-        </html>"""
-    )
+        </html>""")
     # In this case, render()["html"] and save_html() should produce the same thing.
     # That's not always true, like when there are html dependencies.
     assert doc.render()["html"] == saved_html(doc)
@@ -370,9 +356,9 @@ def test_save_html_utf8_encoding(monkeypatch):
 
         # Verify save_html() opened the file with encoding="utf-8"
         write_calls = [c for c in open_calls if call(f, "w", encoding="utf-8") == c]
-        assert len(write_calls) == 1, (
-            f"Expected open({f!r}, 'w', encoding='utf-8'), got: {open_calls}"
-        )
+        assert (
+            len(write_calls) == 1
+        ), f"Expected open({f!r}, 'w', encoding='utf-8'), got: {open_calls}"
 
         # Also verify the content roundtrips correctly
         with original_open(f, "r", encoding="utf-8") as fh:
