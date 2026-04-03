@@ -59,5 +59,8 @@ htmltools = ["py.typed"]
 ignore = "E203, E302, E402, E501, E704, F403, F405, W503"
 extend-exclude = "docs, .venv, venv, typings, e2e, build"
 
+[tool.black]
+target-version = ["py39"]
+
 [tool.isort]
 profile = "black"
