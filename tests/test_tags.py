@@ -59,14 +59,12 @@ def test_basic_tag_api():
     assert x1 == x2
     assert x1.attrs["id"] == "baz"
     assert x1.attrs["bool"] == ""
-    assert str(x1) == textwrap.dedent(
-        """\
+    assert str(x1) == textwrap.dedent("""\
         <div class="foo" for="bar" id="baz" bool="">
           <h1>hello</h1>
           <h2>world</h2>
           text12.1listhere
-        </div>"""
-    )
+        </div>""")
     assert x1.attrs["class"] == "foo"
     x1.add_class("bar")
     assert x1.attrs["class"] == "foo bar"
@@ -324,155 +322,125 @@ def test_tag_inline():
     # Block tags with two inline children
     expect_html(
         div("a", "b"),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               ab
-            </div>"""
-        ),
+            </div>"""),
     )
     expect_html(
         div(span("a"), "b"),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <span>a</span>b
-            </div>"""
-        ),
+            </div>"""),
     )
     expect_html(
         div("a", span("b")),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               a<span>b</span>
-            </div>"""
-        ),
+            </div>"""),
     )
     expect_html(
         div(span("a"), span("b")),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <span>a</span><span>b</span>
-            </div>"""
-        ),
+            </div>"""),
     )
 
     # Block tags with one block and one inline child
     expect_html(
         div("a", div("b")),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               a
               <div>b</div>
-            </div>"""
-        ),
+            </div>"""),
     )
     expect_html(
         div(span("a"), div("b")),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <span>a</span>
               <div>b</div>
-            </div>"""
-        ),
+            </div>"""),
     )
     expect_html(
         div(div("a"), "b"),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <div>a</div>
               b
-            </div>"""
-        ),
+            </div>"""),
     )
     expect_html(
         div(div("a"), span("b")),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <div>a</div>
               <span>b</span>
-            </div>"""
-        ),
+            </div>"""),
     )
 
     # Block tag with two block children
     expect_html(
         div(div("a"), div("b")),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <div>a</div>
               <div>b</div>
-            </div>"""
-        ),
+            </div>"""),
     )
 
     # Block tag with three children; mix of inline and block
     expect_html(
         div(span("a"), span("b"), div("c")),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <span>a</span><span>b</span>
               <div>c</div>
-            </div>"""
-        ),
+            </div>"""),
     )
     expect_html(
         div(span("a"), "b", div("c")),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <span>a</span>b
               <div>c</div>
-            </div>"""
-        ),
+            </div>"""),
     )
     expect_html(
         div(div("a"), "b", span("c")),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <div>a</div>
               b<span>c</span>
-            </div>"""
-        ),
+            </div>"""),
     )
 
     # More complex nesting
     expect_html(
         div(span(tags.b("a")), span(tags.b("b"))),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <span><b>a</b></span><span><b>b</b></span>
-            </div>"""
-        ),
+            </div>"""),
     )
     expect_html(
         span(span(tags.b("a")), span(tags.b("b")), span("c")),
-        textwrap.dedent(
-            """\
-            <span><span><b>a</b></span><span><b>b</b></span><span>c</span></span>"""
-        ),
+        textwrap.dedent("""\
+            <span><span><b>a</b></span><span><b>b</b></span><span>c</span></span>"""),
     )
     expect_html(
         div(div(span("a")), span(tags.b("b"))),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             <div>
               <div>
                 <span>a</span>
               </div>
               <span><b>b</b></span>
-            </div>"""
-        ),
+            </div>"""),
     )
 
 
@@ -490,25 +458,21 @@ def test_tag_list_ws():
     x = TagList("a", "b", div("c", "d"), span("e", "f"), span("g", "h"))
     expect_html(
         x.get_html_string(),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             ab
             <div>
               cd
             </div>
-            <span>ef</span><span>gh</span>"""
-        ),
+            <span>ef</span><span>gh</span>"""),
     )
     expect_html(
         x.get_html_string(add_ws=True),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             ab
             <div>
               cd
             </div>
-            <span>ef</span><span>gh</span>"""
-        ),
+            <span>ef</span><span>gh</span>"""),
     )
     expect_html(
         x.get_html_string(indent=1, add_ws=True),
@@ -572,8 +536,7 @@ def test_tag_escaping():
 
 
 def test_html_save():
-    assert saved_html(div()) == textwrap.dedent(
-        """\
+    assert saved_html(div()) == textwrap.dedent("""\
         <!DOCTYPE html>
         <html>
           <head>
@@ -582,8 +545,7 @@ def test_html_save():
           <body>
             <div></div>
           </body>
-        </html>"""
-    )
+        </html>""")
 
     dep = HTMLDependency(
         "foo",
@@ -592,8 +554,7 @@ def test_html_save():
         stylesheet={"href": "testdep/testdep.css"},
         script={"src": "testdep/testdep.js"},
     )
-    assert saved_html(div("foo", dep), libdir=None) == textwrap.dedent(
-        """\
+    assert saved_html(div("foo", dep), libdir=None) == textwrap.dedent("""\
         <!DOCTYPE html>
         <html>
           <head>
@@ -605,14 +566,12 @@ def test_html_save():
           <body>
             <div>foo</div>
           </body>
-        </html>"""
-    )
+        </html>""")
 
     doc = HTMLDocument(
         div("foo", dep), tags.meta(name="description", content="test"), lang="en"
     )
-    assert saved_html(doc) == textwrap.dedent(
-        """\
+    assert saved_html(doc) == textwrap.dedent("""\
         <!DOCTYPE html>
         <html lang="en">
           <head>
@@ -625,8 +584,7 @@ def test_html_save():
             <div>foo</div>
             <meta name="description" content="test"/>
           </body>
-        </html>"""
-    )
+        </html>""")
 
 
 def test_tag_str():
@@ -900,11 +858,8 @@ def test_attr_vals():
     }
     test = TagList(div(**attrs), div(class_="foo").add_class("bar"))
 
-    assert (
-        str(test)
-        == """<div true="" str="a" int="1" float="1.2"></div>
+    assert str(test) == """<div true="" str="a" int="1" float="1.2"></div>
 <div class="foo bar"></div>"""
-    )
 
 
 def test_tag_normalize_attr():
@@ -917,12 +872,10 @@ def test_tag_normalize_attr():
 
 def test_metadata_nodes_gone():
     # Make sure MetadataNodes don't result in a blank line.
-    assert str(div(span("Body content"), head_content("abc"))) == textwrap.dedent(
-        """\
+    assert str(div(span("Body content"), head_content("abc"))) == textwrap.dedent("""\
         <div>
           <span>Body content</span>
-        </div>"""
-    )
+        </div>""")
 
     assert (
         str(TagList(span("Body content"), MetadataNode()))
@@ -939,12 +892,10 @@ def test_repr_html():
     f = Foo()
     assert str(TagList(f)) == "<span>Foo</span>"
     assert str(span(f)) == "<span><span>Foo</span></span>"
-    assert str(div(f)) == textwrap.dedent(
-        """\
+    assert str(div(f)) == textwrap.dedent("""\
         <div>
           <span>Foo</span>
-        </div>"""
-    )
+        </div>""")
 
 
 def test_types():
