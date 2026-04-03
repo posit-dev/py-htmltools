@@ -33,8 +33,7 @@ def test_dep_resolution():
     )
     c1_0 = HTMLDependency("c", "1.0", source={"subdir": "foo"}, script={"src": "c1.js"})
     test = TagList(a1_1, b1_9, b1_10, a1_2, a1_2_1, b1_9, b1_10, c1_0)
-    assert HTMLDocument(test).render(lib_prefix=None)["html"] == textwrap.dedent(
-        """\
+    assert HTMLDocument(test).render(lib_prefix=None)["html"] == textwrap.dedent("""\
         <!DOCTYPE html>
         <html>
           <head>
@@ -45,8 +44,7 @@ def test_dep_resolution():
             <script src="c-1.0/c1.js"></script>
           </head>
           <body></body>
-        </html>"""
-    )
+        </html>""")
 
     assert HTMLDocument(test).render(lib_prefix="libfoo")["html"] == textwrap.dedent(
         """\
@@ -88,8 +86,7 @@ def test_append_deps():
     )
     b1_0 = HTMLDependency("b", "1.0", source={"subdir": "foo"}, script={"src": "b1.js"})
 
-    expected_result = textwrap.dedent(
-        """\
+    expected_result = textwrap.dedent("""\
         <!DOCTYPE html>
         <html>
           <head>
@@ -101,8 +98,7 @@ def test_append_deps():
           <body>
             <div></div>
           </body>
-        </html>"""
-    )
+        </html>""")
 
     x = div(a1_1, b1_0)
     x.append(a1_2)
@@ -134,8 +130,7 @@ def test_script_input():
     # Make sure repeated calls to as_html() repeatedly encode
     test = TagList([dep1, dep2])
     for _ in range(2):
-        assert HTMLDocument(test).render()["html"] == textwrap.dedent(
-            """\
+        assert HTMLDocument(test).render()["html"] == textwrap.dedent("""\
             <!DOCTYPE html>
             <html>
               <head>
@@ -145,8 +140,7 @@ def test_script_input():
                 <script src="lib/a-1.0/js/foo%20bar.js"></script>
               </head>
               <body></body>
-            </html>"""
-        )
+            </html>""")
 
 
 def test_head_output():
@@ -199,16 +193,12 @@ def test_meta_output():
         meta=[{"name": "x", "content": "x-value"}, {"name": "y", "content": "y-value"}],
     )
 
-    assert str(a.as_html_tags()) == textwrap.dedent(
-        """\
+    assert str(a.as_html_tags()) == textwrap.dedent("""\
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <script src="lib/a-1.0/a1.js"></script>"""
-    )
-    assert str(b.as_html_tags()) == textwrap.dedent(
-        """\
+        <script src="lib/a-1.0/a1.js"></script>""")
+    assert str(b.as_html_tags()) == textwrap.dedent("""\
         <meta name="x" content="x-value"/>
-        <meta name="y" content="y-value"/>"""
-    )
+        <meta name="y" content="y-value"/>""")
 
     # Combine the two in an HTMLDocument and render; all meta tags should show up.
     combined_html = HTMLDocument(TagList(a, b)).render()["html"]

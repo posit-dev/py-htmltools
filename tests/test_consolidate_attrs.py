@@ -3,7 +3,7 @@ from htmltools import HTML, consolidate_attrs
 
 def test_consolidate_attrs():
 
-    (attrs, children) = consolidate_attrs(
+    attrs, children = consolidate_attrs(
         {"class": "&c1"},
         0,
         # This tests `__radd__` method of `HTML` class

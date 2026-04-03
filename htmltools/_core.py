@@ -1013,7 +1013,7 @@ def _render_tag_or_taglist(x: Tag | TagList) -> str:
 
 
 def wrap_displayhook_handler(
-    handler: Callable[[object], None]
+    handler: Callable[[object], None],
 ) -> Callable[[object], None]:
     """
     Wrap a displayhook function to handle different types of input objects
@@ -1126,7 +1126,7 @@ class HTMLDocument:
         for dep in rendered["dependencies"]:
             dep.copy_to(destdir, include_version=include_version)
 
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             f.write(rendered["html"])
         return file
 

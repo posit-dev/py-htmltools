@@ -11,8 +11,7 @@ def test_jsx_tags():
     react_ver = [str(d.version) for d in deps if d.name == "react"][0]
     react_dom_ver = [str(d.version) for d in deps if d.name == "react-dom"][0]
 
-    assert HTMLDocument(Foo()).render()["html"] == textwrap.dedent(
-        """\
+    assert HTMLDocument(Foo()).render()["html"] == textwrap.dedent("""\
         <!DOCTYPE html>
         <html>
           <head>
@@ -35,13 +34,10 @@ def test_jsx_tags():
         })();
         </script>
           </body>
-        </html>"""
-        % (react_ver, react_dom_ver, react_ver, react_dom_ver)
-    )
+        </html>""" % (react_ver, react_dom_ver, react_ver, react_dom_ver))
 
     # Only the "top-level" tag gets wrapped in <script> tags
-    assert HTMLDocument(Foo(Bar())).render()["html"] == textwrap.dedent(
-        """\
+    assert HTMLDocument(Foo(Bar())).render()["html"] == textwrap.dedent("""\
         <!DOCTYPE html>
         <html>
           <head>
@@ -67,9 +63,7 @@ def test_jsx_tags():
         })();
         </script>
           </body>
-        </html>"""
-        % (react_ver, react_dom_ver, react_ver, react_dom_ver)
-    )
+        </html>""" % (react_ver, react_dom_ver, react_ver, react_dom_ver))
 
     x = Foo(
         span(),
@@ -86,8 +80,7 @@ def test_jsx_tags():
         string="string",
         list=[1, 2, 3],
     )
-    assert str(x) == textwrap.dedent(
-        """\
+    assert str(x) == textwrap.dedent("""\
         <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
@@ -117,8 +110,7 @@ def test_jsx_tags():
           thisScript.after(container);
           thisScript.removeAttribute('data-needs-render');
         })();
-        </script>"""
-    )
+        </script>""")
 
     x = Foo(
         "Hello",
@@ -127,8 +119,7 @@ def test_jsx_tags():
         jsxTag=Bar(),
         style=css(color="red"),
     )
-    assert str(x) == textwrap.dedent(
-        """\
+    assert str(x) == textwrap.dedent("""\
         <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
@@ -147,14 +138,12 @@ def test_jsx_tags():
           thisScript.after(container);
           thisScript.removeAttribute('data-needs-render');
         })();
-        </script>"""
-    )
+        </script>""")
 
     x = Foo(
         htmlTag=[div(), div(foo=1)],
     )
-    assert str(x) == textwrap.dedent(
-        """\
+    assert str(x) == textwrap.dedent("""\
         <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
@@ -168,16 +157,14 @@ def test_jsx_tags():
           thisScript.after(container);
           thisScript.removeAttribute('data-needs-render');
         })();
-        </script>"""
-    )
+        </script>""")
 
     x = Foo(
         div(style=css(color="red")),
         func=jsx("() => console.log('foo')"),
         style={"margin": "1rem"},
     )
-    assert str(x) == textwrap.dedent(
-        """\
+    assert str(x) == textwrap.dedent("""\
         <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
@@ -193,8 +180,7 @@ def test_jsx_tags():
           thisScript.after(container);
           thisScript.removeAttribute('data-needs-render');
         })();
-        </script>"""
-    )
+        </script>""")
 
 
 def test_jsx_tagifiable_children():
@@ -225,8 +211,7 @@ def test_jsx_tagifiable_children():
     assert HTMLDocument(x).render()["html"].find('<script src="a-1.1/a1.js"></script>')
     assert HTMLDocument(x).render()["html"].find('<script src="b-1.1/b1.js"></script>')
 
-    assert str(x) == textwrap.dedent(
-        """\
+    assert str(x) == textwrap.dedent("""\
         <script type="text/javascript" data-needs-render="">
         (function() {
           var container = new DocumentFragment();
@@ -251,8 +236,7 @@ def test_jsx_tagifiable_children():
           thisScript.after(container);
           thisScript.removeAttribute('data-needs-render');
         })();
-        </script>"""
-    )
+        </script>""")
 
 
 def test_jsx_tag_normalize_attr():
