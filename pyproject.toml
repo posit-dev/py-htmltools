@@ -15,17 +15,18 @@ classifiers = [
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Text Processing :: Markup :: HTML",
 ]
 dependencies = ["typing-extensions>=3.10.0.0", "packaging>=20.9"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/rstudio/py-htmltools/issues"
@@ -60,7 +61,7 @@ ignore = "E203, E302, E402, E501, E704, F403, F405, W503"
 extend-exclude = "docs, .venv, venv, typings, e2e, build"
 
 [tool.black]
-target-version = ["py39"]
+target-version = ["py310"]
 
 [tool.isort]
 profile = "black"
