@@ -5,11 +5,15 @@ All notable changes to htmltools for Python will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [0.6.1] - 2026-05-01
 
 ### Bug fixes
 
 * `HTMLDocument.save_html()` now explicitly uses `encoding="utf-8"` when writing files, fixing `UnicodeEncodeError` on Windows when HTML contains non-ASCII characters (e.g., Unicode minus sign U+2212 from matplotlib SVG output). (#102)
+
+### Other changes
+
+* Dropped support for Python 3.9 (EOL). Added support for Python 3.13 and 3.14. (#104)
 
 ## [0.6.0] 2024-10-29
 
