@@ -287,7 +287,7 @@ class ReprHtml(Protocol):
 # =============================================================================
 # TagList class
 # =============================================================================
-class TagList(UserList[TagNode]):
+class TagList(UserList[ChildT]):
     """
     Create an HTML tag list (i.e., a fragment of HTML)
 
@@ -310,50 +310,50 @@ class TagList(UserList[TagNode]):
         """
         return isinstance(x, str)
 
-    def __init__(self, *args: TagChild) -> None:
-        super().__init__(_tagchilds_to_tagnodes(args))
+    def __init__(self, *args: "TagChild[ChildT]") -> None:
+        super().__init__(cast(list[ChildT], _tagchilds_to_tagnodes(args)))
 
-    def extend(self, other: Iterable[TagChild]) -> None:
+    def extend(self, other: Iterable["TagChild[ChildT]"]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
-        super().extend(_tagchilds_to_tagnodes(other))
+        super().extend(cast(list[ChildT], _tagchilds_to_tagnodes(other)))
 
-    def append(self, item: TagChild, *args: TagChild) -> None:
+    def append(self, item: "TagChild[ChildT]", *args: "TagChild[ChildT]") -> None:
         """
         Append tag children to the end of the list.
         """
 
         self.extend([item, *args])
 
-    def insert(self, i: SupportsIndex, item: TagChild) -> None:
+    def insert(self, i: SupportsIndex, item: "TagChild[ChildT]") -> None:
         """
         Insert tag children before a given index.
         """
 
-        self[i:i] = _tagchilds_to_tagnodes([item])
+        self[i:i] = cast(list[ChildT], _tagchilds_to_tagnodes([item]))
 
-    def __add__(self, item: Iterable[TagChild]) -> TagList:
+    def __add__(self, item: Iterable["TagChild[ChildT]"]) -> "TagList[ChildT]":
         """
         Return a new TagList with the item added at the end.
         """
 
         if self._should_not_expand(item):
-            return TagList(self, item)
+            return cast("TagList[ChildT]", TagList(self, item))
 
-        return TagList(self, *item)
+        return cast("TagList[ChildT]", TagList(self, *item))  # pyright: ignore[reportArgumentType]
 
-    def __radd__(self, item: Iterable[TagChild]) -> TagList:
+    def __radd__(self, item: Iterable["TagChild[ChildT]"]) -> "TagList[ChildT]":
         """
         Return a new TagList with the item added to the beginning.
         """
 
         if self._should_not_expand(item):
-            return TagList(item, self)
+            return cast("TagList[ChildT]", TagList(item, self))
 
         return TagList(*item, self)
 
-    def tagify(self) -> "TagList":
+    def tagify(self) -> "TagifiedTagList":
         """
         Convert any tagifiable children to Tag/TagList objects.
 
@@ -378,12 +378,12 @@ class TagList(UserList[TagNode]):
                 if isinstance(tagified_child, TagList):
                     # If the Tagifiable object returned a TagList, flatten it into this
                     # one.
-                    cp[i : i + 1] = _tagchilds_to_tagnodes(tagified_child)
+                    cp[i : i + 1] = cast(list[ChildT], _tagchilds_to_tagnodes(tagified_child))
                 else:
-                    cp[i] = tagified_child
+                    cp[i] = cast(ChildT, tagified_child)
 
             elif isinstance(child, MetadataNode):
-                cp[i] = copy(child)
+                cp[i] = cast(ChildT, copy(child))
 
         # A3 post-condition: after the recursion, no bare Tagifiable may remain.
         # Tag and TagList are themselves Tagifiable but already-tagified shapes,
@@ -399,7 +399,7 @@ class TagList(UserList[TagNode]):
                     "instead of `something`)."
                 )
 
-        return cp
+        return cast("TagifiedTagList", cp)
 
     def save_html(
         self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
@@ -906,7 +906,7 @@ class Tag:
         """
 
         cp = copy(self)
-        cp.children = cp.children.tagify()
+        cp.children = cast(TagList, cp.children.tagify())
         return cp
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
@@ -1084,7 +1084,7 @@ def wrap_displayhook_handler(
 
     def handler_wrapper(value: object) -> None:
         if isinstance(value, (Tag, TagList, Tagifiable)):
-            handler(value)
+            handler(value)  # pyright: ignore[reportUnknownArgumentType]
         elif isinstance(value, ReprHtml):
             handler(HTML(value._repr_html_()))  # pyright: ignore[reportPrivateUsage]
         elif value not in (None, ...):
