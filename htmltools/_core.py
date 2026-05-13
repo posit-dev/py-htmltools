@@ -323,6 +323,14 @@ class TagList(UserList[TagNode]):
     def tagify(self) -> "TagList":
         """
         Convert any tagifiable children to Tag/TagList objects.
+
+        Raises
+        ------
+        TypeError
+            If a child's ``.tagify()`` returned a ``TagList`` containing an
+            un-tagified ``Tagifiable`` object — i.e. the recursion was not
+            done all the way down. The error names the offending class and
+            slot index so the broken ``.tagify()`` is easy to find.
         """
 
         cp = copy(self)
@@ -343,6 +351,21 @@ class TagList(UserList[TagNode]):
 
             elif isinstance(child, MetadataNode):
                 cp[i] = copy(child)
+
+        # A3 post-condition: after the recursion, no bare Tagifiable may remain.
+        # Tag and TagList are themselves Tagifiable but already-tagified shapes,
+        # so they are excluded from the check.
+        for i, child in enumerate(cp):
+            if isinstance(child, Tagifiable) and not isinstance(child, (Tag, TagList)):
+                raise TypeError(
+                    "Expected a fully tagified value, but a child .tagify() "
+                    "returned a TagList containing an un-tagified "
+                    f"{type(child).__name__} at index {i}. "
+                    "A .tagify() implementation must recursively tagify its "
+                    "return value (consider returning `something.tagify()` "
+                    "instead of `something`)."
+                )
+
         return cp
 
     def save_html(
