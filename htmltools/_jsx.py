@@ -19,6 +19,7 @@ from ._core import (
     Tag,
     TagAttrValue,
     Tagifiable,
+    TagifiedTag,
     TagList,
     TagNode,
 )
@@ -110,7 +111,7 @@ class JSXTag:
     def append(self, *args: TagNode) -> None:
         self.children.append(*args)
 
-    def tagify(self) -> Tag:
+    def tagify(self) -> TagifiedTag:
         metadata_nodes: list[MetadataNode] = []
 
         # This function is recursively applied to the attributes and children. It does
@@ -161,7 +162,7 @@ class JSXTag:
             ]
         )
 
-        return Tag(
+        return cast("TagifiedTag", Tag(
             "script",
             {
                 "type": "text/javascript",
@@ -171,7 +172,7 @@ class JSXTag:
             _lib_dependency("react", script={"src": "react.production.min.js"}),
             _lib_dependency("react-dom", script={"src": "react-dom.production.min.js"}),
             *metadata_nodes,
-        )
+        ))
 
     def __str__(self) -> str:
         return str(self.tagify())
