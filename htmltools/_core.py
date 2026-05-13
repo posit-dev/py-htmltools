@@ -22,7 +22,6 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
-    TypeVar,
     Union,
     cast,
     overload,
@@ -42,6 +41,8 @@ else:
     from typing_extensions import TypeIs
 
 from typing import Literal, Protocol, SupportsIndex, runtime_checkable
+
+from typing_extensions import TypeAliasType, TypeVar
 
 from packaging.version import Version
 
@@ -108,52 +109,84 @@ For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed 
 unnamed arguments to Tag functions like `div()`.
 """
 
+# -----------------------------------------------------------------------------
+# Tagified shape aliases
+# -----------------------------------------------------------------------------
+# A node that has already been fully tagified: no Tagifiable objects whose
+# .tagify() still needs to be called. Recursive — a tagified Tag's children
+# are themselves tagified. TagList is NOT a member because TagList children
+# are flattened (a TagList never appears as a child slot of another TagList).
+TagifiedNode = Union["Tag[TagifiedNode]", MetadataNode, "ReprHtml", str, "HTML"]
+"""
+A fully-tagified child-slot type. Members never include an un-resolved
+`Tagifiable`; calling `.tagify()` on a node tree returns a structure whose
+slot items are all `TagifiedNode`.
+"""
+
+TagifiedTag = TypeAliasType("TagifiedTag", "Tag[TagifiedNode]")
+"""
+A `Tag` whose entire subtree has been tagified. This is the return type of
+`Tag.tagify()` and `JSXTag.tagify()`.
+"""
+
+TagifiedTagList = TypeAliasType("TagifiedTagList", "TagList[TagifiedNode]")
+"""
+A `TagList` whose items are all tagified. This is the return type of
+`TagList.tagify()`.
+"""
+
+Tagified = Union[TagifiedTagList, TagifiedNode]
+"""
+Anything `.tagify()` is permitted to return: either a top-level
+`TagifiedTagList`, or one of the `TagifiedNode` shapes (which themselves
+include `TagifiedTag`).
+"""
+
+
+# -----------------------------------------------------------------------------
+# TagNode / TagChild (generic) and the ChildT TypeVar
+# -----------------------------------------------------------------------------
 # NOTE: If this type is updated, please update `is_tag_node()`
-TagNode = Union[
-    "Tagifiable",
-    # "Tag", # Tag is Tagifiable, do not include here
-    # "TagList" is Tagifiable, so it is included in practice.
-    #   But in reality it should be excluded because a TagList cannot contain a TagList.
-    MetadataNode,
-    "ReprHtml",
-    str,
-    "HTML",
-]
+TagNode = Union["Tagifiable", TagifiedNode]
 """
-Types of objects that can be a node in a `Tag` tree. Equivalently, these are the valid
-elements of a `TagList`. Note that this type represents the internal structure of items
-in a `TagList`; the user-facing type is `TagChild`.
+Types of objects that can be a node in a `Tag` tree. Equivalently, these are
+the valid elements of a `TagList`. Note that this type represents the
+internal structure of items in a `TagList`; the user-facing type is
+`TagChild`.
 """
 
-# NOTE: If this type is updated, please update `is_tag_child()`
-TagChild = Union[
-    TagNode,
-    "TagList",
-    float,
-    None,
-    Sequence["TagChild"],
-]
+ChildT = TypeVar("ChildT", bound=TagNode, default=TagNode)
 """
-Types of objects that can be passed as children to Tag functions like `div()`. The `Tag`
-functions and the `TagList()` constructor can accept these as unnamed arguments; they
-will be flattened and normalized to `TagNode` objects.
+Type parameter for `Tag` and `TagList`. Defaults to `TagNode`, so bare
+`Tag` / `TagList` keep their pre-#105 meaning.
+"""
+
+# NOTE: If this alias is updated, please update `is_tag_child()`
+# `TagChild` is itself generic: bare `TagChild` means `TagChild[TagNode]`
+# (today's wide alias); `TagChild[TagifiedNode]` is the tagified-input alias
+# used by `TagList[TagifiedNode]`'s mutation methods.
+TagChild = TypeAliasType(
+    "TagChild",
+    Union[ChildT, "TagList[ChildT]", float, None, Sequence["TagChild[ChildT]"]],
+    type_params=(ChildT,),
+)
+"""
+Types of objects that can be passed as children to Tag functions like
+`div()`. The `Tag` functions and the `TagList()` constructor can accept
+these as unnamed arguments; they will be flattened and normalized to
+`TagNode` objects.
 """
 
 
-# These two types existed in htmltools 0.14.0 and earlier. They are here so that
-# existing versions of Shiny will be able to load, but users of those existing packages
-# will see type errors, which should encourage them to upgrade Shiny.
+# These two types existed in htmltools 0.14.0 and earlier. They are here so
+# that existing versions of Shiny will be able to load, but users of those
+# existing packages will see type errors, which should encourage them to
+# upgrade Shiny.
 TagChildArg = Never
 TagAttrArg = Never
 
 
-# # No use yet, so keeping code commented for now
-# TagNodeT = TypeVar("TagNodeT", bound=TagNode)
-# """
-# Type variable for `TagNode`.
-# """
-
-TagChildT = TypeVar("TagChildT", bound=TagChild)
+TagChildT = TypeVar("TagChildT", bound="TagChild")
 """
 Type variable for `TagChild`.
 """
