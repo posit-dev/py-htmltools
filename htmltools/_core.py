@@ -255,11 +255,12 @@ def is_tag_child(x: object) -> TypeIs[TagChild]:
 @runtime_checkable
 class Tagifiable(Protocol):
     """
-    Objects with `tagify()` methods are considered `Tagifiable`. Note that an object
-    returns a `TagList`, the children of the `TagList` must also be tagified.
+    Objects with `tagify()` methods are considered `Tagifiable`. The return
+    value must be `Tagified` — i.e. fully tagified all the way down. See
+    `TagifiedNode` / `TagifiedTag` / `TagifiedTagList`.
     """
 
-    def tagify(self) -> "TagList | Tag | MetadataNode | str | HTML": ...
+    def tagify(self) -> "Tagified": ...
 
 
 @runtime_checkable
