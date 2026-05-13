@@ -13,6 +13,7 @@ from htmltools import (
     MetadataNode,
     Tag,
     TagFunction,
+    TagifiedTagList,
     TagList,
     TagNode,
     a,
@@ -622,7 +623,7 @@ def _walk_mutate(x: TagNode, fn: Callable[[TagNode], TagNode]) -> TagNode:
     x = fn(x)
     if isinstance(x, Tag):
         for i, child in enumerate(x.children):
-            x.children[i] = _walk_mutate(child, fn)
+            x.children[i] = _walk_mutate(child, fn)  # pyright: ignore[reportCallIssue, reportArgumentType]
     elif isinstance(x, list):
         for i, child in enumerate(x):
             x[i] = _walk_mutate(child, fn)  # pyright: ignore[reportArgumentType]
@@ -697,7 +698,7 @@ def test_taglist_add():
     tl_foo = TagList("foo")
     tl_bar = TagList("bar")
 
-    def assert_tag_list(x: TagList, contents: list[str]) -> None:
+    def assert_tag_list(x: "TagList[Any]", contents: list[str]) -> None:
         assert isinstance(x, TagList)
         assert len(x) == len(contents)
         for i, content_item in enumerate(contents):
@@ -826,7 +827,7 @@ def test_taglist_tagifiable():
         def __init__(self, *args) -> None:
             self._content = TagList(*args)
 
-        def tagify(self) -> TagList:
+        def tagify(self) -> TagifiedTagList:
             return self._content.tagify()
 
     x = TagList(1, Foo(), 2)
