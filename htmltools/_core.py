@@ -18,6 +18,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Generic,
     Iterable,
     Mapping,
     Optional,
@@ -656,7 +657,7 @@ class TagAttrDict(Dict[str, "str | HTML"]):
 # =============================================================================
 # Tag class
 # =============================================================================
-class Tag:
+class Tag(Generic[ChildT]):
     """
     The HTML tag class.
 
@@ -719,7 +720,7 @@ class Tag:
     name: str
     add_ws: bool
     attrs: TagAttrDict
-    children: TagList
+    children: "TagList[ChildT]"
 
     def __init__(
         self,
@@ -743,7 +744,7 @@ class Tag:
         self.attrs = TagAttrDict(*attrs, **kwargs)
 
         kids = [x for x in args if not isinstance(x, dict)]
-        self.children = TagList(*kids)
+        self.children = cast("TagList[ChildT]", TagList(*kids))
 
         self.prev_displayhook: Callable[[object], None] | None = None
 
@@ -778,21 +779,21 @@ class Tag:
         Insert tag children before a given index.
         """
 
-        self.children.insert(index, x)
+        self.children.insert(index, x)  # pyright: ignore[reportArgumentType]
 
     def extend(self, x: Iterable[TagChild]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
 
-        self.children.extend(x)
+        self.children.extend(x)  # pyright: ignore[reportArgumentType]
 
     def append(self, *args: TagChild) -> None:
         """
         Append tag children to the end of the list.
         """
 
-        self.children.append(*args)
+        self.children.append(*args)  # pyright: ignore[reportArgumentType]
 
     def add_class(self: TagT, class_: str, *, prepend: bool = False) -> TagT:
         """
@@ -908,14 +909,14 @@ class Tag:
             self.attrs.update({"style": self.attrs.get("style")}, {"style": style})
         return self
 
-    def tagify(self: TagT) -> TagT:
+    def tagify(self) -> "TagifiedTag":
         """
         Convert any tagifiable children to Tag/TagList objects.
         """
 
         cp = copy(self)
-        cp.children = cp.children.tagify()  # pyright: ignore[reportAttributeAccessIssue]
-        return cp
+        cp.children = cast("TagList[ChildT]", cp.children.tagify())
+        return cast("TagifiedTag", cp)
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
         """
@@ -1206,8 +1207,8 @@ class HTMLDocument:
         self, lib_prefix: Optional[str], include_version: bool
     ) -> Tag:
         content: TagList = self._content
-        html: Tag
-        body: Tag
+        html: Tag[Any]
+        body: Tag[Any]
 
         if (
             len(content) == 1
