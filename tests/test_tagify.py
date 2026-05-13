@@ -38,3 +38,12 @@ def test_tagify_is_idempotent() -> None:
     once = original.tagify()
     twice = once.tagify()
     assert once.get_html_string() == twice.get_html_string()
+
+
+def test_render_guard_catches_mutation_after_tagify() -> None:
+    # The static guarantee is a snapshot at .tagify() time; if a Tagifiable
+    # is appended afterwards, the render-time guard must catch it.
+    tagified = div("hello").tagify()
+    tagified.children.append(_NestedTagifiable())
+    with pytest.raises(RuntimeError, match="_NestedTagifiable"):
+        tagified.get_html_string()
