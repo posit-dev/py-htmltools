@@ -311,12 +311,14 @@ class TagList(UserList[ChildT]):
         return isinstance(x, str)
 
     def __init__(self, *args: "TagChild[ChildT]") -> None:
+        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
         super().__init__(cast(list[ChildT], _tagchilds_to_tagnodes(args)))
 
     def extend(self, other: Iterable["TagChild[ChildT]"]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
+        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
         super().extend(cast(list[ChildT], _tagchilds_to_tagnodes(other)))
 
     def append(self, item: "TagChild[ChildT]", *args: "TagChild[ChildT]") -> None:
@@ -331,6 +333,7 @@ class TagList(UserList[ChildT]):
         Insert tag children before a given index.
         """
 
+        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
         self[i:i] = cast(list[ChildT], _tagchilds_to_tagnodes([item]))
 
     def __add__(self, item: Iterable["TagChild[ChildT]"]) -> "TagList[ChildT]":
@@ -339,8 +342,10 @@ class TagList(UserList[ChildT]):
         """
 
         if self._should_not_expand(item):
+            # cast: TagList constructor infers wider ChildT; narrow to declared return type
             return cast("TagList[ChildT]", TagList(self, item))
 
+        # cast + ignore: *item unpacking widens ChildT; narrow to declared return type
         return cast("TagList[ChildT]", TagList(self, *item))  # pyright: ignore[reportArgumentType]
 
     def __radd__(self, item: Iterable["TagChild[ChildT]"]) -> "TagList[ChildT]":
@@ -349,6 +354,7 @@ class TagList(UserList[ChildT]):
         """
 
         if self._should_not_expand(item):
+            # cast: TagList constructor infers wider ChildT; narrow to declared return type
             return cast("TagList[ChildT]", TagList(item, self))
 
         return TagList(*item, self)
@@ -378,12 +384,14 @@ class TagList(UserList[ChildT]):
                 if isinstance(tagified_child, TagList):
                     # If the Tagifiable object returned a TagList, flatten it into this
                     # one.
+                    # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
                     cp[i : i + 1] = cast(list[ChildT], _tagchilds_to_tagnodes(tagified_child))
                 else:
+                    # cast: tagified_child is TagNode (from Tagifiable.tagify()), wider than ChildT
                     cp[i] = cast(ChildT, tagified_child)
 
             elif isinstance(child, MetadataNode):
-                cp[i] = cast(ChildT, copy(child))
+                cp[i] = copy(child)
 
         # A3 post-condition: after the recursion, no bare Tagifiable may remain.
         # Tag and TagList are themselves Tagifiable but already-tagified shapes,
@@ -906,7 +914,7 @@ class Tag:
         """
 
         cp = copy(self)
-        cp.children = cast(TagList, cp.children.tagify())
+        cp.children = cp.children.tagify()  # pyright: ignore[reportAttributeAccessIssue]
         return cp
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
