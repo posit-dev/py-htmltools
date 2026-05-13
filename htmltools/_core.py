@@ -385,9 +385,9 @@ class TagList(UserList[ChildT]):
                 tagified_child = child.tagify()
                 if isinstance(tagified_child, TagList):
                     # If the Tagifiable object returned a TagList, flatten it into this
-                    # one.
-                    # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
-                    cp[i : i + 1] = cast(list[ChildT], _tagchilds_to_tagnodes(tagified_child))
+                    # one. Cast: Tagified narrows poorly through the recursive alias,
+                    # so we widen back to TagList[TagNode] for the helper call.
+                    cp[i : i + 1] = cast(list[ChildT], _tagchilds_to_tagnodes(cast("TagList[TagNode]", tagified_child)))
                 else:
                     # cast: tagified_child is TagNode (from Tagifiable.tagify()), wider than ChildT
                     cp[i] = cast(ChildT, tagified_child)
