@@ -5,6 +5,42 @@ All notable changes to htmltools for Python will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - unreleased
+
+### Breaking changes
+
+* `Tagifiable.tagify()` now returns `Tagified`, a tighter type covering
+  `TagifiedTag` / `TagifiedTagList` / `TagifiedNode`. Custom `.tagify()`
+  implementations annotated with bare `TagList` or `Tag` return types will
+  fail static type checking; update them to `TagifiedTagList` /
+  `TagifiedTag` / `Tagified` (or omit the return annotation). Runtime
+  behavior of correct `.tagify()` implementations is unchanged. (#105)
+
+* `Tag.tagify()` now statically returns `TagifiedTag` instead of the
+  caller's `Tag` subclass. Code relying on the subclass-preserving
+  signature should `cast` the result. (#105)
+
+* `TagList.tagify()` raises `TypeError` at the boundary when a child's
+  `.tagify()` returned an un-tagified `TagList`, replacing the prior
+  render-time `RuntimeError` for that case. Buggy `.tagify()` implementations
+  now surface at the source rather than at render time. (#7, #105)
+
+### New features
+
+* `Tag` and `TagList` are now generic in their child type (`ChildT`,
+  defaulting to `TagNode`). `TagList[TagifiedNode]`'s mutation methods
+  (`__init__` / `append` / `extend` / `insert`) static-error when handed
+  a `Tagifiable` argument. Bare `Tag` / `TagList` retain today's meaning.
+  (#105)
+
+* Added type aliases `Tagified`, `TagifiedNode`, `TagifiedTag`,
+  `TagifiedTagList`. (#105)
+
+### Dependencies
+
+* Bumped `typing_extensions` floor to `>=4.7.0` for PEP 696 `default=`
+  support on `TypeVar` and `TypeAliasType` with `type_params=`.
+
 ## [0.6.1] - 2026-05-01
 
 ### Bug fixes
