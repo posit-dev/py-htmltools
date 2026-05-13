@@ -31,7 +31,7 @@ We want to:
 | Q3 | Mutability of a tagified tree | **A.** Snapshot only. `TagifiedTag` is a post-condition of `.tagify()`, not a permanent runtime invariant. |
 | Q4 | Render-time guard in `get_html_string` | **A.** Keep as belt-and-braces (covers mutation-after-tagify, since not all users use type checkers). |
 | Q5 | JSXTag scope | **B.** Just tighten the return annotation; leave `JSXTag` non-generic. |
-| Q6 | Input methods (`__init__`/`append`/`extend`/`insert`) | **B.** Parameterize via `TagChildOf[ChildT]` so `TagifiedTagList.append(SomeTagifiable())` static-errors. |
+| Q6 | Input methods (`__init__`/`append`/`extend`/`insert`) | **B.** Make `TagChild` itself generic (`TagChild[ChildT]`, default `ChildT = TagNode`) so `TagifiedTagList.append(SomeTagifiable())` static-errors. |
 | Q7 | Subclass-preserving `Tag.tagify()` signature | **A.** Drop it. `Tag.tagify() -> TagifiedTag`. Runtime still returns the subclass instance; the static type narrows. |
 
 ## Architecture
@@ -57,25 +57,31 @@ TagNode = Union["Tagifiable", TagifiedNode]
 
 # Generic parameter for Tag / TagList. PEP 696 default keeps unparameterized
 # Tag / TagList meaning Tag[TagNode] / TagList[TagNode].
-from typing_extensions import TypeVar
+from typing_extensions import TypeAliasType, TypeVar
 ChildT = TypeVar("ChildT", bound=TagNode, default=TagNode)
 
-# Generic version of TagChild (user-input alias) so input methods can be
-# parameterized too. TagChild itself stays unchanged for source compat.
-TagChildOf = Union[ChildT, "TagList[ChildT]", float, None, Sequence["TagChildOf[ChildT]"]]
+# TagChild itself becomes generic. The PEP 696 default keeps bare `TagChild`
+# meaning the same set as today, so existing call sites do not change.
+TagChild = TypeAliasType(
+    "TagChild",
+    Union[ChildT, "TagList[ChildT]", float, None, Sequence["TagChild[ChildT]"]],
+    type_params=(ChildT,),
+)
 ```
 
-`TagChild` (the wide user-input alias) stays unchanged in name and meaning so
-public call sites like `div("hi", x)` continue to work without churn.
+`TagChild` (bare) keeps its current meaning via the default, so public call
+sites like `div("hi", x)` continue to work without churn. The parameterized
+form `TagChild[TagifiedNode]` is what input methods on `TagList[TagifiedNode]`
+will accept.
 
 ### Class signatures
 
 ```python
 class TagList(UserList[ChildT]):
-    def __init__(self, *args: "TagChildOf[ChildT]") -> None: ...
-    def append(self, item: "TagChildOf[ChildT]", *args: "TagChildOf[ChildT]") -> None: ...
-    def extend(self, other: Iterable["TagChildOf[ChildT]"]) -> None: ...
-    def insert(self, i: SupportsIndex, item: "TagChildOf[ChildT]") -> None: ...
+    def __init__(self, *args: "TagChild[ChildT]") -> None: ...
+    def append(self, item: "TagChild[ChildT]", *args: "TagChild[ChildT]") -> None: ...
+    def extend(self, other: Iterable["TagChild[ChildT]"]) -> None: ...
+    def insert(self, i: SupportsIndex, item: "TagChild[ChildT]") -> None: ...
     def tagify(self) -> "TagifiedTagList": ...
 
 class Tag(Generic[ChildT]):
