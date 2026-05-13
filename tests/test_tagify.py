@@ -1,7 +1,7 @@
 # tests/test_tagify.py
 import pytest
 
-from htmltools import TagList, Tagifiable, div
+from htmltools import TagList, Tagifiable, div, span
 
 
 class _ReturnsTagifiable:
@@ -30,3 +30,11 @@ def test_tag_tagify_raises_on_untagified_grandchild() -> None:
     # Same scenario, but via Tag.tagify(), which delegates to children.tagify().
     with pytest.raises(TypeError, match="_NestedTagifiable"):
         div(_ReturnsTagifiable()).tagify()
+
+
+def test_tagify_is_idempotent() -> None:
+    # .tagify() applied twice must produce the same HTML as once.
+    original = div("hello", span("world"))
+    once = original.tagify()
+    twice = once.tagify()
+    assert once.get_html_string() == twice.get_html_string()
