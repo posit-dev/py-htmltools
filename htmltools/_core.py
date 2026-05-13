@@ -466,7 +466,10 @@ class TagList(UserList[TagNode]):
 
             elif isinstance(child, Tagifiable):
                 raise RuntimeError(
-                    "Encountered a non-tagified object. x.tagify() must be called before x.render()"
+                    f"Encountered an un-tagified {type(child).__name__} at render time. "
+                    "This usually means the tag tree was mutated to add a "
+                    "Tagifiable object after .tagify() was called. Call "
+                    ".tagify() again before rendering."
                 )
 
             else:
