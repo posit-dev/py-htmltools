@@ -29,12 +29,11 @@ jobs:
         with:
           path: _dev/htmltools
 
-      - name: Install dev py-htmltools htmltools dependencies
+      - name: Install dev py-htmltools
         run: |
           cd _dev/htmltools
           pip uninstall -y htmltools
-          pip install -e ".[dev,test]"
-          make install
+          pip install -e .
 
       - name: Check py-shiny@main
         uses: posit-dev/py-shiny/.github/py-shiny/check@main
