@@ -102,3 +102,7 @@ ENV/
 .mypy_cache/
 
 typings/
+
+# uv
+uv.lock
+.venv/
