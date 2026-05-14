@@ -11,13 +11,17 @@ pip install htmltools
 To install the latest development version from this repository:
 
 ```sh
-pip install https://github.com/rstudio/py-htmltools/tarball/main
+uv pip install https://github.com/posit-dev/py-htmltools/tarball/main
 ```
 
 ## Development
 
-If you want to do development on htmltools for Python:
+This project uses [`uv`](https://docs.astral.sh/uv/) for managing the Python dev environment. Install `uv`, then:
 
 ```sh
-pip install -e ".[dev,test]" --config-settings editable_mode=strict
+make setup        # creates .venv and installs all dev/test deps
+make ai-setup     # like setup, but also installs the pre-commit hook
+make help         # list available targets
+make check        # format + type + test checks
+make format       # auto-fix formatting
 ```

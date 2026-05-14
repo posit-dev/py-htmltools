@@ -5,6 +5,12 @@ All notable changes to htmltools for Python will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Other changes
+
+* Switched the contributor workflow to [`uv`](https://docs.astral.sh/uv/) and reorganized `Makefile` targets. Run `make setup` (or `make ai-setup`) to bootstrap a dev environment, and `make help` to list available targets. `pip install -e ".[dev,test]"` no longer works since `dev` and `test` are now PEP 735 dependency groups; use `uv sync --all-groups` instead. (#107)
+
 ## [0.6.1] - 2026-05-01
 
 ### Bug fixes
