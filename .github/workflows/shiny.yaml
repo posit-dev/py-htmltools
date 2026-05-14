@@ -37,6 +37,3 @@ jobs:
 
       - name: Check py-shiny@main
         uses: posit-dev/py-shiny/.github/py-shiny/check@main
-        # py-shiny@main currently has unrelated pyright errors in its own
-        # test files; surface upstream issues without blocking PR merges.
-        continue-on-error: true
