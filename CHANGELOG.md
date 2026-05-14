@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Switched the contributor workflow to [`uv`](https://docs.astral.sh/uv/) and reorganized `Makefile` targets. Run `make setup` (or `make ai-setup`) to bootstrap a dev environment, and `make help` to list available targets. `pip install -e ".[dev,test]"` no longer works since `dev` and `test` are now PEP 735 dependency groups; use `uv sync --all-groups` instead. (#107)
 
+* Replaced `black`, `isort`, and `flake8` with [`ruff`](https://docs.astral.sh/ruff/) for linting and formatting. Run `make format` to auto-fix, or `make check-format` to verify. (#110)
+
 ## [0.6.1] - 2026-05-01
 
 ### Bug fixes
