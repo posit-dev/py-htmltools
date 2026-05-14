@@ -41,10 +41,7 @@ test = [
 ]
 dev = [
   {include-group = "test"},
-  "black>=24.2.0",
-  "flake8>=6.0.0",
-  "Flake8-pyproject",
-  "isort>=5.11.2",
+  "ruff>=0.15.0",
   "pre-commit>=2.15.0",
   "tox>=4.0",
   "tox-uv>=1.0",
@@ -61,15 +58,16 @@ version = { attr = "htmltools.__version__" }
 [tool.setuptools.package-data]
 htmltools = ["py.typed"]
 
-[tool.flake8]
-ignore = "E203, E302, E402, E501, E704, F403, F405, W503"
-extend-exclude = "docs, .venv, venv, typings, e2e, build"
+[tool.ruff]
+line-length = 88
+extend-exclude = ["docs", "typings", "build"]
 
-[tool.black]
-target-version = ["py310"]
-
-[tool.isort]
-profile = "black"
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+# E501 (line too long) was ignored under the previous flake8 config; keep
+# parity. Ruff's formatter wraps where it can but does not break long string
+# literals, comments, or URLs.
+ignore = ["E501"]
 
 [tool.coverage.run]
 source = ["htmltools"]
