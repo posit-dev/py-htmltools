@@ -21,7 +21,6 @@ tag_attr_obj: TagAttrs = {"test_key": "test_value"}
 
 
 class ReprClass:
-
     def _repr_html_(self) -> str:
         return "repr_html"
 

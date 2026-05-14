@@ -32,17 +32,19 @@ requires-python = ">=3.10"
 "Bug Tracker" = "https://github.com/rstudio/py-htmltools/issues"
 Source = "https://github.com/rstudio/py-htmltools"
 
-[project.optional-dependencies]
-test = ["pytest>=6.2.4", "syrupy>=4.6.0"]
-dev = [
-  "black>=24.2.0",
-  "flake8>=6.0.0",
-  "Flake8-pyproject",
-  "isort>=5.11.2",
+[dependency-groups]
+test = [
+  "pytest>=6.2.4",
+  "syrupy>=4.6.0",
+  "coverage",
   "pyright>=1.1.348",
+]
+dev = [
+  {include-group = "test"},
+  "ruff>=0.15.0",
   "pre-commit>=2.15.0",
-  "wheel",
-  "build",
+  "tox>=4.0",
+  "tox-uv>=1.0",
 ]
 
 [tool.setuptools]
@@ -56,12 +58,29 @@ version = { attr = "htmltools.__version__" }
 [tool.setuptools.package-data]
 htmltools = ["py.typed"]
 
-[tool.flake8]
-ignore = "E203, E302, E402, E501, E704, F403, F405, W503"
-extend-exclude = "docs, .venv, venv, typings, e2e, build"
+[tool.ruff]
+line-length = 88
+extend-exclude = ["docs", "typings", "build"]
 
-[tool.black]
-target-version = ["py310"]
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+# E501 (line too long) was ignored under the previous flake8 config; keep
+# parity. Ruff's formatter wraps where it can but does not break long string
+# literals, comments, or URLs.
+ignore = ["E501"]
 
-[tool.isort]
-profile = "black"
+[tool.coverage.run]
+source = ["htmltools"]
+
+[tool.tox]
+requires = ["tox>=4", "tox-uv>=1"]
+env_list = ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+[tool.tox.env_run_base]
+runner = "uv-venv-runner"
+description = "Run tests and pyright on {base_python}"
+dependency_groups = ["test"]
+commands = [
+  ["pytest"],
+  ["pyright"],
+]

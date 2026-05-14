@@ -5,7 +5,7 @@ All notable changes to htmltools for Python will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.0] - unreleased
+## [Unreleased]
 
 ### Breaking changes
 
@@ -40,6 +40,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Bumped `typing_extensions` floor to `>=4.7.0` for PEP 696 `default=`
   support on `TypeVar` and `TypeAliasType` with `type_params=`.
+
+### Other changes
+
+* Switched the contributor workflow to [`uv`](https://docs.astral.sh/uv/) and reorganized `Makefile` targets. Run `make setup` (or `make ai-setup`) to bootstrap a dev environment, and `make help` to list available targets. `pip install -e ".[dev,test]"` no longer works since `dev` and `test` are now PEP 735 dependency groups; use `uv sync --all-groups` instead. (#107)
+
+* Replaced `black`, `isort`, and `flake8` with [`ruff`](https://docs.astral.sh/ruff/) for linting and formatting. Run `make format` to auto-fix, or `make check-format` to verify. (#110)
 
 ## [0.6.1] - 2026-05-01
 

@@ -43,9 +43,8 @@ else:
 
 from typing import Literal, Protocol, SupportsIndex, runtime_checkable
 
-from typing_extensions import TypeAliasType, TypeVar
-
 from packaging.version import Version
+from typing_extensions import TypeAliasType, TypeVar
 
 from ._util import (
     ensure_http_server,
@@ -391,7 +390,12 @@ class TagList(UserList[ChildT]):
                     # If the Tagifiable object returned a TagList, flatten it into this
                     # one. Cast: Tagified narrows poorly through the recursive alias,
                     # so we widen back to TagList[TagNode] for the helper call.
-                    cp[i : i + 1] = cast(list[ChildT], _tagchilds_to_tagnodes(cast("TagList[TagNode]", tagified_child)))
+                    cp[i : i + 1] = cast(
+                        list[ChildT],
+                        _tagchilds_to_tagnodes(
+                            cast("TagList[TagNode]", tagified_child)
+                        ),
+                    )
                 else:
                     # cast: tagified_child is TagNode (from Tagifiable.tagify()), wider than ChildT
                     cp[i] = cast(ChildT, tagified_child)
@@ -483,7 +487,7 @@ class TagList(UserList[ChildT]):
             # True if the previous and current node are inline; False otherwise. This
             # affects whether or not we add whitespace and indentation.
             prev_or_current_add_ws = prev_was_add_ws or (
-                (isinstance(child, Tag) and child.add_ws)
+                isinstance(child, Tag) and child.add_ws
             )
 
             if first_child:
