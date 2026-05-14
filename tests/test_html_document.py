@@ -356,9 +356,9 @@ def test_save_html_utf8_encoding(monkeypatch):
 
         # Verify save_html() opened the file with encoding="utf-8"
         write_calls = [c for c in open_calls if call(f, "w", encoding="utf-8") == c]
-        assert (
-            len(write_calls) == 1
-        ), f"Expected open({f!r}, 'w', encoding='utf-8'), got: {open_calls}"
+        assert len(write_calls) == 1, (
+            f"Expected open({f!r}, 'w', encoding='utf-8'), got: {open_calls}"
+        )
 
         # Also verify the content roundtrips correctly
         with original_open(f, "r", encoding="utf-8") as fh:
