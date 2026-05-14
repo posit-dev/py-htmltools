@@ -18,6 +18,7 @@ from ._core import (
     ScriptItem,
     Tag,
     TagAttrValue,
+    TagChild,
     Tagifiable,
     TagifiedTag,
     TagList,
@@ -106,10 +107,14 @@ class JSXTag:
         self.children: TagList = TagList(*args)
 
     def extend(self, x: Iterable[TagNode]) -> None:
-        self.children.extend(x)
+        # cast: TagList.extend expects Iterable[TagChild[ChildT]]; under the
+        # recursive generic alias pyright leaks Sequence[Unknown] from the
+        # default-parameterised TagChild. Widen back to the actual input type.
+        self.children.extend(cast("Iterable[TagChild[TagNode]]", x))
 
     def append(self, *args: TagNode) -> None:
-        self.children.append(*args)
+        # cast: see comment on `extend` above.
+        self.children.append(*cast("tuple[TagChild[TagNode], ...]", args))
 
     def tagify(self) -> TagifiedTag:
         metadata_nodes: list[MetadataNode] = []
@@ -123,7 +128,9 @@ class JSXTag:
             if isinstance(x, Tagifiable) and not isinstance(x, (Tag, JSXTag)):
                 x = x.tagify()
             else:
-                x = copy.copy(x)
+                # cast: narrowed `x` carries Tag[Unknown] (because the source
+                # is Any); we don't use the parameter here, so widen to Any.
+                x = copy.copy(cast(Any, x))
             if isinstance(x, MetadataNode):
                 metadata_nodes.append(x)
             return x
@@ -193,6 +200,10 @@ def _walk_attrs_and_children(x: Any, fn: Callable[[Any], Any]) -> Any:
     x = fn(x)
 
     if isinstance(x, Tag):
+        # cast: narrowing `Any` via `isinstance(x, Tag)` yields `Tag[Unknown]`;
+        # widen back to the default `Tag[TagNode]` so pyright keeps tracking
+        # the child type instead of leaking `Unknown` into the recursion.
+        x = cast("Tag[TagNode]", x)
         for i, child in enumerate(x.children):
             x.children[i] = _walk_attrs_and_children(child, fn)
     elif isinstance(x, JSXTag):
@@ -204,7 +215,7 @@ def _walk_attrs_and_children(x: Any, fn: Callable[[Any], Any]) -> Any:
         # Don't do anything here?
         pass
 
-    return x
+    return cast(Any, x)
 
 
 # Return a string representing the rendered HTML for the given JSXTag object. The
@@ -221,6 +232,10 @@ def _render_react_js(x: TagNode, indent: int, eol: str) -> str:
     if isinstance(x, JSXTag):
         nm = x.name
     elif isinstance(x, Tag):
+        # cast: narrowing from `TagNode` (which includes the `Tagifiable`
+        # arm) leaks `Tag[Unknown]` into the union; widen to `Tag[TagNode]`
+        # so `.children` / `.attrs` access types resolve cleanly.
+        x = cast("Tag[TagNode]", x)
         nm = "'" + x.name + "'"
     else:
         raise TypeError("x must be a tag or JSXTag object. Did you run tagify()?")
@@ -262,7 +277,8 @@ def _serialize_attr(x: object) -> str:
     if x is None:
         return "null"
     if isinstance(x, Tag) or isinstance(x, JSXTag):
-        return _render_react_js(x, 0, "\n")
+        # cast: narrowing from `object` leaks Tag[Unknown]; widen to default.
+        return _render_react_js(cast("Tag[TagNode] | JSXTag", x), 0, "\n")
     if isinstance(x, (list, tuple)):
         return (
             "[" + ", ".join([_serialize_attr(y) for y in cast(Iterable[Any], x)]) + "]"
