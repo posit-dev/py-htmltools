@@ -33,7 +33,7 @@ jobs:
         run: |
           cd _dev/htmltools
           pip uninstall -y htmltools
-          pip install -e .
+          pip install .
 
       - name: Check py-shiny@main
         uses: posit-dev/py-shiny/.github/py-shiny/check@main
