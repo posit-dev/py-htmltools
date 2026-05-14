@@ -186,7 +186,7 @@ def http_server(port: int, path: str):
 
         def log_message(
             self,
-            format,
+            format,  # pyright: ignore[reportMissingParameterType]
             *args,  # pyright: ignore[reportMissingParameterType]
         ):
             pass
