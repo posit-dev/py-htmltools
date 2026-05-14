@@ -1,7 +1,7 @@
 # tests/test_tagify.py
 import pytest
 
-from htmltools import TagList, Tagifiable, div, span
+from htmltools import TagList, div, span
 
 
 class _ReturnsTagifiable:

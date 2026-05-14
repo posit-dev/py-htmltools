@@ -14,9 +14,8 @@ from __future__ import annotations
 from typing_extensions import assert_type
 
 from htmltools import (
-    Tag,
-    Tagified,
     Tagifiable,
+    Tagified,
     TagifiedTag,
     TagifiedTagList,
     TagList,
@@ -36,7 +35,7 @@ def test_bare_TagList_is_not_assignable_to_TagifiedTagList() -> None:
     tl: TagList = TagList("hi")
     # A bare TagList means TagList[TagNode], which may still contain Tagifiables.
     # It must NOT be assignable to TagifiedTagList without explicit narrowing.
-    narrowed: TagifiedTagList = tl  # pyright: ignore[reportAssignmentType]
+    _: TagifiedTagList = tl  # pyright: ignore[reportAssignmentType]
 
 
 def test_TagifiedTagList_append_rejects_Tagifiable() -> None:
@@ -70,7 +69,7 @@ def test_user_tagify_returning_bare_TagList_violates_Tagifiable() -> None:
         def tagify(self) -> TagList:
             return TagList("x")
 
-    not_a_tagifiable: Tagifiable = _Bad()  # pyright: ignore[reportAssignmentType]
+    _: Tagifiable = _Bad()  # pyright: ignore[reportAssignmentType]
 
 
 def test_user_tagify_returning_TagifiedTagList_is_Tagifiable() -> None:
@@ -78,4 +77,4 @@ def test_user_tagify_returning_TagifiedTagList_is_Tagifiable() -> None:
         def tagify(self) -> TagifiedTagList:
             return TagList("x").tagify()
 
-    ok: Tagifiable = _Good()
+    _: Tagifiable = _Good()
