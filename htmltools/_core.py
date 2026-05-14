@@ -413,7 +413,7 @@ class TagList(UserList[TagNode]):
             # True if the previous and current node are inline; False otherwise. This
             # affects whether or not we add whitespace and indentation.
             prev_or_current_add_ws = prev_was_add_ws or (
-                (isinstance(child, Tag) and child.add_ws)
+                isinstance(child, Tag) and child.add_ws
             )
 
             if first_child:

@@ -858,8 +858,11 @@ def test_attr_vals():
     }
     test = TagList(div(**attrs), div(class_="foo").add_class("bar"))
 
-    assert str(test) == """<div true="" str="a" int="1" float="1.2"></div>
+    assert (
+        str(test)
+        == """<div true="" str="a" int="1" float="1.2"></div>
 <div class="foo bar"></div>"""
+    )
 
 
 def test_tag_normalize_attr():

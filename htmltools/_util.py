@@ -185,7 +185,9 @@ def http_server(port: int, path: str):
             super().__init__(*args, directory=path, **kwargs)
 
         def log_message(
-            self, format, *args  # pyright: ignore[reportMissingParameterType]
+            self,
+            format,
+            *args,  # pyright: ignore[reportMissingParameterType]
         ):
             pass
 

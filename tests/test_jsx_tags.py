@@ -11,7 +11,8 @@ def test_jsx_tags():
     react_ver = [str(d.version) for d in deps if d.name == "react"][0]
     react_dom_ver = [str(d.version) for d in deps if d.name == "react-dom"][0]
 
-    assert HTMLDocument(Foo()).render()["html"] == textwrap.dedent("""\
+    assert HTMLDocument(Foo()).render()["html"] == textwrap.dedent(
+        """\
         <!DOCTYPE html>
         <html>
           <head>
@@ -34,10 +35,13 @@ def test_jsx_tags():
         })();
         </script>
           </body>
-        </html>""" % (react_ver, react_dom_ver, react_ver, react_dom_ver))
+        </html>"""
+        % (react_ver, react_dom_ver, react_ver, react_dom_ver)
+    )
 
     # Only the "top-level" tag gets wrapped in <script> tags
-    assert HTMLDocument(Foo(Bar())).render()["html"] == textwrap.dedent("""\
+    assert HTMLDocument(Foo(Bar())).render()["html"] == textwrap.dedent(
+        """\
         <!DOCTYPE html>
         <html>
           <head>
@@ -63,7 +67,9 @@ def test_jsx_tags():
         })();
         </script>
           </body>
-        </html>""" % (react_ver, react_dom_ver, react_ver, react_dom_ver))
+        </html>"""
+        % (react_ver, react_dom_ver, react_ver, react_dom_ver)
+    )
 
     x = Foo(
         span(),
