@@ -1,104 +1,85 @@
-.PHONY: clean clean-test clean-pyc clean-build docs help
+.PHONY: help setup pre-commit-setup ai-setup \
+        check check-format check-types check-tests check-tox \
+        format coverage coverage-report update-snaps build clean
+
 .DEFAULT_GOAL := help
 
-define BROWSER_PYSCRIPT
-import os, webbrowser, sys
+# ---- Setup ----------------------------------------------------------------
 
-from urllib.request import pathname2url
+setup:  ## Install dev environment (uv sync --all-groups)
+	uv sync --all-groups
 
-webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
-endef
-export BROWSER_PYSCRIPT
+pre-commit-setup:  ## Install pre-commit git hook (idempotent)
+	uv run pre-commit install
 
-define PRINT_HELP_PYSCRIPT
-import re, sys
+ai-setup: setup pre-commit-setup  ## Bootstrap a fresh checkout for AI agents / IDEs
 
-for line in sys.stdin:
-	match = re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line)
-	if match:
-		target, help = match.groups()
-		print("%-20s %s" % (target, help))
-endef
-export PRINT_HELP_PYSCRIPT
+# ---- Checks ---------------------------------------------------------------
 
-BROWSER := python -c "$$BROWSER_PYSCRIPT"
+check: check-format check-types check-tests  ## Run format + type + test checks
 
-help:
-	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
+check-format:  ## Check formatting with black, isort, and flake8
+	@echo "📐 black --check"
+	uv run black --check .
+	@echo "📐 isort --check-only"
+	uv run isort --check-only --diff .
+	@echo "📐 flake8"
+	uv run flake8 htmltools tests
 
-clean: clean-build clean-pyc clean-test ## remove all build, test, coverage and Python artifacts
+check-types:  ## Run pyright type checks
+	@echo "📝 pyright"
+	uv run pyright
 
-clean-build: ## remove build artifacts
-	rm -fr build/
-	rm -fr dist/
-	rm -fr .eggs/
-	find . -name '*.egg-info' -exec rm -fr {} +
+check-tests:  ## Run pytest against the dev Python
+	@echo "🧪 pytest"
+	uv run pytest
+
+check-tox:  ## Run pytest + pyright across Python 3.10-3.14 in parallel
+	@echo "🔄 tox run-parallel"
+	uv run tox run-parallel
+
+# ---- Fixing ---------------------------------------------------------------
+
+format:  ## Auto-fix formatting with black and isort
+	uv run black .
+	uv run isort .
+
+# ---- Coverage -------------------------------------------------------------
+
+coverage:  ## Run tests under coverage and print the report
+	uv run coverage run -m pytest
+	uv run coverage report
+
+coverage-report: coverage  ## Build the HTML coverage report at htmlcov/
+	uv run coverage html
+	@echo "📔 HTML report written to htmlcov/index.html"
+
+# ---- Snapshots ------------------------------------------------------------
+
+update-snaps:  ## Update syrupy test snapshots
+	@echo "📸 pytest --snapshot-update"
+	uv run pytest --snapshot-update
+
+# ---- Build ----------------------------------------------------------------
+
+build: clean  ## Build sdist + wheel into dist/ via uv build
+	@echo "🧳 uv build"
+	uv build
+
+# ---- Housekeeping ---------------------------------------------------------
+
+clean:  ## Remove build, test, and coverage artifacts
+	rm -rf build/ dist/ .eggs/
+	find . -name '*.egg-info' -exec rm -rf {} +
 	find . -name '*.egg' -exec rm -f {} +
-
-clean-pyc: ## remove Python file artifacts
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
-	find . -name '*~' -exec rm -f {} +
-	find . -name '__pycache__' -exec rm -fr {} +
+	find . -name '__pycache__' -exec rm -rf {} +
+	rm -rf .pytest_cache htmlcov/ .coverage
 
-clean-test: ## remove test and coverage artifacts
-	rm -fr .tox/
-	rm -f .coverage
-	rm -fr htmlcov/
-	rm -fr .pytest_cache
+# ---- Help -----------------------------------------------------------------
 
-lint: ## check style with flake8
-	flake8 htmltools tests
-
-test: ## run tests quickly with the default Python
-	pytest
-
-test-all: ## run tests on every Python version with tox
-	tox
-
-coverage: ## check code coverage quickly with the default Python
-	coverage run --source htmltools -m pytest
-	coverage report -m
-	coverage html
-	$(BROWSER) htmlcov/index.html
-
-docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/htmltools.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ htmltools
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
-
-servedocs: docs ## compile the docs watching for changes
-	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
-
-release: dist ## package and upload a release
-	twine upload dist/*
-
-dist: clean ## builds source and wheel package
-	python -m build
-	ls -l dist
-
-install: dist ## install the package to the active Python's site-packages
-	pip uninstall -y htmltools
-	python3 -m pip install dist/htmltools*.whl
-
-install-editable: ## install the package in editable mode
-	pip install -e ".[dev,test]" --config-settings editable_mode=strict
-
-pyright: ## type check with pyright
-	pyright
-
-check: pyright lint ## check code quality with pyright, flake8, black and isort
-	echo "Checking code with black."
-	black --check .
-	echo "Sorting imports with isort."
-	isort --check-only --diff .
-
-check-fix: ## check/fix code quality with pyright, flake8, black and isort
-	@echo "Fixing code with black."
-	black .
-	@echo "Sorting imports with isort."
-	isort .
-	$(MAKE) pyright lint
+help:  ## Show help messages for make targets
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; { \
+		printf "\033[32m%-18s\033[0m %s\n", $$1, $$2; \
+	}'
