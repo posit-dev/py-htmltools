@@ -28,10 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### New features
 
 * `Tag` and `TagList` are now generic in their child type (`ChildT`,
-  defaulting to `TagNode`). `TagList[TagifiedNode]`'s mutation methods
-  (`__init__` / `append` / `extend` / `insert`) static-error when handed
-  a `Tagifiable` argument. Bare `Tag` / `TagList` retain today's meaning.
-  (#105)
+  defaulting to `TagNode`). Bare `Tag` / `TagList` retain today's meaning.
+  Note: `TagList[TagifiedNode]`'s mutation methods (`append` / `extend` /
+  `insert`) still accept `Tagifiable` at static-type-check time — the
+  invariant is enforced at runtime instead (`TagList.tagify()` raises
+  `TypeError` and `get_html_string` raises `RuntimeError` for an
+  un-tagified subtree). See `tests/test_types.py::
+  test_TagifiedTagList_append_accepts_Tagifiable_lost_Q6` for the
+  rationale. (#105)
 
 * Added type aliases `Tagified`, `TagifiedNode`, `TagifiedTag`,
   `TagifiedTagList`. (#105)

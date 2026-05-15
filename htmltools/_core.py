@@ -165,20 +165,28 @@ Type parameter for `Tag` and `TagList`. Defaults to `TagNode`, so bare
 `Tag` / `TagList` keep their pre-#105 meaning.
 """
 
-# NOTE: If this alias is updated, please update `is_tag_child()`
-# `TagChild` is itself generic: bare `TagChild` means `TagChild[TagNode]`
-# (today's wide alias); `TagChild[TagifiedNode]` is the tagified-input alias
-# used by `TagList[TagifiedNode]`'s mutation methods.
-TagChild = TypeAliasType(
-    "TagChild",
-    Union[ChildT, "TagList[ChildT]", float, None, Sequence["TagChild[ChildT]"]],
-    type_params=(ChildT,),
-)
+# NOTE: If this type is updated, please update `is_tag_child()`
+TagChild = Union[
+    TagNode,
+    "TagList",
+    float,
+    None,
+    Sequence["TagChild"],
+]
 """
 Types of objects that can be passed as children to Tag functions like
 `div()`. The `Tag` functions and the `TagList()` constructor can accept
 these as unnamed arguments; they will be flattened and normalized to
 `TagNode` objects.
+
+NOTE: `TagChild` is intentionally NOT generic. Making it a generic
+`TypeAliasType` with a recursive `Sequence["TagChild[ChildT]"]` arm caused
+pyright to leak `Sequence[Unknown]` into every `Tag` function signature
+when inspected from a downstream module in strict mode (e.g. Shiny's CI
+reported 2500+ `reportUnknownMemberType` errors). The trade-off is that
+`TagifiedTagList.append(some_tagifiable)` no longer static-errors — the
+runtime guard in `TagList.get_html_string` still catches it at render
+time (see Q6 trade-off documented in the spec).
 """
 
 
@@ -190,7 +198,7 @@ TagChildArg = Never
 TagAttrArg = Never
 
 
-TagChildT = TypeVar("TagChildT", bound="TagChild")
+TagChildT = TypeVar("TagChildT", bound=TagChild)
 """
 Type variable for `TagChild`.
 """
@@ -315,25 +323,25 @@ class TagList(UserList[ChildT]):
         """
         return isinstance(x, str)
 
-    def __init__(self, *args: "TagChild[ChildT]") -> None:
+    def __init__(self, *args: TagChild) -> None:
         # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
         super().__init__(cast(list[ChildT], _tagchilds_to_tagnodes(args)))
 
-    def extend(self, other: Iterable["TagChild[ChildT]"]) -> None:
+    def extend(self, other: Iterable[TagChild]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
         # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
         super().extend(cast(list[ChildT], _tagchilds_to_tagnodes(other)))
 
-    def append(self, item: "TagChild[ChildT]", *args: "TagChild[ChildT]") -> None:
+    def append(self, item: TagChild, *args: TagChild) -> None:
         """
         Append tag children to the end of the list.
         """
 
         self.extend([item, *args])
 
-    def insert(self, i: SupportsIndex, item: "TagChild[ChildT]") -> None:
+    def insert(self, i: SupportsIndex, item: TagChild) -> None:
         """
         Insert tag children before a given index.
         """
@@ -341,7 +349,7 @@ class TagList(UserList[ChildT]):
         # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
         self[i:i] = cast(list[ChildT], _tagchilds_to_tagnodes([item]))
 
-    def __add__(self, item: Iterable["TagChild[ChildT]"]) -> "TagList[ChildT]":
+    def __add__(self, item: Iterable[TagChild]) -> "TagList[ChildT]":
         """
         Return a new TagList with the item added at the end.
         """
@@ -353,7 +361,7 @@ class TagList(UserList[ChildT]):
         # cast + ignore: *item unpacking widens ChildT; narrow to declared return type
         return cast("TagList[ChildT]", TagList(self, *item))  # pyright: ignore[reportArgumentType]
 
-    def __radd__(self, item: Iterable["TagChild[ChildT]"]) -> "TagList[ChildT]":
+    def __radd__(self, item: Iterable[TagChild]) -> "TagList[ChildT]":
         """
         Return a new TagList with the item added to the beginning.
         """

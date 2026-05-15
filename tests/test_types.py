@@ -38,16 +38,45 @@ def test_bare_TagList_is_not_assignable_to_TagifiedTagList() -> None:
     _: TagifiedTagList = tl  # pyright: ignore[reportAssignmentType]
 
 
-def test_TagifiedTagList_append_rejects_Tagifiable() -> None:
-    class _BadTagifiable:
+def test_TagifiedTagList_append_accepts_Tagifiable_lost_Q6() -> None:
+    """
+    Documents the *lost* Q6 trade-off.
+
+    The spec's Q6 (see ``docs/superpowers/specs/2026-05-13-tagify-generic-design.md``)
+    originally promised that ``TagifiedTagList.append(some_tagifiable)`` would
+    static-error, on the grounds that ``TagifiedTagList = TagList[TagifiedNode]``
+    and ``TagifiedNode`` excludes the un-resolved ``Tagifiable`` arm.
+
+    Implementing that required making ``TagChild`` a *generic recursive
+    ``TypeAliasType``*: ``TagChild[ChildT] = ChildT | TagList[ChildT] | float |
+    None | Sequence[TagChild[ChildT]]``. Pyright (1.1.409) does not fully
+    re-bind ``ChildT`` through the ``Sequence["TagChild[ChildT]"]`` arm when a
+    downstream module imports the symbols in strict mode — every ``Tag``
+    function signature leaks a ``Sequence[Unknown]`` arm, producing
+    thousands of ``reportUnknownMemberType`` errors in Shiny's CI.
+
+    We therefore reverted ``TagChild`` to a plain non-generic ``Union`` and
+    let mutating methods on ``TagList[ChildT]`` accept the wide bare
+    ``TagChild``. The static guarantee is gone, but the runtime guarantee
+    is still enforced by ``TagList.get_html_string``'s render-time guard
+    (covered by
+    ``test_tagify.py::test_render_guard_catches_mutation_after_tagify``)
+    and by the A3 boundary check inside ``TagList.tagify()``.
+
+    If a future pyright/typing release handles recursive generic
+    ``TypeAliasType`` cleanly across modules, flip this test back to the
+    negative form (``# pyright: ignore[reportArgumentType]`` on the
+    ``tl.append(...)`` call) and reinstate ``TagChild[ChildT]`` on
+    ``TagList``'s mutation-method signatures.
+    """
+
+    class _SomeTagifiable:
         def tagify(self) -> Tagified:
             return "x"
 
     tl: TagifiedTagList = TagList("hi").tagify()
-    # _BadTagifiable is a Tagifiable; appending it to a TagifiedTagList must
-    # fail static type checking, since TagList[TagifiedNode]'s input type is
-    # TagChild[TagifiedNode] which excludes Tagifiable.
-    tl.append(_BadTagifiable())  # pyright: ignore[reportArgumentType]
+    # Today this type-checks (Q6 lost). In an ideal world it would fail.
+    tl.append(_SomeTagifiable())
 
 
 def test_bare_TagList_append_accepts_Tagifiable() -> None:
@@ -55,8 +84,8 @@ def test_bare_TagList_append_accepts_Tagifiable() -> None:
         def tagify(self) -> Tagified:
             return "x"
 
-    # Default behavior must be unchanged: bare TagList accepts any TagChild,
-    # which includes Tagifiable.
+    # Default behavior is unchanged: bare TagList accepts any TagChild,
+    # which includes Tagifiable. (Same as today and same as before #105.)
     tl: TagList = TagList()
     tl.append(_OkTagifiable())
 

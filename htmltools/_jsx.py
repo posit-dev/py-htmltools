@@ -18,7 +18,6 @@ from ._core import (
     ScriptItem,
     Tag,
     TagAttrValue,
-    TagChild,
     Tagifiable,
     TagifiedTag,
     TagList,
@@ -107,14 +106,10 @@ class JSXTag:
         self.children: TagList = TagList(*args)
 
     def extend(self, x: Iterable[TagNode]) -> None:
-        # cast: TagList.extend expects Iterable[TagChild[ChildT]]; under the
-        # recursive generic alias pyright leaks Sequence[Unknown] from the
-        # default-parameterised TagChild. Widen back to the actual input type.
-        self.children.extend(cast("Iterable[TagChild[TagNode]]", x))
+        self.children.extend(x)
 
     def append(self, *args: TagNode) -> None:
-        # cast: see comment on `extend` above.
-        self.children.append(*cast("tuple[TagChild[TagNode], ...]", args))
+        self.children.append(*args)
 
     def tagify(self) -> TagifiedTag:
         metadata_nodes: list[MetadataNode] = []
