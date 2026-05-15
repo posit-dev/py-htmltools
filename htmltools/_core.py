@@ -164,17 +164,19 @@ include `TagifiedTag`).
 # TagNode / TagChild (generic) and the ChildT TypeVar
 # -----------------------------------------------------------------------------
 # NOTE: If this type is updated, please update `is_tag_node()`
-TagNode = Union["Tagifiable", TagLeaf]
+TagNode = Union["Tagifiable", TagifiedNode]
 """
 Types of objects that can be a node in a `Tag` tree. Equivalently, these are
 the valid elements of a `TagList`. Note that this type represents the
 internal structure of items in a `TagList`; the user-facing type is
 `TagChild`.
 
-`TagifiedTag` and `TagifiedTagList` are not listed explicitly because every
-`Tag` (and `TagList`) is structurally `Tagifiable` — the `Tagifiable` arm
-already covers them. Likewise the `TagifiedNode` shapes other than `TagLeaf`
-fold into `Tagifiable`.
+The `TagifiedNode` arm is semantically redundant — `TagifiedTag` is a `Tag`
+which is structurally `Tagifiable`, so `Tagifiable | TagLeaf` would cover
+the same set. The arm is kept explicit so that `ChildT bound=TagNode`
+accepts `TagifiedNode` (pyright does not recognize generic Tag/TagList
+instances as satisfying the `Tagifiable` Protocol when checking type-
+variable bounds).
 """
 
 ChildT = TypeVar("ChildT", bound=TagNode, default=TagNode)
@@ -403,7 +405,11 @@ class TagList(UserList[ChildT]):
             slot index so the broken ``.tagify()`` is easy to find.
         """
 
-        cp = copy(self)
+        # Internally work with `TagList[Any]` so the loop body's assignments
+        # don't need per-line casts. The runtime invariants are checked by
+        # the post-condition loop below; the final `cast` narrows back to
+        # `TagifiedTagList` for the public return type.
+        cp: "TagList[Any]" = cast("TagList[Any]", copy(self))
 
         # Iterate backwards because if we hit a Tagifiable object, it may be replaced
         # with 0, 1, or more items (if it returns TagList).
@@ -413,18 +419,14 @@ class TagList(UserList[ChildT]):
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
                 if isinstance(tagified_child, TagList):
-                    # If the Tagifiable object returned a TagList, flatten it into this
-                    # one. Cast: Tagified narrows poorly through the recursive alias,
-                    # so we widen back to TagList[TagNode] for the helper call.
-                    cp[i : i + 1] = cast(
-                        list[ChildT],
-                        _tagchilds_to_tagnodes(
-                            cast("TagList[TagNode]", tagified_child)
-                        ),
+                    # Flatten the returned TagList into this one. Cast: pyright
+                    # cannot fully resolve `TagifiedTagList`'s recursive child
+                    # alias here, leaving a `TagList[Unknown]` arm.
+                    cp[i : i + 1] = _tagchilds_to_tagnodes(
+                        cast("TagList[TagNode]", tagified_child)
                     )
                 else:
-                    # cast: tagified_child is TagNode (from Tagifiable.tagify()), wider than ChildT
-                    cp[i] = cast(ChildT, tagified_child)
+                    cp[i] = tagified_child
 
             elif isinstance(child, MetadataNode):
                 cp[i] = copy(child)
