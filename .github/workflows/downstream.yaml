@@ -74,10 +74,12 @@ jobs:
       - name: Set up downstream's typing stubs (if any)
         # Some downstreams (e.g. py-shiny) vendor third-party type stubs
         # into `typings/` via a `make pyright-typings` target. Run it if
-        # present so pyright can resolve those signatures.
+        # present so pyright can resolve those signatures. Use `uv run`
+        # so commands the Makefile invokes (pyright --createstub …) are
+        # found in the synced venv.
         run: |
           if [ -f Makefile ] && grep -qE '^pyright-typings:' Makefile; then
-            make pyright-typings
+            uv run --no-sync make pyright-typings
           fi
 
       - name: Run downstream pyright
