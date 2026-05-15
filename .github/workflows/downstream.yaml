@@ -1,0 +1,69 @@
+name: Downstream
+
+# Run downstream Posit packages' test suites against this branch's
+# htmltools so type-system / API changes here surface early. Each
+# downstream is an independent matrix entry — failures are localized.
+#
+# Candidates to consider adding later (Posit-owned consumers that import
+# htmltools symbols but don't currently have custom .tagify()):
+#   - posit-dev/great-tables   (imports Tag, div, HTML)
+#   - posit-dev/py-faicons     (imports Tag, css, html_escape, tags)
+#   - posit-dev/querychat      (imports HTMLDependency, tags)
+# These don't need coverage today because they're API-level consumers,
+# not Tagifiable implementers — runtime risk is low.
+
+on:
+  push:
+    branches: "shiny-**"
+  pull_request:
+
+jobs:
+  downstream:
+    name: ${{ matrix.repo }}@main
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        repo:
+          - posit-dev/py-shiny
+          - posit-dev/shinychat
+          - posit-dev/chatlas
+          - posit-dev/brand-yml
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout ${{ matrix.repo }}@main
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.repo }}
+          ref: main
+          fetch-depth: 0 # required by some downstreams' versioning
+
+      - name: Checkout dev branch of py-htmltools
+        uses: actions/checkout@v4
+        with:
+          path: _dev/htmltools
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+
+      - name: Run downstream checks against local htmltools
+        # `uv run --with-editable ./_dev/htmltools <cmd>` injects this
+        # branch's htmltools into the downstream's project environment
+        # for the duration of the command. uv resolves the downstream's
+        # own deps (including dev/test groups when using `uv sync`-style
+        # PEP 735 groups) and overrides the htmltools resolution with
+        # the local path — no manual pip uninstall/install dance needed.
+        #
+        # Prefer the downstream's `make check` if present, otherwise run
+        # pyright + pytest directly.
+        run: |
+          UV_RUN="uv run --all-groups --with-editable ./_dev/htmltools"
+          if [ -f Makefile ] && grep -qE '^check:' Makefile; then
+            $UV_RUN make check
+          else
+            $UV_RUN pyright .
+            $UV_RUN pytest
+          fi
