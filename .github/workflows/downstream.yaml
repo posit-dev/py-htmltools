@@ -70,6 +70,10 @@ jobs:
         # own `uv run` calls, which start a fresh env without our
         # `--with-editable` override.
         run: |
-          UV_RUN="uv run --all-groups --with-editable ./_dev/htmltools"
+          # `--all-extras` picks up legacy `[project.optional-dependencies]`
+          # (chatlas, py-shiny still use this for test-only deps like
+          # pyright/pytest). `--all-groups` picks up PEP 735
+          # `[dependency-groups]`.
+          UV_RUN="uv run --all-extras --all-groups --with-editable ./_dev/htmltools"
           $UV_RUN pyright
           $UV_RUN pytest
