@@ -57,23 +57,21 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0
 
-      - name: Run downstream checks against local htmltools
-        # `uv run --with-editable ./_dev/htmltools <cmd>` injects this
-        # branch's htmltools into the downstream's project environment
-        # for the duration of the command. uv resolves the downstream's
-        # own deps (including dev/test groups when using `uv sync`-style
-        # PEP 735 groups) and overrides the htmltools resolution with
-        # the local path — no manual pip uninstall/install dance needed.
+      - name: Sync downstream env with local htmltools
+        # `uv sync` resolves the downstream's own deps (including dev/test
+        # extras and PEP 735 groups). `--all-extras` covers legacy
+        # `[project.optional-dependencies]` (chatlas, py-shiny still ship
+        # pyright/pytest there); `--all-groups` covers PEP 735
+        # `[dependency-groups]`.
         #
-        # We invoke pyright + pytest directly rather than `make check`
-        # because most downstream Makefiles wrap those tools in their
-        # own `uv run` calls, which start a fresh env without our
-        # `--with-editable` override.
+        # `uv run --with-editable` does NOT override a resolved version
+        # of the same package, so the downstream still imports the
+        # released htmltools. Force-reinstall our checkout afterwards.
         run: |
-          # `--all-extras` picks up legacy `[project.optional-dependencies]`
-          # (chatlas, py-shiny still use this for test-only deps like
-          # pyright/pytest). `--all-groups` picks up PEP 735
-          # `[dependency-groups]`.
-          UV_RUN="uv run --all-extras --all-groups --with-editable ./_dev/htmltools"
-          $UV_RUN pyright
-          $UV_RUN pytest
+          uv sync --all-extras --all-groups
+          uv pip install --reinstall --no-deps ./_dev/htmltools
+
+      - name: Run downstream pyright + pytest
+        run: |
+          uv run --no-sync pyright
+          uv run --no-sync pytest
