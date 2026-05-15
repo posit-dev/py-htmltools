@@ -65,13 +65,11 @@ jobs:
         # PEP 735 groups) and overrides the htmltools resolution with
         # the local path — no manual pip uninstall/install dance needed.
         #
-        # Prefer the downstream's `make check` if present, otherwise run
-        # pyright + pytest directly.
+        # We invoke pyright + pytest directly rather than `make check`
+        # because most downstream Makefiles wrap those tools in their
+        # own `uv run` calls, which start a fresh env without our
+        # `--with-editable` override.
         run: |
           UV_RUN="uv run --all-groups --with-editable ./_dev/htmltools"
-          if [ -f Makefile ] && grep -qE '^check:' Makefile; then
-            $UV_RUN make check
-          else
-            $UV_RUN pyright .
-            $UV_RUN pytest
-          fi
+          $UV_RUN pyright
+          $UV_RUN pytest
