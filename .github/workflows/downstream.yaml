@@ -71,7 +71,12 @@ jobs:
           uv sync --all-extras --all-groups
           uv pip install --reinstall --no-deps ./_dev/htmltools
 
-      - name: Run downstream pyright + pytest
-        run: |
-          uv run --no-sync pyright
-          uv run --no-sync pytest
+      - name: Run downstream pyright
+        # We only run pyright here, not pytest. pytest in these
+        # downstreams requires extra setup (playwright browser
+        # install, VCR cassettes, etc.) that isn't worth replicating
+        # in this compatibility-check workflow — each downstream's
+        # own CI runs its tests under the released htmltools. What
+        # we need here is static-type compatibility against this
+        # branch's htmltools, which pyright provides.
+        run: uv run --no-sync pyright
