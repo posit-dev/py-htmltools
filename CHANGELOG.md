@@ -33,7 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rationale. (#105)
 
 * Added type aliases `Tagified`, `TagifiedNode`, `TagifiedTag`,
-  `TagifiedTagList`. (#105)
+  `TagifiedTagList`, and `TagLeaf` (the non-`Tag` / non-`TagList` arms of
+  the tag-tree node union — `MetadataNode | ReprHtml | str | HTML`). (#105)
 
 ### Bug fixes
 

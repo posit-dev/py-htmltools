@@ -66,6 +66,7 @@ __all__ = (
     "TagAttrs",
     "TagAttrValue",
     "TagChild",
+    "TagLeaf",
     "TagNode",
     "TagFunction",
     "Tagifiable",
@@ -116,17 +117,10 @@ unnamed arguments to Tag functions like `div()`.
 # -----------------------------------------------------------------------------
 # Tagified shape aliases
 # -----------------------------------------------------------------------------
-# A node that has already been fully tagified: no Tagifiable objects whose
-# .tagify() still needs to be called. Recursive — a tagified Tag's children
-# are themselves tagified. TagList is NOT a member because TagList children
-# are flattened (a TagList never appears as a child slot of another TagList).
-TagifiedNode = Union["Tag[TagifiedNode]", MetadataNode, "ReprHtml", str, "HTML"]
-"""
-A fully-tagified child-slot type. Members never include an un-resolved
-`Tagifiable`; calling `.tagify()` on a node tree returns a structure whose
-slot items are all `TagifiedNode`.
-"""
-
+# `TagifiedTag` and `TagifiedTagList` are defined first so that `TagifiedNode`
+# (the recursive child-slot type) can spell its tagified-Tag arm as
+# `TagifiedTag` rather than as `Tag[TagifiedNode]`. The forward reference
+# `"TagifiedNode"` is resolved lazily by `TypeAliasType`.
 TagifiedTag = TypeAliasType("TagifiedTag", "Tag[TagifiedNode]")
 """
 A `Tag` whose entire subtree has been tagified. This is the return type of
@@ -137,6 +131,25 @@ TagifiedTagList = TypeAliasType("TagifiedTagList", "TagList[TagifiedNode]")
 """
 A `TagList` whose items are all tagified. This is the return type of
 `TagList.tagify()`.
+"""
+
+TagLeaf = TypeAliasType("TagLeaf", "MetadataNode | ReprHtml | str | HTML")
+"""
+Leaf nodes in a tag tree: members that do not recursively contain tag
+children. `MetadataNode` carries non-rendered metadata, `ReprHtml` and
+`HTML` render themselves, and `str` is plain text. These are the non-`Tag`
+/ non-`TagList` arms shared by both `TagNode` and `TagifiedNode`.
+"""
+
+# A node that has already been fully tagified: no Tagifiable objects whose
+# .tagify() still needs to be called. Recursive — a tagified Tag's children
+# are themselves tagified. TagList is NOT a member because TagList children
+# are flattened (a TagList never appears as a child slot of another TagList).
+TagifiedNode = Union[TagifiedTag, TagLeaf]
+"""
+A fully-tagified child-slot type. Members never include an un-resolved
+`Tagifiable`; calling `.tagify()` on a node tree returns a structure whose
+slot items are all `TagifiedNode`.
 """
 
 Tagified = Union[TagifiedTagList, TagifiedNode]
