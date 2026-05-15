@@ -4,6 +4,10 @@ name: Downstream
 # htmltools so type-system / API changes here surface early. Each
 # downstream is an independent matrix entry — failures are localized.
 #
+# Each entry's `ref` may pin to a PR branch that absorbs upstream type-
+# system changes. When the corresponding downstream PR merges, flip the
+# `ref` back to `main` (or delete it to use the default).
+#
 # Candidates to consider adding later (Posit-owned consumers that import
 # htmltools symbols but don't currently have custom .tagify()):
 #   - posit-dev/great-tables   (imports Tag, div, HTML)
@@ -19,26 +23,30 @@ on:
 
 jobs:
   downstream:
-    name: ${{ matrix.repo }}@main
+    name: ${{ matrix.repo }}@${{ matrix.ref }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        repo:
-          - posit-dev/py-shiny
-          - posit-dev/shinychat
-          - posit-dev/chatlas
-          - posit-dev/brand-yml
+        include:
+          - repo: posit-dev/py-shiny
+            ref: schloerke/htmltools-105-tagified-types  # PR #2244
+          - repo: posit-dev/shinychat
+            ref: schloerke/htmltools-105-tagified-types  # PR #226
+          - repo: posit-dev/chatlas
+            ref: schloerke/htmltools-105-tagified-types  # PR #311
+          - repo: posit-dev/brand-yml
+            ref: schloerke/htmltools-105-tagified-types  # PR #115
     defaults:
       run:
         shell: bash
 
     steps:
-      - name: Checkout ${{ matrix.repo }}@main
+      - name: Checkout ${{ matrix.repo }}@${{ matrix.ref }}
         uses: actions/checkout@v4
         with:
           repository: ${{ matrix.repo }}
-          ref: main
+          ref: ${{ matrix.ref }}
           fetch-depth: 0 # required by some downstreams' versioning
 
       - name: Checkout dev branch of py-htmltools
