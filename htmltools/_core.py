@@ -164,12 +164,17 @@ include `TagifiedTag`).
 # TagNode / TagChild (generic) and the ChildT TypeVar
 # -----------------------------------------------------------------------------
 # NOTE: If this type is updated, please update `is_tag_node()`
-TagNode = Union["Tagifiable", TagifiedNode]
+TagNode = Union["Tagifiable", TagLeaf]
 """
 Types of objects that can be a node in a `Tag` tree. Equivalently, these are
 the valid elements of a `TagList`. Note that this type represents the
 internal structure of items in a `TagList`; the user-facing type is
 `TagChild`.
+
+`TagifiedTag` and `TagifiedTagList` are not listed explicitly because every
+`Tag` (and `TagList`) is structurally `Tagifiable` — the `Tagifiable` arm
+already covers them. Likewise the `TagifiedNode` shapes other than `TagLeaf`
+fold into `Tagifiable`.
 """
 
 ChildT = TypeVar("ChildT", bound=TagNode, default=TagNode)
