@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   invariant is enforced at runtime instead (`TagList.tagify()` raises
   `TypeError` and `get_html_string` raises `RuntimeError` for an
   un-tagified subtree). See `tests/test_types.py::
-  test_TagifiedTagList_append_accepts_Tagifiable_lost_Q6` for the
+  test_TagifiedTagList_append_accepts_Tagifiable` for the
   rationale. (#105)
 
 * Added the public type alias `Tagified` — the union of all

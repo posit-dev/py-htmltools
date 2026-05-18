@@ -37,36 +37,51 @@ def test_bare_TagList_is_not_assignable_to_TagifiedTagList() -> None:
     _: TagifiedTagList = tl  # pyright: ignore[reportAssignmentType]
 
 
-def test_TagifiedTagList_append_accepts_Tagifiable_lost_Q6() -> None:
+def test_TagifiedTagList_append_accepts_Tagifiable() -> None:
     """
-    Documents the *lost* Q6 trade-off.
+    Documents a deliberate static-typing gap: appending a ``Tagifiable``
+    to a ``TagList[TagifiedNode]`` is **not** a static error today, even
+    though ``TagifiedNode`` does not include the ``Tagifiable`` arm of
+    ``TagNode``. The runtime catches it instead.
 
-    The spec's Q6 (see ``docs/superpowers/specs/2026-05-13-tagify-generic-design.md``)
-    originally promised that ``TagifiedTagList.append(some_tagifiable)`` would
-    static-error, on the grounds that ``TagifiedTagList = TagList[TagifiedNode]``
-    and ``TagifiedNode`` excludes the un-resolved ``Tagifiable`` arm.
+    Why we can't enforce it statically
+    ----------------------------------
+    The natural enforcement would parameterize ``TagChild`` itself —
+    ``TagChild[ChildT] = ChildT | TagList[ChildT] | float | None |
+    Sequence[TagChild[ChildT]]`` — and use it in mutation signatures so
+    that ``TagList[TagifiedNode].append`` only accepts ``TagifiedNode``
+    -shaped values. We tried that. Pyright (tested through 1.1.409)
+    does not fully re-bind ``ChildT`` through the recursive
+    ``Sequence["TagChild[ChildT]"]`` arm when a *downstream* module
+    imports the symbols in strict mode. Every ``Tag``-function signature
+    then leaks a ``Sequence[Unknown]`` arm, which surfaced as thousands
+    of ``reportUnknownMemberType`` errors in Shiny's CI — far more noise
+    than the win was worth.
 
-    Implementing that required making ``TagChild`` a *generic recursive
-    ``TypeAliasType``*: ``TagChild[ChildT] = ChildT | TagList[ChildT] | float |
-    None | Sequence[TagChild[ChildT]]``. Pyright (1.1.409) does not fully
-    re-bind ``ChildT`` through the ``Sequence["TagChild[ChildT]"]`` arm when a
-    downstream module imports the symbols in strict mode — every ``Tag``
-    function signature leaks a ``Sequence[Unknown]`` arm, producing
-    thousands of ``reportUnknownMemberType`` errors in Shiny's CI.
+    What we do instead
+    ------------------
+    - ``TagChild`` is a plain non-generic ``Union`` (including the
+      recursive ``Sequence["TagChild"]`` arm for nested-list flattening).
+    - Mutation methods on ``TagList[ChildT]`` and ``Tag[ChildT]`` accept
+      bare ``TagChild`` (wide). This preserves the nested-list
+      ergonomics like ``tl.append([a, b, [c, d]])``.
+    - The "no un-tagified children in a tagified tree" invariant is
+      enforced at runtime:
+        * ``TagList.tagify()`` raises ``TypeError`` at the boundary
+          when a child's ``.tagify()`` returns a ``TagList`` containing
+          a ``Tagifiable``, naming the offending class and slot index.
+        * ``TagList.get_html_string`` raises ``RuntimeError`` at render
+          time if a ``Tagifiable`` is still in the tree (covers
+          mutation-after-tagify; see
+          ``test_tagify.py::test_render_guard_catches_mutation_after_tagify``).
 
-    We therefore reverted ``TagChild`` to a plain non-generic ``Union`` and
-    let mutating methods on ``TagList[ChildT]`` accept the wide bare
-    ``TagChild``. The static guarantee is gone, but the runtime guarantee
-    is still enforced by ``TagList.get_html_string``'s render-time guard
-    (covered by
-    ``test_tagify.py::test_render_guard_catches_mutation_after_tagify``)
-    and by the A3 boundary check inside ``TagList.tagify()``.
-
+    When to revisit
+    ---------------
     If a future pyright/typing release handles recursive generic
-    ``TypeAliasType`` cleanly across modules, flip this test back to the
-    negative form (``# pyright: ignore[reportArgumentType]`` on the
-    ``tl.append(...)`` call) and reinstate ``TagChild[ChildT]`` on
-    ``TagList``'s mutation-method signatures.
+    ``TypeAliasType`` cleanly across module boundaries, flip this test
+    to a *negative* form (``# pyright: ignore[reportArgumentType]`` on
+    the ``tl.append(...)`` call) and reinstate ``TagChild[ChildT]`` on
+    ``TagList`` / ``Tag`` mutation-method signatures.
     """
 
     class _SomeTagifiable:
@@ -74,7 +89,8 @@ def test_TagifiedTagList_append_accepts_Tagifiable_lost_Q6() -> None:
             return "x"
 
     tl: TagifiedTagList = TagList("hi").tagify()
-    # Today this type-checks (Q6 lost). In an ideal world it would fail.
+    # This currently type-checks. In an ideal world it would static-error;
+    # see the docstring for why we accept the gap.
     tl.append(_SomeTagifiable())
 
 
