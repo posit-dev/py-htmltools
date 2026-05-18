@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bug fixes
 
-* `TagList.tagify()` now raises `TypeError` at the boundary when a child's `.tagify()` returns a `TagList` containing an un-tagified `Tagifiable` object. The error names the offending class and slot index so buggy `.tagify()` implementations surface at the source rather than later at render time. The render-time `RuntimeError` raised by `get_html_string()` for an un-tagified child has also been clarified to include the offending class name and a hint that the tree was likely mutated after `.tagify()` was called. (#7, #112)
+* `TagList.tagify()` now raises `TypeError` at the boundary when a child's `.tagify()` returns a `TagList` containing an un-tagified `Tagifiable` object. The error names the offending class and slot index so buggy `.tagify()` implementations surface at the source rather than later at render time. The render-time `RuntimeError` raised by `get_html_string()` for an un-tagified child has also been clarified to include the offending class name and a hint that the tree was likely mutated after `.tagify()` was called. (#7, #105, #112)
 
 ### Dependencies
 
