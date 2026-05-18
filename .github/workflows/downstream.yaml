@@ -43,14 +43,14 @@ jobs:
 
     steps:
       - name: Checkout ${{ matrix.repo }}@${{ matrix.ref }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ matrix.repo }}
           ref: ${{ matrix.ref }}
           fetch-depth: 0 # required by some downstreams' versioning
 
       - name: Checkout dev branch of py-htmltools
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: _dev/htmltools
 
