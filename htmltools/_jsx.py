@@ -19,6 +19,7 @@ from ._core import (
     Tag,
     TagAttrValue,
     Tagifiable,
+    TagifiedNode,
     TagList,
     TagNode,
 )
@@ -110,7 +111,7 @@ class JSXTag:
     def append(self, *args: TagNode) -> None:
         self.children.append(*args)
 
-    def tagify(self) -> Tag:
+    def tagify(self) -> "Tag[TagifiedNode]":
         metadata_nodes: list[MetadataNode] = []
 
         # This function is recursively applied to the attributes and children. It does
@@ -122,7 +123,9 @@ class JSXTag:
             if isinstance(x, Tagifiable) and not isinstance(x, (Tag, JSXTag)):
                 x = x.tagify()
             else:
-                x = copy.copy(x)
+                # cast: narrowed `x` carries Tag[Unknown] (because the source
+                # is Any); we don't use the parameter here, so widen to Any.
+                x = copy.copy(cast(Any, x))
             if isinstance(x, MetadataNode):
                 metadata_nodes.append(x)
             return x
@@ -161,16 +164,21 @@ class JSXTag:
             ]
         )
 
-        return Tag(
-            "script",
-            {
-                "type": "text/javascript",
-                "data_needs_render": True,
-            },
-            HTML("\n" + js + "\n"),
-            _lib_dependency("react", script={"src": "react.production.min.js"}),
-            _lib_dependency("react-dom", script={"src": "react-dom.production.min.js"}),
-            *metadata_nodes,
+        return cast(
+            "Tag[TagifiedNode]",
+            Tag(
+                "script",
+                {
+                    "type": "text/javascript",
+                    "data_needs_render": True,
+                },
+                HTML("\n" + js + "\n"),
+                _lib_dependency("react", script={"src": "react.production.min.js"}),
+                _lib_dependency(
+                    "react-dom", script={"src": "react-dom.production.min.js"}
+                ),
+                *metadata_nodes,
+            ),
         )
 
     def __str__(self) -> str:
@@ -187,6 +195,10 @@ def _walk_attrs_and_children(x: Any, fn: Callable[[Any], Any]) -> Any:
     x = fn(x)
 
     if isinstance(x, Tag):
+        # cast: narrowing `Any` via `isinstance(x, Tag)` yields `Tag[Unknown]`;
+        # widen back to the default `Tag[TagNode]` so pyright keeps tracking
+        # the child type instead of leaking `Unknown` into the recursion.
+        x = cast("Tag[TagNode]", x)
         for i, child in enumerate(x.children):
             x.children[i] = _walk_attrs_and_children(child, fn)
     elif isinstance(x, JSXTag):
@@ -215,6 +227,10 @@ def _render_react_js(x: TagNode, indent: int, eol: str) -> str:
     if isinstance(x, JSXTag):
         nm = x.name
     elif isinstance(x, Tag):
+        # cast: narrowing from `TagNode` (which includes the `Tagifiable`
+        # arm) leaks `Tag[Unknown]` into the union; widen to `Tag[TagNode]`
+        # so `.children` / `.attrs` access types resolve cleanly.
+        x = cast("Tag[TagNode]", x)
         nm = "'" + x.name + "'"
     else:
         raise TypeError("x must be a tag or JSXTag object. Did you run tagify()?")
@@ -256,7 +272,8 @@ def _serialize_attr(x: object) -> str:
     if x is None:
         return "null"
     if isinstance(x, Tag) or isinstance(x, JSXTag):
-        return _render_react_js(x, 0, "\n")
+        # cast: narrowing from `object` leaks Tag[Unknown]; widen to default.
+        return _render_react_js(cast("Tag[TagNode] | JSXTag", x), 0, "\n")
     if isinstance(x, (list, tuple)):
         return (
             "[" + ", ".join([_serialize_attr(y) for y in cast(Iterable[Any], x)]) + "]"
@@ -358,9 +375,7 @@ class jsx(str):
     """
 
     def __new__(cls, *args: str) -> "jsx":
-        return super().__new__(  # pyright: ignore[reportGeneralTypeIssues]
-            cls, "\n".join(args)
-        )
+        return super().__new__(cls, "\n".join(args))
 
     # jsx() + jsx() should return jsx()
     def __add__(self, other: "str | jsx") -> str:

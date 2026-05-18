@@ -18,11 +18,11 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Generic,
     Iterable,
     Mapping,
     Optional,
     Sequence,
-    TypeVar,
     Union,
     cast,
     overload,
@@ -44,6 +44,7 @@ else:
 from typing import Literal, Protocol, SupportsIndex, runtime_checkable
 
 from packaging.version import Version
+from typing_extensions import TypeAliasType, TypeVar
 
 from ._util import (
     ensure_http_server,
@@ -68,6 +69,7 @@ __all__ = (
     "TagNode",
     "TagFunction",
     "Tagifiable",
+    "Tagified",
     "consolidate_attrs",
     "head_content",
     "is_tag_child",
@@ -108,24 +110,93 @@ For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed 
 unnamed arguments to Tag functions like `div()`.
 """
 
-# NOTE: If this type is updated, please update `is_tag_node()`
-TagNode = Union[
-    "Tagifiable",
-    # "Tag", # Tag is Tagifiable, do not include here
-    # "TagList" is Tagifiable, so it is included in practice.
-    #   But in reality it should be excluded because a TagList cannot contain a TagList.
-    MetadataNode,
-    "ReprHtml",
-    str,
-    "HTML",
-]
+# -----------------------------------------------------------------------------
+# Tagified shape aliases
+# -----------------------------------------------------------------------------
+# `TagifiedTagList` uses `TypeAliasType` so that the alias *name*
+# survives in pyright diagnostics (users see `TagifiedTagList` rather
+# than the expanded structural union) and so its forward reference to
+# `TagifiedNode` (defined later in the file) is resolved lazily.
+# (Contrast `Tagified` below, which is a plain `Union` because
+# `TypeAliasType` over its recursive arm leaks `Unknown` through
+# downstream pyright analysis — see the comment above that definition.)
+TagifiedTagList = TypeAliasType("TagifiedTagList", "TagList[TagifiedNode]")
 """
-Types of objects that can be a node in a `Tag` tree. Equivalently, these are the valid
-elements of a `TagList`. Note that this type represents the internal structure of items
-in a `TagList`; the user-facing type is `TagChild`.
+A `TagList` whose items are all tagified. This is the return type of
+`TagList.tagify()`.
 """
 
-# NOTE: If this type is updated, please update `is_tag_child()`
+# Kept as a plain `Union` (not `TypeAliasType`) so the arms are visible
+# in pyright diagnostics — a value typed as `TagNodeLeaf` shows up as
+# `MetadataNode | ReprHtml | str | HTML` directly instead of as an
+# opaque alias name.
+TagNodeLeaf = Union["MetadataNode", "ReprHtml", str, "HTML"]
+"""
+Leaf nodes in a tag tree: members that do not recursively contain tag
+children. `MetadataNode` carries non-rendered metadata, `ReprHtml` and
+`HTML` render themselves, and `str` is plain text. These are the non-`Tag`
+/ non-`TagList` arms shared by both `TagNode` and `TagifiedNode`.
+"""
+
+# A node that has already been fully tagified: no Tagifiable objects whose
+# .tagify() still needs to be called. Recursive — a tagified Tag's children
+# are themselves tagified. TagList is NOT a member because TagList children
+# are flattened (a TagList never appears as a child slot of another TagList).
+TagifiedNode = Union["Tag[TagifiedNode]", TagNodeLeaf]
+"""
+A fully-tagified child-slot type. Members never include an un-resolved
+`Tagifiable`; calling `.tagify()` on a node tree returns a structure whose
+slot items are all `TagifiedNode`.
+"""
+
+# Kept as a plain `Union` (not `TypeAliasType`) because pyright's
+# recursive-alias resolution leaks `Unknown` when downstream packages
+# inspect the type in strict mode. The alias name is then lost in
+# diagnostics, but downstream pyright stays clean.
+Tagified = Union[TagifiedTagList, TagifiedNode]
+"""
+Anything `.tagify()` is permitted to return: either a top-level
+`TagifiedTagList`, or one of the `TagifiedNode` shapes (a fully-tagified
+`Tag` or a leaf).
+"""
+
+
+# -----------------------------------------------------------------------------
+# TagNode / TagChild (generic) and the TagNodeT TypeVar
+# -----------------------------------------------------------------------------
+# NOTE: If this type is updated, please update `is_tag_node()`
+TagNode = Union["Tagifiable", TagNodeLeaf]
+"""
+Types of objects that can be a node in a `Tag` tree. Equivalently, these are
+the valid elements of a `TagList`. Note that this type represents the
+internal structure of items in a `TagList`; the user-facing type is
+`TagChild`.
+
+`Tag` and `TagList` are structurally `Tagifiable` (each defines
+`.tagify() -> Tagified`), so the `Tagifiable` arm subsumes them and
+their tagified specializations. Only the leaf arm is spelled out
+explicitly.
+"""
+
+TagNodeT = TypeVar("TagNodeT", bound=TagNode, default=TagNode)
+"""
+Type parameter for `Tag` and `TagList`. Defaults to `TagNode`, so bare
+`Tag` / `TagList` keep their pre-#105 meaning.
+"""
+
+# NOTE: If this type is updated, please update `is_tag_child()`.
+#
+# `TagChild` is intentionally NOT generic. Making it a generic
+# `TypeAliasType` with a recursive `Sequence["TagChild[TagNodeT]"]`
+# arm caused pyright to leak `Sequence[Unknown]` into every `Tag`
+# function signature when inspected from a downstream module in
+# strict mode (e.g. Shiny's CI reported 2500+
+# `reportUnknownMemberType` errors). The trade-off is that
+# `TagList[TagifiedNode].append(some_tagifiable)` no longer
+# static-errors — the runtime guard in `TagList.get_html_string`
+# still catches it at render time. See
+# `tests/test_types.py::test_TagifiedTagList_append_accepts_Tagifiable`
+# for the full rationale.
 TagChild = Union[
     TagNode,
     "TagList",
@@ -134,24 +205,20 @@ TagChild = Union[
     Sequence["TagChild"],
 ]
 """
-Types of objects that can be passed as children to Tag functions like `div()`. The `Tag`
-functions and the `TagList()` constructor can accept these as unnamed arguments; they
-will be flattened and normalized to `TagNode` objects.
+Types of objects that can be passed as children to Tag functions like
+`div()`. The `Tag` functions and the `TagList()` constructor can accept
+these as unnamed arguments; they will be flattened and normalized to
+`TagNode` objects.
 """
 
 
-# These two types existed in htmltools 0.14.0 and earlier. They are here so that
-# existing versions of Shiny will be able to load, but users of those existing packages
-# will see type errors, which should encourage them to upgrade Shiny.
+# These two types existed in htmltools 0.14.0 and earlier. They are here so
+# that existing versions of Shiny will be able to load, but users of those
+# existing packages will see type errors, which should encourage them to
+# upgrade Shiny.
 TagChildArg = Never
 TagAttrArg = Never
 
-
-# # No use yet, so keeping code commented for now
-# TagNodeT = TypeVar("TagNodeT", bound=TagNode)
-# """
-# Type variable for `TagNode`.
-# """
 
 TagChildT = TypeVar("TagChildT", bound=TagChild)
 """
@@ -221,11 +288,12 @@ def is_tag_child(x: object) -> TypeIs[TagChild]:
 @runtime_checkable
 class Tagifiable(Protocol):
     """
-    Objects with `tagify()` methods are considered `Tagifiable`. Note that an object
-    returns a `TagList`, the children of the `TagList` must also be tagified.
+    Objects with `tagify()` methods are considered `Tagifiable`. The return
+    value must be `Tagified` — i.e. fully tagified all the way down. See
+    `TagifiedNode` / `TagifiedTagList`.
     """
 
-    def tagify(self) -> "TagList | Tag | MetadataNode | str | HTML": ...
+    def tagify(self) -> "Tagified": ...
 
 
 @runtime_checkable
@@ -254,7 +322,7 @@ class ReprHtml(Protocol):
 # =============================================================================
 # TagList class
 # =============================================================================
-class TagList(UserList[TagNode]):
+class TagList(UserList[TagNodeT]):
     """
     Create an HTML tag list (i.e., a fragment of HTML)
 
@@ -278,13 +346,15 @@ class TagList(UserList[TagNode]):
         return isinstance(x, str)
 
     def __init__(self, *args: TagChild) -> None:
-        super().__init__(_tagchilds_to_tagnodes(args))
+        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than TagNodeT
+        super().__init__(cast(list[TagNodeT], _tagchilds_to_tagnodes(args)))
 
     def extend(self, other: Iterable[TagChild]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
-        super().extend(_tagchilds_to_tagnodes(other))
+        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than TagNodeT
+        super().extend(cast(list[TagNodeT], _tagchilds_to_tagnodes(other)))
 
     def append(self, item: TagChild, *args: TagChild) -> None:
         """
@@ -298,9 +368,10 @@ class TagList(UserList[TagNode]):
         Insert tag children before a given index.
         """
 
-        self[i:i] = _tagchilds_to_tagnodes([item])
+        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than TagNodeT
+        self[i:i] = cast(list[TagNodeT], _tagchilds_to_tagnodes([item]))
 
-    def __add__(self, item: Iterable[TagChild]) -> TagList:
+    def __add__(self, item: Iterable[TagChild]) -> "TagList[TagNodeT]":
         """
         Return a new TagList with the item added at the end.
         """
@@ -310,7 +381,7 @@ class TagList(UserList[TagNode]):
 
         return TagList(self, *item)
 
-    def __radd__(self, item: Iterable[TagChild]) -> TagList:
+    def __radd__(self, item: Iterable[TagChild]) -> "TagList[TagNodeT]":
         """
         Return a new TagList with the item added to the beginning.
         """
@@ -320,7 +391,7 @@ class TagList(UserList[TagNode]):
 
         return TagList(*item, self)
 
-    def tagify(self) -> "TagList":
+    def tagify(self) -> "TagifiedTagList":
         """
         Convert any tagifiable children to Tag/TagList objects.
 
@@ -333,7 +404,11 @@ class TagList(UserList[TagNode]):
             slot index so the broken ``.tagify()`` is easy to find.
         """
 
-        cp = copy(self)
+        # Internally work with `TagList[Any]` so the loop body's assignments
+        # don't need per-line casts. The runtime invariants are checked by
+        # the post-condition loop below; the final `cast` narrows back to
+        # `TagifiedTagList` for the public return type.
+        cp: "TagList[Any]" = cast("TagList[Any]", copy(self))
 
         # Iterate backwards because if we hit a Tagifiable object, it may be replaced
         # with 0, 1, or more items (if it returns TagList).
@@ -343,18 +418,27 @@ class TagList(UserList[TagNode]):
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
                 if isinstance(tagified_child, TagList):
-                    # If the Tagifiable object returned a TagList, flatten it into this
-                    # one.
-                    cp[i : i + 1] = _tagchilds_to_tagnodes(tagified_child)
+                    # Flatten the returned TagList into this one. Cast: pyright
+                    # cannot fully resolve `TagifiedTagList`'s recursive child
+                    # alias here, leaving a `TagList[Unknown]` arm.
+                    cp[i : i + 1] = _tagchilds_to_tagnodes(
+                        cast("TagList[TagNode]", tagified_child)
+                    )
                 else:
                     cp[i] = tagified_child
 
             elif isinstance(child, MetadataNode):
                 cp[i] = copy(child)
 
-        # Post-condition: after the recursion, no bare Tagifiable may remain.
-        # Tag and TagList are themselves Tagifiable but are already-tagified
-        # shapes, so they are excluded from the check.
+        # Boundary check: after the recursion above, every child should be
+        # a fully-tagified shape (Tag, TagList, MetadataNode, ReprHtml, str,
+        # or HTML). A bare Tagifiable still present here means some child's
+        # `.tagify()` returned a TagList containing un-tagified objects —
+        # which violates the Tagifiable protocol. Surface that here, where
+        # the offending class and index are still in scope, instead of
+        # waiting for the render-time guard in `get_html_string` to raise
+        # a less-actionable error. Tag and TagList are themselves
+        # Tagifiable but are valid tagified shapes, so they are excluded.
         for i, child in enumerate(cp):
             if isinstance(child, Tagifiable) and not isinstance(child, (Tag, TagList)):
                 raise TypeError(
@@ -615,7 +699,7 @@ class TagAttrDict(Dict[str, "str | HTML"]):
 # =============================================================================
 # Tag class
 # =============================================================================
-class Tag:
+class Tag(Generic[TagNodeT]):
     """
     The HTML tag class.
 
@@ -678,7 +762,7 @@ class Tag:
     name: str
     add_ws: bool
     attrs: TagAttrDict
-    children: TagList
+    children: "TagList[TagNodeT]"
 
     def __init__(
         self,
@@ -867,14 +951,14 @@ class Tag:
             self.attrs.update({"style": self.attrs.get("style")}, {"style": style})
         return self
 
-    def tagify(self: TagT) -> TagT:
+    def tagify(self) -> "Tag[TagifiedNode]":
         """
         Convert any tagifiable children to Tag/TagList objects.
         """
 
         cp = copy(self)
-        cp.children = cp.children.tagify()
-        return cp
+        cp.children = cast("TagList[TagNodeT]", cp.children.tagify())
+        return cast("Tag[TagifiedNode]", cp)
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
         """
@@ -1051,7 +1135,7 @@ def wrap_displayhook_handler(
 
     def handler_wrapper(value: object) -> None:
         if isinstance(value, (Tag, TagList, Tagifiable)):
-            handler(value)
+            handler(value)  # pyright: ignore[reportUnknownArgumentType]
         elif isinstance(value, ReprHtml):
             handler(HTML(value._repr_html_()))  # pyright: ignore[reportPrivateUsage]
         elif value not in (None, ...):
@@ -1165,8 +1249,8 @@ class HTMLDocument:
         self, lib_prefix: Optional[str], include_version: bool
     ) -> Tag:
         content: TagList = self._content
-        html: Tag
-        body: Tag
+        html: Tag[Any]
+        body: Tag[Any]
 
         if (
             len(content) == 1
@@ -1976,7 +2060,7 @@ def _tag_show(
 ) -> object:
     if renderer == "auto":
         try:
-            import IPython  # pyright: ignore[reportUnknownVariableType]
+            import IPython
 
             ipy = (  # pyright: ignore[reportUnknownVariableType]
                 IPython.get_ipython()  # pyright: ignore[reportUnknownMemberType, reportPrivateImportUsage, reportAttributeAccessIssue]

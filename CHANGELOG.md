@@ -5,11 +5,43 @@ All notable changes to htmltools for Python will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.7.0] - Unreleased
+
+### Breaking changes
+
+* `Tagifiable.tagify()` now returns `Tagified`, a tighter type that
+  excludes the un-resolved `Tagifiable` arm of `TagNode`. Custom
+  `.tagify()` implementations annotated with bare `TagList` or `Tag`
+  return types will fail static type checking; update them to
+  `-> Tagified` (or omit the return annotation). Runtime behavior of
+  correct `.tagify()` implementations is unchanged. (#105)
+
+* `Tag.tagify()` no longer preserves the caller's `Tag` subclass in
+  its return type. Code relying on the previous subclass-preserving
+  signature should `cast` the result. (#105)
+
+### New features
+
+* `Tag` and `TagList` are now generic in their child type, defaulting
+  to `TagNode`. Bare `Tag` / `TagList` retain today's meaning. Mutation
+  methods (`append` / `extend` / `insert`) still accept `Tagifiable` at
+  static-type-check time even on tagified containers — the invariant
+  is enforced at runtime instead (`TagList.tagify()` raises `TypeError`
+  and `get_html_string` raises `RuntimeError` for an un-tagified
+  subtree). See `tests/test_types.py` for the rationale. (#105)
+
+* Added the public type alias `Tagified` — the union of all
+  fully-tagified shapes — for use as the return annotation of
+  `Tagifiable.tagify()` implementations. (#105)
 
 ### Bug fixes
 
-* `TagList.tagify()` now raises `TypeError` at the boundary when a child's `.tagify()` returns a `TagList` containing an un-tagified `Tagifiable` object. The error names the offending class and slot index so buggy `.tagify()` implementations surface at the source rather than later at render time. The render-time `RuntimeError` raised by `get_html_string()` for an un-tagified child has also been clarified to include the offending class name and a hint that the tree was likely mutated after `.tagify()` was called. (#7)
+* `TagList.tagify()` now raises `TypeError` at the boundary when a child's `.tagify()` returns a `TagList` containing an un-tagified `Tagifiable` object. The error names the offending class and slot index so buggy `.tagify()` implementations surface at the source rather than later at render time. The render-time `RuntimeError` raised by `get_html_string()` for an un-tagified child has also been clarified to include the offending class name and a hint that the tree was likely mutated after `.tagify()` was called. (#7, #105, #112)
+
+### Dependencies
+
+* Bumped `typing_extensions` floor to `>=4.12.0`, required for
+  PEP 696 `TypeVar(default=...)` support on Python 3.13+.
 
 ### Other changes
 

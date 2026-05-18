@@ -1,0 +1,93 @@
+name: Downstream
+
+# Run downstream Posit packages' test suites against this branch's
+# htmltools so type-system / API changes here surface early. Each
+# downstream is an independent matrix entry — failures are localized.
+#
+# Each entry's `ref` may pin to a PR branch that absorbs upstream type-
+# system changes. When the corresponding downstream PR merges, flip the
+# `ref` back to `main` (or delete it to use the default).
+#
+# Candidates to consider adding later (Posit-owned consumers that import
+# htmltools symbols but don't currently have custom .tagify()):
+#   - posit-dev/great-tables   (imports Tag, div, HTML)
+#   - posit-dev/py-faicons     (imports Tag, css, html_escape, tags)
+#   - posit-dev/querychat      (imports HTMLDependency, tags)
+# These don't need coverage today because they're API-level consumers,
+# not Tagifiable implementers — runtime risk is low.
+
+on:
+  push:
+    branches: "shiny-**"
+  pull_request:
+
+jobs:
+  downstream:
+    name: ${{ matrix.repo }}@${{ matrix.ref }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - repo: posit-dev/py-shiny
+            ref: schloerke/htmltools-105-tagified-types  # PR #2244
+          - repo: posit-dev/shinychat
+            ref: schloerke/htmltools-105-tagified-types  # PR #226
+          - repo: posit-dev/chatlas
+            ref: schloerke/htmltools-105-tagified-types  # PR #311
+          - repo: posit-dev/brand-yml
+            ref: schloerke/htmltools-105-tagified-types  # PR #115
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout ${{ matrix.repo }}@${{ matrix.ref }}
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ matrix.repo }}
+          ref: ${{ matrix.ref }}
+          fetch-depth: 0 # required by some downstreams' versioning
+
+      - name: Checkout dev branch of py-htmltools
+        uses: actions/checkout@v6
+        with:
+          path: _dev/htmltools
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+
+      - name: Sync downstream env with local htmltools
+        # `uv sync` resolves the downstream's own deps (including dev/test
+        # extras and PEP 735 groups). `--all-extras` covers legacy
+        # `[project.optional-dependencies]` (chatlas, py-shiny still ship
+        # pyright/pytest there); `--all-groups` covers PEP 735
+        # `[dependency-groups]`.
+        #
+        # `uv run --with-editable` does NOT override a resolved version
+        # of the same package, so the downstream still imports the
+        # released htmltools. Force-reinstall our checkout afterwards.
+        run: |
+          uv sync --all-extras --all-groups
+          uv pip install --reinstall --no-deps ./_dev/htmltools
+
+      - name: Set up downstream's typing stubs (if any)
+        # Some downstreams (e.g. py-shiny) vendor third-party type stubs
+        # into `typings/` via a `make pyright-typings` target. Run it if
+        # present so pyright can resolve those signatures. Use `uv run`
+        # so commands the Makefile invokes (pyright --createstub …) are
+        # found in the synced venv.
+        run: |
+          if [ -f Makefile ] && grep -qE '^pyright-typings:' Makefile; then
+            uv run --no-sync make pyright-typings
+          fi
+
+      - name: Run downstream pyright
+        # We only run pyright here, not pytest. pytest in these
+        # downstreams requires extra setup (playwright browser
+        # install, VCR cassettes, etc.) that isn't worth replicating
+        # in this compatibility-check workflow — each downstream's
+        # own CI runs its tests under the released htmltools. What
+        # we need here is static-type compatibility against this
+        # branch's htmltools, which pyright provides.
+        run: uv run --no-sync pyright

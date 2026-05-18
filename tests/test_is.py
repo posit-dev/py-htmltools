@@ -9,6 +9,7 @@ from htmltools import (
     Tag,
     TagAttrs,
     TagChild,
+    Tagified,
     TagList,
     TagNode,
     div,
@@ -32,7 +33,7 @@ class OtherObj:
 
 
 class TagifiableClass:
-    def tagify(self) -> Tag:
+    def tagify(self) -> Tagified:
         return Tag("test_element").tagify()
 
 

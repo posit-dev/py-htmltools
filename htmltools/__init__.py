@@ -1,4 +1,4 @@
-__version__ = "0.6.1"
+__version__ = "0.7.0"
 
 from . import svg, tags
 from ._core import (
@@ -17,6 +17,7 @@ from ._core import (
     TagChildArg,  # pyright: ignore[reportUnusedImport] # noqa: F401
     TagFunction,
     Tagifiable,
+    Tagified,
     TagList,
     TagNode,
     consolidate_attrs,
@@ -61,6 +62,7 @@ __all__ = (
     "TagChild",
     "TagFunction",
     "Tagifiable",
+    "Tagified",
     "TagList",
     "TagNode",
     "ReprHtml",
