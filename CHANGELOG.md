@@ -40,12 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Dependencies
 
-* Bumped `typing_extensions` floor to `>=4.12.0`. Earlier versions
-  ship a `TypeVar` shim that monkey-patches `__default__` onto the
-  underlying `typing.TypeVar`, which fails at import time on
-  Python 3.13+ (where `typing.TypeVar` natively implements PEP 696
-  and `__default__` is read-only). 4.12.0 is the first release that
-  defers to the stdlib implementation cleanly.
+* Bumped `typing_extensions` floor to `>=4.12.0`, required for
+  PEP 696 `TypeVar(default=...)` support on Python 3.13+.
 
 ### Other changes
 
