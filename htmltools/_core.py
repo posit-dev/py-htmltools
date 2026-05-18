@@ -373,11 +373,9 @@ class TagList(UserList[TagNodeT]):
         """
 
         if self._should_not_expand(item):
-            # cast: TagList constructor infers wider TagNodeT; narrow to declared return type
-            return cast("TagList[TagNodeT]", TagList(self, item))
+            return TagList(self, item)
 
-        # cast + ignore: *item unpacking widens TagNodeT; narrow to declared return type
-        return cast("TagList[TagNodeT]", TagList(self, *item))  # pyright: ignore[reportArgumentType]
+        return TagList(self, *item)
 
     def __radd__(self, item: Iterable[TagChild]) -> "TagList[TagNodeT]":
         """
@@ -385,8 +383,7 @@ class TagList(UserList[TagNodeT]):
         """
 
         if self._should_not_expand(item):
-            # cast: TagList constructor infers wider TagNodeT; narrow to declared return type
-            return cast("TagList[TagNodeT]", TagList(item, self))
+            return TagList(item, self)
 
         return TagList(*item, self)
 
@@ -443,7 +440,7 @@ class TagList(UserList[TagNodeT]):
                     "instead of `something`)."
                 )
 
-        return cast("TagifiedTagList", cp)
+        return cp
 
     def save_html(
         self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
@@ -779,7 +776,7 @@ class Tag(Generic[TagNodeT]):
         self.attrs = TagAttrDict(*attrs, **kwargs)
 
         kids = [x for x in args if not isinstance(x, dict)]
-        self.children = cast("TagList[TagNodeT]", TagList(*kids))
+        self.children = TagList(*kids)
 
         self.prev_displayhook: Callable[[object], None] | None = None
 
@@ -814,21 +811,21 @@ class Tag(Generic[TagNodeT]):
         Insert tag children before a given index.
         """
 
-        self.children.insert(index, x)  # pyright: ignore[reportArgumentType]
+        self.children.insert(index, x)
 
     def extend(self, x: Iterable[TagChild]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
 
-        self.children.extend(x)  # pyright: ignore[reportArgumentType]
+        self.children.extend(x)
 
     def append(self, *args: TagChild) -> None:
         """
         Append tag children to the end of the list.
         """
 
-        self.children.append(*args)  # pyright: ignore[reportArgumentType]
+        self.children.append(*args)
 
     def add_class(self: TagT, class_: str, *, prepend: bool = False) -> TagT:
         """
@@ -2053,7 +2050,7 @@ def _tag_show(
 ) -> object:
     if renderer == "auto":
         try:
-            import IPython  # pyright: ignore[reportUnknownVariableType]
+            import IPython
 
             ipy = (  # pyright: ignore[reportUnknownVariableType]
                 IPython.get_ipython()  # pyright: ignore[reportUnknownMemberType, reportPrivateImportUsage, reportAttributeAccessIssue]

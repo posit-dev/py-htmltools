@@ -210,7 +210,7 @@ def _walk_attrs_and_children(x: Any, fn: Callable[[Any], Any]) -> Any:
         # Don't do anything here?
         pass
 
-    return cast(Any, x)
+    return x
 
 
 # Return a string representing the rendered HTML for the given JSXTag object. The
@@ -375,9 +375,7 @@ class jsx(str):
     """
 
     def __new__(cls, *args: str) -> "jsx":
-        return super().__new__(  # pyright: ignore[reportGeneralTypeIssues]
-            cls, "\n".join(args)
-        )
+        return super().__new__(cls, "\n".join(args))
 
     # jsx() + jsx() should return jsx()
     def __add__(self, other: "str | jsx") -> str:

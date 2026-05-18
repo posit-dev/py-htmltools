@@ -13,10 +13,6 @@
 `TagList.insert` / `TagList.extend` / `TagList.__add__` /
 `TagList.__radd__` all keep their parameter type as the wide
 `TagChild`, even though `Tag` and `TagList` are generic in `TagNodeT`.
-The mismatch between the wide input and the narrower
-`self.children: TagList[TagNodeT]` is silenced with four
-`# pyright: ignore[reportArgumentType]` comments in
-`htmltools/_core.py`.
 
 The obvious-looking alternative — narrowing mutation to `TagNodeT` — is
 rejected.
@@ -73,21 +69,12 @@ We accept this and document the trade-off in
 (read that test's docstring for the full rationale and the conditions
 under which we'd reverse this decision).
 
-The four `# pyright: ignore[reportArgumentType]` comments are the cost
-of preserving the nested-list flattening API. None of them mask real
-bugs — they sit on lines where wide `TagChild` is passed into the
-narrower `TagList[TagNodeT]` storage, and the cast /
-`_tagchilds_to_tagnodes` call performs the actual normalization at
-runtime.
-
-## Affected lines
-
-`htmltools/_core.py`:
-
-- `382` — `TagList.__add__` returning `TagList[TagNodeT]` after `*item` widens
-- `819` — `Tag.insert` delegating to `self.children.insert`
-- `826` — `Tag.extend` delegating to `self.children.extend`
-- `833` — `Tag.append` delegating to `self.children.append`
+Pyright currently accepts these signatures cleanly, so no
+`# pyright: ignore` comments are needed at the mutation sites. If
+some future pyright version starts flagging them as
+`reportArgumentType` again, the conventional fix is to silence each
+site with `# pyright: ignore[reportArgumentType]` rather than reverse
+this decision.
 
 ## Related
 
