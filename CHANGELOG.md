@@ -36,8 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fully-tagified shapes — for use as the return annotation of
   `Tagifiable.tagify()` implementations. `Tagified` is the **only**
   tagified-shape alias exported by the package. Narrower aliases
-  (`TagifiedNode`, `TagifiedTag`, `TagifiedTagList`, `TagLeaf`) live
-  in `htmltools._core` for internal use and are intentionally not
+  (`TagifiedNode`, `TagifiedTagList`, `TagNodeLeaf`) live in
+  `htmltools._core` for internal use and are intentionally not
   exported — downstream packages only need `Tagified`. (#105)
 
 ### Bug fixes

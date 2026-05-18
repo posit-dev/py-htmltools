@@ -14,16 +14,17 @@ from __future__ import annotations
 from typing_extensions import assert_type
 
 from htmltools import (
+    Tag,
     Tagifiable,
     Tagified,
     TagList,
     div,
 )
-from htmltools._core import TagifiedTag, TagifiedTagList
+from htmltools._core import TagifiedNode, TagifiedTagList
 
 
-def test_tag_tagify_returns_TagifiedTag() -> None:
-    assert_type(div("hi").tagify(), TagifiedTag)
+def test_tag_tagify_returns_Tag_TagifiedNode() -> None:
+    assert_type(div("hi").tagify(), Tag[TagifiedNode])
 
 
 def test_taglist_tagify_returns_TagifiedTagList() -> None:

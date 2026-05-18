@@ -113,23 +113,16 @@ unnamed arguments to Tag functions like `div()`.
 # -----------------------------------------------------------------------------
 # Tagified shape aliases
 # -----------------------------------------------------------------------------
-# `TagifiedTag` and `TagifiedTagList` are defined first so that `TagifiedNode`
-# (the recursive child-slot type) can spell its tagified-Tag arm as
-# `TagifiedTag` rather than as `Tag[TagifiedNode]`. The forward reference
-# `"TagifiedNode"` is resolved lazily by `TypeAliasType`.
-TagifiedTag = TypeAliasType("TagifiedTag", "Tag[TagifiedNode]")
-"""
-A `Tag` whose entire subtree has been tagified. This is the return type of
-`Tag.tagify()` and `JSXTag.tagify()`.
-"""
-
+# `TagifiedTagList` is defined first so that `TagifiedNode` (the recursive
+# child-slot type) can reference it. Forward references like
+# `"TagifiedNode"` are resolved lazily by `TypeAliasType`.
 TagifiedTagList = TypeAliasType("TagifiedTagList", "TagList[TagifiedNode]")
 """
 A `TagList` whose items are all tagified. This is the return type of
 `TagList.tagify()`.
 """
 
-TagLeaf = TypeAliasType("TagLeaf", "MetadataNode | ReprHtml | str | HTML")
+TagNodeLeaf = TypeAliasType("TagNodeLeaf", "MetadataNode | ReprHtml | str | HTML")
 """
 Leaf nodes in a tag tree: members that do not recursively contain tag
 children. `MetadataNode` carries non-rendered metadata, `ReprHtml` and
@@ -141,7 +134,7 @@ children. `MetadataNode` carries non-rendered metadata, `ReprHtml` and
 # .tagify() still needs to be called. Recursive — a tagified Tag's children
 # are themselves tagified. TagList is NOT a member because TagList children
 # are flattened (a TagList never appears as a child slot of another TagList).
-TagifiedNode = Union[TagifiedTag, TagLeaf]
+TagifiedNode = Union["Tag[TagifiedNode]", TagNodeLeaf]
 """
 A fully-tagified child-slot type. Members never include an un-resolved
 `Tagifiable`; calling `.tagify()` on a node tree returns a structure whose
@@ -151,8 +144,8 @@ slot items are all `TagifiedNode`.
 Tagified = Union[TagifiedTagList, TagifiedNode]
 """
 Anything `.tagify()` is permitted to return: either a top-level
-`TagifiedTagList`, or one of the `TagifiedNode` shapes (which themselves
-include `TagifiedTag`).
+`TagifiedTagList`, or one of the `TagifiedNode` shapes (a fully-tagified
+`Tag` or a leaf).
 """
 
 
@@ -167,9 +160,9 @@ the valid elements of a `TagList`. Note that this type represents the
 internal structure of items in a `TagList`; the user-facing type is
 `TagChild`.
 
-The `TagifiedNode` arm is semantically redundant — `TagifiedTag` is a `Tag`
-which is structurally `Tagifiable`, so `Tagifiable | TagLeaf` would cover
-the same set. The arm is kept explicit so that `ChildT bound=TagNode`
+The `TagifiedNode` arm is semantically redundant — a tagified `Tag` is
+structurally `Tagifiable`, so `Tagifiable | TagNodeLeaf` would cover the
+same set. The arm is kept explicit so that `ChildT bound=TagNode`
 accepts `TagifiedNode` (pyright does not recognize generic Tag/TagList
 instances as satisfying the `Tagifiable` Protocol when checking type-
 variable bounds).
@@ -286,7 +279,7 @@ class Tagifiable(Protocol):
     """
     Objects with `tagify()` methods are considered `Tagifiable`. The return
     value must be `Tagified` — i.e. fully tagified all the way down. See
-    `TagifiedNode` / `TagifiedTag` / `TagifiedTagList`.
+    `TagifiedNode` / `TagifiedTagList`.
     """
 
     def tagify(self) -> "Tagified": ...
@@ -944,14 +937,14 @@ class Tag(Generic[ChildT]):
             self.attrs.update({"style": self.attrs.get("style")}, {"style": style})
         return self
 
-    def tagify(self) -> "TagifiedTag":
+    def tagify(self) -> "Tag[TagifiedNode]":
         """
         Convert any tagifiable children to Tag/TagList objects.
         """
 
         cp = copy(self)
         cp.children = cast("TagList[ChildT]", cp.children.tagify())
-        return cast("TagifiedTag", cp)
+        return cast("Tag[TagifiedNode]", cp)
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
         """
