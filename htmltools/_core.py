@@ -113,9 +113,14 @@ unnamed arguments to Tag functions like `div()`.
 # -----------------------------------------------------------------------------
 # Tagified shape aliases
 # -----------------------------------------------------------------------------
-# `TagifiedTagList` is defined first so that `TagifiedNode` (the recursive
-# child-slot type) can reference it. Forward references like
-# `"TagifiedNode"` are resolved lazily by `TypeAliasType`.
+# `TagifiedTagList` and `TagNodeLeaf` use `TypeAliasType` (not plain
+# `Union`) so that the alias *name* survives in pyright diagnostics —
+# users see `TagifiedTagList` rather than the expanded structural
+# union. `TagifiedTagList` additionally needs lazy evaluation because
+# it forward-references `TagifiedNode`, which is defined later in the
+# file. (Contrast `Tagified` below, which is a plain `Union` because
+# `TypeAliasType` over its recursive arm leaks `Unknown` through
+# downstream pyright analysis — see the comment above that definition.)
 TagifiedTagList = TypeAliasType("TagifiedTagList", "TagList[TagifiedNode]")
 """
 A `TagList` whose items are all tagified. This is the return type of
@@ -154,7 +159,7 @@ Anything `.tagify()` is permitted to return: either a top-level
 
 
 # -----------------------------------------------------------------------------
-# TagNode / TagChild (generic) and the ChildT TypeVar
+# TagNode / TagChild (generic) and the TagNodeT TypeVar
 # -----------------------------------------------------------------------------
 # NOTE: If this type is updated, please update `is_tag_node()`
 TagNode = Union["Tagifiable", TagNodeLeaf]
@@ -170,7 +175,7 @@ their tagified specializations. Only the leaf arm is spelled out
 explicitly.
 """
 
-ChildT = TypeVar("ChildT", bound=TagNode, default=TagNode)
+TagNodeT = TypeVar("TagNodeT", bound=TagNode, default=TagNode)
 """
 Type parameter for `Tag` and `TagList`. Defaults to `TagNode`, so bare
 `Tag` / `TagList` keep their pre-#105 meaning.
@@ -191,7 +196,7 @@ these as unnamed arguments; they will be flattened and normalized to
 `TagNode` objects.
 
 NOTE: `TagChild` is intentionally NOT generic. Making it a generic
-`TypeAliasType` with a recursive `Sequence["TagChild[ChildT]"]` arm caused
+`TypeAliasType` with a recursive `Sequence["TagChild[TagNodeT]"]` arm caused
 pyright to leak `Sequence[Unknown]` into every `Tag` function signature
 when inspected from a downstream module in strict mode (e.g. Shiny's CI
 reported 2500+ `reportUnknownMemberType` errors). The trade-off is that
@@ -313,7 +318,7 @@ class ReprHtml(Protocol):
 # =============================================================================
 # TagList class
 # =============================================================================
-class TagList(UserList[ChildT]):
+class TagList(UserList[TagNodeT]):
     """
     Create an HTML tag list (i.e., a fragment of HTML)
 
@@ -337,15 +342,15 @@ class TagList(UserList[ChildT]):
         return isinstance(x, str)
 
     def __init__(self, *args: TagChild) -> None:
-        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
-        super().__init__(cast(list[ChildT], _tagchilds_to_tagnodes(args)))
+        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than TagNodeT
+        super().__init__(cast(list[TagNodeT], _tagchilds_to_tagnodes(args)))
 
     def extend(self, other: Iterable[TagChild]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
-        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
-        super().extend(cast(list[ChildT], _tagchilds_to_tagnodes(other)))
+        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than TagNodeT
+        super().extend(cast(list[TagNodeT], _tagchilds_to_tagnodes(other)))
 
     def append(self, item: TagChild, *args: TagChild) -> None:
         """
@@ -359,29 +364,29 @@ class TagList(UserList[ChildT]):
         Insert tag children before a given index.
         """
 
-        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than ChildT
-        self[i:i] = cast(list[ChildT], _tagchilds_to_tagnodes([item]))
+        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than TagNodeT
+        self[i:i] = cast(list[TagNodeT], _tagchilds_to_tagnodes([item]))
 
-    def __add__(self, item: Iterable[TagChild]) -> "TagList[ChildT]":
+    def __add__(self, item: Iterable[TagChild]) -> "TagList[TagNodeT]":
         """
         Return a new TagList with the item added at the end.
         """
 
         if self._should_not_expand(item):
-            # cast: TagList constructor infers wider ChildT; narrow to declared return type
-            return cast("TagList[ChildT]", TagList(self, item))
+            # cast: TagList constructor infers wider TagNodeT; narrow to declared return type
+            return cast("TagList[TagNodeT]", TagList(self, item))
 
-        # cast + ignore: *item unpacking widens ChildT; narrow to declared return type
-        return cast("TagList[ChildT]", TagList(self, *item))  # pyright: ignore[reportArgumentType]
+        # cast + ignore: *item unpacking widens TagNodeT; narrow to declared return type
+        return cast("TagList[TagNodeT]", TagList(self, *item))  # pyright: ignore[reportArgumentType]
 
-    def __radd__(self, item: Iterable[TagChild]) -> "TagList[ChildT]":
+    def __radd__(self, item: Iterable[TagChild]) -> "TagList[TagNodeT]":
         """
         Return a new TagList with the item added to the beginning.
         """
 
         if self._should_not_expand(item):
-            # cast: TagList constructor infers wider ChildT; narrow to declared return type
-            return cast("TagList[ChildT]", TagList(item, self))
+            # cast: TagList constructor infers wider TagNodeT; narrow to declared return type
+            return cast("TagList[TagNodeT]", TagList(item, self))
 
         return TagList(*item, self)
 
@@ -687,7 +692,7 @@ class TagAttrDict(Dict[str, "str | HTML"]):
 # =============================================================================
 # Tag class
 # =============================================================================
-class Tag(Generic[ChildT]):
+class Tag(Generic[TagNodeT]):
     """
     The HTML tag class.
 
@@ -750,7 +755,7 @@ class Tag(Generic[ChildT]):
     name: str
     add_ws: bool
     attrs: TagAttrDict
-    children: "TagList[ChildT]"
+    children: "TagList[TagNodeT]"
 
     def __init__(
         self,
@@ -774,7 +779,7 @@ class Tag(Generic[ChildT]):
         self.attrs = TagAttrDict(*attrs, **kwargs)
 
         kids = [x for x in args if not isinstance(x, dict)]
-        self.children = cast("TagList[ChildT]", TagList(*kids))
+        self.children = cast("TagList[TagNodeT]", TagList(*kids))
 
         self.prev_displayhook: Callable[[object], None] | None = None
 
@@ -945,7 +950,7 @@ class Tag(Generic[ChildT]):
         """
 
         cp = copy(self)
-        cp.children = cast("TagList[ChildT]", cp.children.tagify())
+        cp.children = cast("TagList[TagNodeT]", cp.children.tagify())
         return cast("Tag[TagifiedNode]", cp)
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:

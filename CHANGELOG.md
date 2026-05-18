@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### New features
 
-* `Tag` and `TagList` are now generic in their child type (`ChildT`,
+* `Tag` and `TagList` are now generic in their child type (`TagNodeT`,
   defaulting to `TagNode`). Bare `Tag` / `TagList` retain today's meaning.
   Note: a tagified `TagList`'s mutation methods (`append` / `extend` /
   `insert`) still accept `Tagifiable` at static-type-check time — the
