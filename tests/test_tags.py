@@ -13,7 +13,6 @@ from htmltools import (
     MetadataNode,
     Tag,
     TagFunction,
-    TagifiedTagList,
     TagList,
     TagNode,
     a,
@@ -24,6 +23,7 @@ from htmltools import (
     span,
     tags,
 )
+from htmltools._core import TagifiedTagList
 
 
 def cast_tag(x: Any) -> Tag:

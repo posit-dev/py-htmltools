@@ -32,9 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   test_TagifiedTagList_append_accepts_Tagifiable_lost_Q6` for the
   rationale. (#105)
 
-* Added type aliases `Tagified`, `TagifiedNode`, `TagifiedTag`,
-  `TagifiedTagList`, and `TagLeaf` (the non-`Tag` / non-`TagList` arms of
-  the tag-tree node union — `MetadataNode | ReprHtml | str | HTML`). (#105)
+* Added the public type alias `Tagified` — the union of all
+  fully-tagified shapes — for use as the return annotation of
+  `Tagifiable.tagify()` implementations. Internal aliases
+  `TagifiedNode`, `TagifiedTag`, `TagifiedTagList`, and `TagLeaf` exist
+  in `htmltools._core` but are intentionally not exported; downstream
+  packages should only need `Tagified`. (#105)
 
 ### Bug fixes
 

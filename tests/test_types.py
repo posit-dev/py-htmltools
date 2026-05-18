@@ -16,11 +16,10 @@ from typing_extensions import assert_type
 from htmltools import (
     Tagifiable,
     Tagified,
-    TagifiedTag,
-    TagifiedTagList,
     TagList,
     div,
 )
+from htmltools._core import TagifiedTag, TagifiedTagList
 
 
 def test_tag_tagify_returns_TagifiedTag() -> None:

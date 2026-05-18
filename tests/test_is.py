@@ -9,13 +9,13 @@ from htmltools import (
     Tag,
     TagAttrs,
     TagChild,
-    TagifiedTag,
     TagList,
     TagNode,
     div,
     is_tag_child,
     is_tag_node,
 )
+from htmltools._core import TagifiedTag
 
 tag_attr_obj: TagAttrs = {"test_key": "test_value"}
 
