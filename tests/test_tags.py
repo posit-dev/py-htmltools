@@ -13,6 +13,7 @@ from htmltools import (
     MetadataNode,
     Tag,
     TagFunction,
+    Tagified,
     TagList,
     TagNode,
     a,
@@ -23,7 +24,6 @@ from htmltools import (
     span,
     tags,
 )
-from htmltools._core import TagifiedTagList
 
 
 def cast_tag(x: Any) -> Tag:
@@ -827,7 +827,7 @@ def test_taglist_tagifiable():
         def __init__(self, *args) -> None:
             self._content = TagList(*args)
 
-        def tagify(self) -> TagifiedTagList:
+        def tagify(self) -> Tagified:
             return self._content.tagify()
 
     x = TagList(1, Foo(), 2)
