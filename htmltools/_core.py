@@ -141,11 +141,16 @@ A fully-tagified child-slot type. Members never include an un-resolved
 slot items are all `TagifiedNode`.
 """
 
-Tagified = TypeAliasType("Tagified", "TagifiedTagList | TagifiedNode")
+Tagified = Union[TagifiedTagList, TagifiedNode]
 """
 Anything `.tagify()` is permitted to return: either a top-level
 `TagifiedTagList`, or one of the `TagifiedNode` shapes (a fully-tagified
 `Tag` or a leaf).
+
+Note: kept as a plain `Union` (not `TypeAliasType`) because pyright's
+recursive-alias resolution leaks `Unknown` when downstream packages
+inspect the type in strict mode. The alias name is then lost in
+diagnostics, but downstream pyright stays clean.
 """
 
 
@@ -935,14 +940,14 @@ class Tag(Generic[ChildT]):
             self.attrs.update({"style": self.attrs.get("style")}, {"style": style})
         return self
 
-    def tagify(self) -> "Tagified":
+    def tagify(self) -> "Tag[TagifiedNode]":
         """
         Convert any tagifiable children to Tag/TagList objects.
         """
 
         cp = copy(self)
         cp.children = cast("TagList[ChildT]", cp.children.tagify())
-        return cast("Tagified", cp)
+        return cast("Tag[TagifiedNode]", cp)
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
         """
@@ -1005,9 +1010,7 @@ class Tag(Generic[ChildT]):
         """
         Get string representation as well as its HTML dependencies.
         """
-        # cast: Tag.tagify() returns the wider `Tagified` union, but
-        # self is a Tag so the runtime result is a Tag.
-        cp = cast("Tag[TagNode]", self.tagify())
+        cp = self.tagify()
         deps = cp.get_dependencies()
         return {"dependencies": deps, "html": cp.get_html_string()}
 
@@ -1245,9 +1248,7 @@ class HTMLDocument:
         ):
             html = cast(Tag, content[0])
             html.attrs.update(**self._html_attr_args)
-            # cast: Tag.tagify() returns the wider `Tagified` union;
-            # html is a Tag so the runtime result is a Tag.
-            html = cast("Tag[TagNode]", html.tagify())
+            html = html.tagify()
             html = HTMLDocument._hoist_head_content(html, lib_prefix, include_version)
             return html
 
@@ -1260,9 +1261,7 @@ class HTMLDocument:
         else:
             body = Tag("body", content)
 
-        # cast: Tag.tagify() returns the wider `Tagified` union;
-        # body is a Tag so the runtime result is a Tag.
-        body = cast("Tag[TagNode]", body.tagify())
+        body = body.tagify()
 
         html = Tag("html", Tag("head"), body, _add_ws=True, **self._html_attr_args)
         html = HTMLDocument._hoist_head_content(html, lib_prefix, include_version)

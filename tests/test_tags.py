@@ -259,7 +259,6 @@ def test_tagify_deep_copy():
     x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
 
     y = x.tagify()
-    assert isinstance(y, Tag)
     cast_tag(y.children[0]).children[0] = "HELLO"
     cast_tag(y.children[0]).attrs["prop"] = "VALUE"
     y.children[1] = "WORLD"
@@ -846,9 +845,7 @@ def test_taglist_tagifiable():
 
     # Make sure it works for Tag objects as well.
     x = div(1, Foo("foo", Foo("bar")), 2)
-    tagified = x.tagify()
-    assert isinstance(tagified, Tag)
-    assert list(tagified.children) == ["1", "foo", "bar", "2"]
+    assert list(x.tagify().children) == ["1", "foo", "bar", "2"]
 
 
 def test_attr_vals():

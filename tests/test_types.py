@@ -14,22 +14,17 @@ from __future__ import annotations
 from typing_extensions import assert_type
 
 from htmltools import (
+    Tag,
     Tagifiable,
     Tagified,
     TagList,
     div,
 )
-from htmltools._core import TagifiedTagList
+from htmltools._core import TagifiedNode, TagifiedTagList
 
 
-def test_tag_tagify_returns_Tagified() -> None:
-    # `Tag.tagify()` returns `Tagified`. We can't use `assert_type` here
-    # because pyright doesn't unify the recursive `TypeAliasType` form
-    # across the function-signature forward reference and the assertion
-    # argument. Assignment-compatibility against a `Tagified`-typed
-    # variable is the next-best check — it catches the case where
-    # someone widens the return outside the `Tagified` union.
-    _: Tagified = div("hi").tagify()
+def test_tag_tagify_returns_Tag_TagifiedNode() -> None:
+    assert_type(div("hi").tagify(), Tag[TagifiedNode])
 
 
 def test_taglist_tagify_returns_TagifiedTagList() -> None:

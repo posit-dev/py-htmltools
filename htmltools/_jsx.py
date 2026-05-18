@@ -19,7 +19,7 @@ from ._core import (
     Tag,
     TagAttrValue,
     Tagifiable,
-    Tagified,
+    TagifiedNode,
     TagList,
     TagNode,
 )
@@ -111,7 +111,7 @@ class JSXTag:
     def append(self, *args: TagNode) -> None:
         self.children.append(*args)
 
-    def tagify(self) -> "Tagified":
+    def tagify(self) -> "Tag[TagifiedNode]":
         metadata_nodes: list[MetadataNode] = []
 
         # This function is recursively applied to the attributes and children. It does
@@ -165,7 +165,7 @@ class JSXTag:
         )
 
         return cast(
-            "Tagified",
+            "Tag[TagifiedNode]",
             Tag(
                 "script",
                 {
