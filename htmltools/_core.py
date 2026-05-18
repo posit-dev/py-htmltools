@@ -141,16 +141,15 @@ A fully-tagified child-slot type. Members never include an un-resolved
 slot items are all `TagifiedNode`.
 """
 
+# Kept as a plain `Union` (not `TypeAliasType`) because pyright's
+# recursive-alias resolution leaks `Unknown` when downstream packages
+# inspect the type in strict mode. The alias name is then lost in
+# diagnostics, but downstream pyright stays clean.
 Tagified = Union[TagifiedTagList, TagifiedNode]
 """
 Anything `.tagify()` is permitted to return: either a top-level
 `TagifiedTagList`, or one of the `TagifiedNode` shapes (a fully-tagified
 `Tag` or a leaf).
-
-Note: kept as a plain `Union` (not `TypeAliasType`) because pyright's
-recursive-alias resolution leaks `Unknown` when downstream packages
-inspect the type in strict mode. The alias name is then lost in
-diagnostics, but downstream pyright stays clean.
 """
 
 
