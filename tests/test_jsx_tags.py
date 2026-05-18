@@ -1,13 +1,15 @@
 import textwrap
 
-from htmltools import HTMLDependency, HTMLDocument, TagList, css, div, span
+from htmltools import HTMLDependency, HTMLDocument, Tag, TagList, css, div, span
 from htmltools._jsx import jsx, jsx_tag_create
 
 
 def test_jsx_tags():
     Foo = jsx_tag_create("Foo")
     Bar = jsx_tag_create("Bar")
-    deps = Foo().tagify().get_dependencies()
+    foo_tagified = Foo().tagify()
+    assert isinstance(foo_tagified, Tag)
+    deps = foo_tagified.get_dependencies()
     react_ver = [str(d.version) for d in deps if d.name == "react"][0]
     react_dom_ver = [str(d.version) for d in deps if d.name == "react-dom"][0]
 

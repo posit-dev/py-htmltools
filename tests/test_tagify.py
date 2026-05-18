@@ -1,6 +1,6 @@
 import pytest
 
-from htmltools import TagList, div, span
+from htmltools import Tag, TagList, div, span
 
 
 class _ReturnsTagifiable:
@@ -35,7 +35,9 @@ def test_tagify_is_idempotent() -> None:
     # .tagify() applied twice must produce the same HTML as once.
     original = div("hello", span("world"))
     once = original.tagify()
+    assert isinstance(once, Tag)
     twice = once.tagify()
+    assert isinstance(twice, Tag)
     assert once.get_html_string() == twice.get_html_string()
 
 
@@ -43,6 +45,7 @@ def test_render_guard_catches_mutation_after_tagify() -> None:
     # The static guarantee is a snapshot at .tagify() time; if a Tagifiable
     # is appended afterwards, the render-time guard must catch it.
     tagified = div("hello").tagify()
+    assert isinstance(tagified, Tag)
     tagified.children.append(_NestedTagifiable())
     with pytest.raises(RuntimeError, match="_NestedTagifiable"):
         tagified.get_html_string()
