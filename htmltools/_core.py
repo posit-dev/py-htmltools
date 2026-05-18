@@ -430,9 +430,15 @@ class TagList(UserList[TagNodeT]):
             elif isinstance(child, MetadataNode):
                 cp[i] = copy(child)
 
-        # A3 post-condition: after the recursion, no bare Tagifiable may remain.
-        # Tag and TagList are themselves Tagifiable but already-tagified shapes,
-        # so they are excluded from the check.
+        # Boundary check: after the recursion above, every child should be
+        # a fully-tagified shape (Tag, TagList, MetadataNode, ReprHtml, str,
+        # or HTML). A bare Tagifiable still present here means some child's
+        # `.tagify()` returned a TagList containing un-tagified objects —
+        # which violates the Tagifiable protocol. Surface that here, where
+        # the offending class and index are still in scope, instead of
+        # waiting for the render-time guard in `get_html_string` to raise
+        # a less-actionable error. Tag and TagList are themselves
+        # Tagifiable but are valid tagified shapes, so they are excluded.
         for i, child in enumerate(cp):
             if isinstance(child, Tagifiable) and not isinstance(child, (Tag, TagList)):
                 raise TypeError(
