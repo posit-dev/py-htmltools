@@ -109,3 +109,6 @@ uv.lock
 
 # Local superpowers plans/specs — not committed to the repo
 docs/superpowers/
+
+# Claude Code local state
+.claude/scheduled_tasks.lock
