@@ -16,29 +16,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `-> Tagified` (or omit the return annotation). Runtime behavior of
   correct `.tagify()` implementations is unchanged. (#105)
 
-* `Tag.tagify()` now statically returns an internal `Tag[TagifiedNode]`
-  instead of the caller's `Tag` subclass. Code relying on the
-  subclass-preserving signature should `cast` the result. (#105)
+* `Tag.tagify()` no longer preserves the caller's `Tag` subclass in
+  its return type. Code relying on the previous subclass-preserving
+  signature should `cast` the result. (#105)
 
 ### New features
 
-* `Tag` and `TagList` are now generic in their child type (`TagNodeT`,
-  defaulting to `TagNode`). Bare `Tag` / `TagList` retain today's meaning.
-  Note: a tagified `TagList`'s mutation methods (`append` / `extend` /
-  `insert`) still accept `Tagifiable` at static-type-check time — the
-  invariant is enforced at runtime instead (`TagList.tagify()` raises
-  `TypeError` and `get_html_string` raises `RuntimeError` for an
-  un-tagified subtree). See `tests/test_types.py::
-  test_TagifiedTagList_append_accepts_Tagifiable` for the
-  rationale. (#105)
+* `Tag` and `TagList` are now generic in their child type, defaulting
+  to `TagNode`. Bare `Tag` / `TagList` retain today's meaning. Mutation
+  methods (`append` / `extend` / `insert`) still accept `Tagifiable` at
+  static-type-check time even on tagified containers — the invariant
+  is enforced at runtime instead (`TagList.tagify()` raises `TypeError`
+  and `get_html_string` raises `RuntimeError` for an un-tagified
+  subtree). See `tests/test_types.py` for the rationale. (#105)
 
 * Added the public type alias `Tagified` — the union of all
   fully-tagified shapes — for use as the return annotation of
-  `Tagifiable.tagify()` implementations. `Tagified` is the **only**
-  tagified-shape alias exported by the package. Narrower aliases
-  (`TagifiedNode`, `TagifiedTagList`, `TagNodeLeaf`) live in
-  `htmltools._core` for internal use and are intentionally not
-  exported — downstream packages only need `Tagified`. (#105)
+  `Tagifiable.tagify()` implementations. (#105)
 
 ### Bug fixes
 
