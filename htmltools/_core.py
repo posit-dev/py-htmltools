@@ -153,19 +153,17 @@ Anything `.tagify()` is permitted to return: either a top-level
 # TagNode / TagChild (generic) and the ChildT TypeVar
 # -----------------------------------------------------------------------------
 # NOTE: If this type is updated, please update `is_tag_node()`
-TagNode = Union["Tagifiable", TagifiedNode]
+TagNode = Union["Tagifiable", TagNodeLeaf]
 """
 Types of objects that can be a node in a `Tag` tree. Equivalently, these are
 the valid elements of a `TagList`. Note that this type represents the
 internal structure of items in a `TagList`; the user-facing type is
 `TagChild`.
 
-The `TagifiedNode` arm is semantically redundant — a tagified `Tag` is
-structurally `Tagifiable`, so `Tagifiable | TagNodeLeaf` would cover the
-same set. The arm is kept explicit so that `ChildT bound=TagNode`
-accepts `TagifiedNode` (pyright does not recognize generic Tag/TagList
-instances as satisfying the `Tagifiable` Protocol when checking type-
-variable bounds).
+`Tag` and `TagList` are structurally `Tagifiable` (each defines
+`.tagify() -> Tagified`), so the `Tagifiable` arm subsumes them and
+their tagified specializations. Only the leaf arm is spelled out
+explicitly.
 """
 
 ChildT = TypeVar("ChildT", bound=TagNode, default=TagNode)
