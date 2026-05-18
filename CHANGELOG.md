@@ -9,22 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
-* `Tagifiable.tagify()` now returns `Tagified`, a tighter type covering
-  `TagifiedTag` / `TagifiedTagList` / `TagifiedNode`. Custom `.tagify()`
-  implementations annotated with bare `TagList` or `Tag` return types will
-  fail static type checking; update them to `TagifiedTagList` /
-  `TagifiedTag` / `Tagified` (or omit the return annotation). Runtime
-  behavior of correct `.tagify()` implementations is unchanged. (#105)
+* `Tagifiable.tagify()` now returns `Tagified`, a tighter type that
+  excludes the un-resolved `Tagifiable` arm of `TagNode`. Custom
+  `.tagify()` implementations annotated with bare `TagList` or `Tag`
+  return types will fail static type checking; update them to
+  `-> Tagified` (or omit the return annotation). Runtime behavior of
+  correct `.tagify()` implementations is unchanged. (#105)
 
-* `Tag.tagify()` now statically returns `TagifiedTag` instead of the
-  caller's `Tag` subclass. Code relying on the subclass-preserving
-  signature should `cast` the result. (#105)
+* `Tag.tagify()` now statically returns an internal `Tag[TagifiedNode]`
+  instead of the caller's `Tag` subclass. Code relying on the
+  subclass-preserving signature should `cast` the result. (#105)
 
 ### New features
 
 * `Tag` and `TagList` are now generic in their child type (`ChildT`,
   defaulting to `TagNode`). Bare `Tag` / `TagList` retain today's meaning.
-  Note: `TagList[TagifiedNode]`'s mutation methods (`append` / `extend` /
+  Note: a tagified `TagList`'s mutation methods (`append` / `extend` /
   `insert`) still accept `Tagifiable` at static-type-check time — the
   invariant is enforced at runtime instead (`TagList.tagify()` raises
   `TypeError` and `get_html_string` raises `RuntimeError` for an
@@ -34,10 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Added the public type alias `Tagified` — the union of all
   fully-tagified shapes — for use as the return annotation of
-  `Tagifiable.tagify()` implementations. Internal aliases
-  `TagifiedNode`, `TagifiedTag`, `TagifiedTagList`, and `TagLeaf` exist
-  in `htmltools._core` but are intentionally not exported; downstream
-  packages should only need `Tagified`. (#105)
+  `Tagifiable.tagify()` implementations. `Tagified` is the **only**
+  tagified-shape alias exported by the package. Narrower aliases
+  (`TagifiedNode`, `TagifiedTag`, `TagifiedTagList`, `TagLeaf`) live
+  in `htmltools._core` for internal use and are intentionally not
+  exported — downstream packages only need `Tagified`. (#105)
 
 ### Bug fixes
 
