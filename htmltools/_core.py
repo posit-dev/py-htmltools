@@ -113,12 +113,11 @@ unnamed arguments to Tag functions like `div()`.
 # -----------------------------------------------------------------------------
 # Tagified shape aliases
 # -----------------------------------------------------------------------------
-# `TagifiedTagList` and `TagNodeLeaf` use `TypeAliasType` (not plain
-# `Union`) so that the alias *name* survives in pyright diagnostics —
-# users see `TagifiedTagList` rather than the expanded structural
-# union. `TagifiedTagList` additionally needs lazy evaluation because
-# it forward-references `TagifiedNode`, which is defined later in the
-# file. (Contrast `Tagified` below, which is a plain `Union` because
+# `TagifiedTagList` uses `TypeAliasType` so that the alias *name*
+# survives in pyright diagnostics (users see `TagifiedTagList` rather
+# than the expanded structural union) and so its forward reference to
+# `TagifiedNode` (defined later in the file) is resolved lazily.
+# (Contrast `Tagified` below, which is a plain `Union` because
 # `TypeAliasType` over its recursive arm leaks `Unknown` through
 # downstream pyright analysis — see the comment above that definition.)
 TagifiedTagList = TypeAliasType("TagifiedTagList", "TagList[TagifiedNode]")
@@ -127,7 +126,11 @@ A `TagList` whose items are all tagified. This is the return type of
 `TagList.tagify()`.
 """
 
-TagNodeLeaf = TypeAliasType("TagNodeLeaf", "MetadataNode | ReprHtml | str | HTML")
+# Kept as a plain `Union` (not `TypeAliasType`) so the arms are visible
+# in pyright diagnostics — a value typed as `TagNodeLeaf` shows up as
+# `MetadataNode | ReprHtml | str | HTML` directly instead of as an
+# opaque alias name.
+TagNodeLeaf = Union["MetadataNode", "ReprHtml", str, "HTML"]
 """
 Leaf nodes in a tag tree: members that do not recursively contain tag
 children. `MetadataNode` carries non-rendered metadata, `ReprHtml` and
