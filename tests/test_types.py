@@ -14,9 +14,11 @@ from __future__ import annotations
 from typing_extensions import assert_type
 
 from htmltools import (
+    Tag,
     Tagifiable,
     Tagified,
     TagList,
+    TagNode,
     div,
 )
 from htmltools._core import TagifiedTag, TagifiedTagList
@@ -151,3 +153,55 @@ def test_user_tagify_returning_TagifiedTagList_is_Tagifiable() -> None:
             return TagList("x").tagify()
 
     _: Tagifiable = _Good()
+
+
+def test_TagifiedTagList_to_bare_TagList_is_accepted() -> None:
+    """Documents pyright's observed permissive behavior on TagifiedTagList flows.
+
+    ``TagList`` is invariant in ``TagNodeT`` per its ``TypeVar`` declaration,
+    so ``TagList[TagifiedNode]`` is *technically* not assignable to
+    ``TagList[TagNode]``. In practice, pyright (verified through 1.1.409)
+    treats a nominal subclass ``TagifiedTagList(TagList["TagifiedNode"])`` as
+    assignable to bare ``TagList`` and to explicit ``TagList[TagNode]``,
+    likely because the ``TagNodeT`` default and the class-hierarchy lookup
+    take precedence over the parameterized-instance invariance check.
+
+    This is the answer to the "open question" in #116 — the previous
+    TypeAliasType alias appeared to "silently relax" variance, but the
+    subclass form has the same practical behavior. Downstream consumers
+    using ``def f(t: TagList): ...`` (or even ``TagList[TagNode]``) do NOT
+    need migration to accept tagified inputs.
+
+    If pyright ever starts flagging these flows, this fixture will fail —
+    that's the signal to add a real migration note and update downstream
+    packages.
+    """
+
+    def f_bare_taglist(t: TagList) -> str:
+        return t.get_html_string()
+
+    def f_explicit_taglist(t: TagList[TagNode]) -> str:
+        return t.get_html_string()
+
+    tagified: TagifiedTagList = TagList("hi").tagify()
+    # All three of these are accepted by pyright. No `# pyright: ignore`
+    # is needed (and adding one would be flagged as unnecessary if
+    # `reportUnnecessaryTypeIgnoreComment` is enabled).
+    f_bare_taglist(tagified)
+    f_explicit_taglist(tagified)
+    _: TagList[TagNode] = tagified
+
+
+def test_TagifiedTag_to_bare_Tag_is_accepted() -> None:
+    """Symmetric to ``test_TagifiedTagList_to_bare_TagList_is_accepted``."""
+
+    def f_bare_tag(t: Tag) -> str:
+        return t.get_html_string()
+
+    def f_explicit_tag(t: Tag[TagNode]) -> str:
+        return t.get_html_string()
+
+    tagified: TagifiedTag = div("hi").tagify()
+    f_bare_tag(tagified)
+    f_explicit_tag(tagified)
+    _: Tag[TagNode] = tagified
