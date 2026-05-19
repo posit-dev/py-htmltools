@@ -44,7 +44,7 @@ else:
 from typing import Literal, Protocol, SupportsIndex, runtime_checkable
 
 from packaging.version import Version
-from typing_extensions import TypeAliasType, TypeVar
+from typing_extensions import TypeVar
 
 from ._util import (
     ensure_http_server,
@@ -113,18 +113,14 @@ unnamed arguments to Tag functions like `div()`.
 # -----------------------------------------------------------------------------
 # Tagified shape aliases
 # -----------------------------------------------------------------------------
-# `TagifiedTagList` uses `TypeAliasType` so that the alias *name*
-# survives in pyright diagnostics (users see `TagifiedTagList` rather
-# than the expanded structural union) and so its forward reference to
-# `TagifiedNode` (defined later in the file) is resolved lazily.
-# (Contrast `Tagified` below, which is a plain `Union` because
-# `TypeAliasType` over its recursive arm leaks `Unknown` through
-# downstream pyright analysis — see the comment above that definition.)
-TagifiedTagList = TypeAliasType("TagifiedTagList", "TagList[TagifiedNode]")
-"""
-A `TagList` whose items are all tagified. This is the return type of
-`TagList.tagify()`.
-"""
+# `TagifiedTagList` and `TagifiedTag` are real subclasses (defined later in
+# this file, after their parent classes). The Union aliases below are forward
+# references to them.
+#
+# Why subclasses rather than `TypeAliasType` aliases: a subclass is runtime-
+# `isinstance`-checkable, and we can override `append` / `extend` / `insert` /
+# `__init__` with narrow `TagifiedChild`-only signatures so pyright rejects
+# un-tagified inputs at the call site (closing the gap that motivated #115).
 
 # Kept as a plain `Union` (not `TypeAliasType`) so the arms are visible
 # in pyright diagnostics — a value typed as `TagNodeLeaf` shows up as
@@ -142,7 +138,7 @@ children. `MetadataNode` carries non-rendered metadata, `ReprHtml` and
 # .tagify() still needs to be called. Recursive — a tagified Tag's children
 # are themselves tagified. TagList is NOT a member because TagList children
 # are flattened (a TagList never appears as a child slot of another TagList).
-TagifiedNode = Union["Tag[TagifiedNode]", TagNodeLeaf]
+TagifiedNode = Union["TagifiedTag", TagNodeLeaf]
 """
 A fully-tagified child-slot type. Members never include an un-resolved
 `Tagifiable`; calling `.tagify()` on a node tree returns a structure whose
@@ -153,11 +149,26 @@ slot items are all `TagifiedNode`.
 # recursive-alias resolution leaks `Unknown` when downstream packages
 # inspect the type in strict mode. The alias name is then lost in
 # diagnostics, but downstream pyright stays clean.
-Tagified = Union[TagifiedTagList, TagifiedNode]
+Tagified = Union["TagifiedTagList", TagifiedNode]
 """
 Anything `.tagify()` is permitted to return: either a top-level
 `TagifiedTagList`, or one of the `TagifiedNode` shapes (a fully-tagified
 `Tag` or a leaf).
+"""
+
+# Parallel to `TagChild` but with no `Tagifiable` arm. Non-generic for the
+# same reason `TagChild` is non-generic (see comment near the `TagChild`
+# definition below).
+TagifiedChild = Union[
+    "TagifiedNode",
+    "TagifiedTagList",
+    float,
+    None,
+    Sequence["TagifiedChild"],
+]
+"""
+The static-input type for mutation methods on `TagifiedTagList` /
+`TagifiedTag`. Mirrors `TagChild` but excludes the `Tagifiable` arm.
 """
 
 
@@ -619,6 +630,25 @@ class TagList(UserList[TagNodeT]):
 
 
 # =============================================================================
+# TagifiedTagList class
+# =============================================================================
+class TagifiedTagList(TagList["TagifiedNode"]):
+    """
+    A `TagList` whose items are all fully tagified.
+
+    Returned by `TagList.tagify()` and by `.tagify()` implementations that
+    produce a list of tagified nodes. Mutators are narrowed to `TagifiedChild`
+    so pyright rejects un-tagified inputs at the call site.
+
+    To append a non-tagified child to a `TagifiedTagList`, call `.tagify()`
+    on it first: ``tl.append(div("x").tagify())``.
+    """
+
+    # No body yet — overrides added in Task 7. Subclass exists for runtime
+    # isinstance() and as the static return type of `.tagify()`.
+
+
+# =============================================================================
 # TagAttrDict class
 # =============================================================================
 class TagAttrDict(Dict[str, "str | HTML"]):
@@ -1077,6 +1107,21 @@ class Tag(Generic[TagNodeT]):
 
     def _repr_html_(self) -> str:
         return str(self)
+
+
+# =============================================================================
+# TagifiedTag class
+# =============================================================================
+class TagifiedTag(Tag["TagifiedNode"]):
+    """
+    A `Tag` whose children are all fully tagified.
+
+    Returned by `Tag.tagify()`. Mutators are narrowed to `TagifiedChild` so
+    pyright rejects un-tagified inputs at the call site. To append a
+    non-tagified child, call `.tagify()` on it first.
+    """
+
+    # No body yet — overrides added in Task 8.
 
 
 # Tags that have the form <tagname />
