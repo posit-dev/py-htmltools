@@ -418,11 +418,14 @@ class TagList(UserList[TagNodeT]):
             slot index so the broken ``.tagify()`` is easy to find.
         """
 
-        # Internally work with `TagList[Any]` so the loop body's assignments
-        # don't need per-line casts. The runtime invariants are checked by
-        # the post-condition loop below; the final `cast` narrows back to
-        # `TagifiedTagList` for the public return type.
-        cp: "TagList[Any]" = cast("TagList[Any]", copy(self))
+        # Construct a TagifiedTagList directly (not a cast over copy(self)) so
+        # the runtime instance is the subclass. We populate .data manually with
+        # a shallow copy of self.data, then iterate as before.
+        # Cast: self.data is list[TagNodeT] (pre-tagification); cp.data is
+        # typed list[TagifiedNode] (post-tagification). The mutation loop below
+        # converts all items in place, so the cast is valid by the time we return.
+        cp = TagifiedTagList()
+        cp.data = cast("list[TagifiedNode]", list(self.data))
 
         # Iterate backwards because if we hit a Tagifiable object, it may be replaced
         # with 0, 1, or more items (if it returns TagList).
@@ -432,11 +435,16 @@ class TagList(UserList[TagNodeT]):
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
                 if isinstance(tagified_child, TagList):
-                    # Flatten the returned TagList into this one. Cast: pyright
-                    # cannot fully resolve `TagifiedTagList`'s recursive child
-                    # alias here, leaving a `TagList[Unknown]` arm.
-                    cp[i : i + 1] = _tagchilds_to_tagnodes(
-                        cast("TagList[TagNode]", tagified_child)
+                    # Flatten the returned TagList into this one. Two casts:
+                    # (1) pyright cannot fully resolve `TagifiedTagList`'s
+                    # recursive child alias, leaving a `TagList[Unknown]` arm;
+                    # (2) _tagchilds_to_tagnodes returns list[TagNode] but the
+                    # slice target on TagifiedTagList expects Iterable[TagifiedNode].
+                    cp[i : i + 1] = cast(
+                        "list[TagifiedNode]",
+                        _tagchilds_to_tagnodes(
+                            cast("TagList[TagNode]", tagified_child)
+                        ),
                     )
                 else:
                     cp[i] = tagified_child
@@ -453,7 +461,10 @@ class TagList(UserList[TagNodeT]):
         # waiting for the render-time guard in `get_html_string` to raise
         # a less-actionable error. Tag and TagList are themselves
         # Tagifiable but are valid tagified shapes, so they are excluded.
-        for i, child in enumerate(cp):
+        # Cast cp to TagList[TagNode] so the isinstance guard below is not
+        # flagged as redundant — at runtime cp.data may still hold pre-tagified
+        # items if a child's .tagify() violated the protocol.
+        for i, child in enumerate(cast("TagList[TagNode]", cp)):
             if isinstance(child, Tagifiable) and not isinstance(child, (Tag, TagList)):
                 raise TypeError(
                     "Expected a fully tagified value, but a child .tagify() "
