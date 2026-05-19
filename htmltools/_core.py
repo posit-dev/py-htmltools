@@ -684,6 +684,16 @@ class TagifiedTagList(TagList["TagifiedNode"]):
     # the violating scenario doesn't happen here: `TagifiedTagList`
     # only ever comes out of `.tagify()`, not from upcasting an
     # existing `TagList`.
+    #
+    # The Liskov-clean alternative would be to parameterize the parent's
+    # signatures: `TagList.append(item: TagChild[TagNodeT])` so a
+    # `TagList[TagifiedNode]` instance automatically narrows by type
+    # substitution — no subclass overrides needed. That was tried in #105
+    # (see the `TagChild` rationale comment) and abandoned because pyright
+    # leaks `Sequence[Unknown]` through recursive generic aliases in
+    # downstream strict mode. If that pyright limitation is ever fixed,
+    # this whole override block can come out and the LSP violation
+    # disappears.
 
     def __init__(self, *args: TagifiedChild) -> None:
         # cast: pass through to parent; the parent constructor accepts the
@@ -1202,6 +1212,16 @@ class TagifiedTag(Tag["TagifiedNode"]):
     # the violating scenario doesn't happen here: `TagifiedTag` only
     # ever comes out of `.tagify()`, not from upcasting an existing
     # `Tag`.
+    #
+    # The Liskov-clean alternative would be to parameterize the parent's
+    # signatures: `Tag.append(item: TagChild[TagNodeT])` so a
+    # `Tag[TagifiedNode]` instance automatically narrows by type
+    # substitution — no subclass overrides needed. That was tried in #105
+    # (see the `TagChild` rationale comment) and abandoned because pyright
+    # leaks `Sequence[Unknown]` through recursive generic aliases in
+    # downstream strict mode. If that pyright limitation is ever fixed,
+    # this whole override block can come out and the LSP violation
+    # disappears.
 
     def __init__(
         self,
