@@ -48,18 +48,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `Tagified` (the return type of `Tagifiable.tagify()`) is now a
   non-generic union that mirrors `TagChild`'s shape — including the
   flattening conveniences `float`, `None`, and `Sequence[Tagified]`.
-  Custom `.tagify()` implementations may now return any of those
-  shapes statically. (Runtime normalization of `None` / `float` /
-  bare `Sequence` returns from `.tagify()` is tracked as #117.) (#116)
+  Custom `.tagify()` implementations may return any of those shapes;
+  the framework normalizes them at the boundary (drops `None`,
+  str-ifies `float`/`int`, flattens `Sequence`). (#116, #117)
 
 ### New features
 
 * `Tag` and `TagList` are now generic in their child type, defaulting
   to `TagNode`. Bare `Tag` / `TagList` retain today's meaning. (#105)
-
-* Updated the public type alias `Tagified` to cover both
-  `Tagifiable.tagify()`'s return shape and the input-side type for
-  mutators on `TagifiedTagList` / `TagifiedTag`. (#105, #116)
 
 ### Bug fixes
 
