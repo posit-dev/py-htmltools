@@ -31,6 +31,39 @@ def test_taglist_tagify_returns_TagifiedTagList() -> None:
     assert_type(TagList("hi").tagify(), TagifiedTagList)
 
 
+def test_TagifiedTagList_append_rejects_Tagifiable_statically() -> None:
+    """Mutators on TagifiedTagList narrow input to TagifiedChild; appending
+    a Tagifiable must be a pyright error."""
+
+    class _SomeTagifiable:
+        def tagify(self) -> Tagified:
+            return "x"
+
+    tl: TagifiedTagList = TagList("hi").tagify()
+    # Acceptable: a tagified node
+    tl.append("ok")
+    # Static error: bare Tagifiable is not in TagifiedChild.
+    tl.append(_SomeTagifiable())  # pyright: ignore[reportArgumentType]
+
+
+def test_TagifiedTagList_extend_rejects_Tagifiable_statically() -> None:
+    class _SomeTagifiable:
+        def tagify(self) -> Tagified:
+            return "x"
+
+    tl: TagifiedTagList = TagList("hi").tagify()
+    tl.extend([_SomeTagifiable()])  # pyright: ignore[reportArgumentType]
+
+
+def test_TagifiedTagList_insert_rejects_Tagifiable_statically() -> None:
+    class _SomeTagifiable:
+        def tagify(self) -> Tagified:
+            return "x"
+
+    tl: TagifiedTagList = TagList("hi").tagify()
+    tl.insert(0, _SomeTagifiable())  # pyright: ignore[reportArgumentType]
+
+
 def test_bare_TagList_is_not_assignable_to_TagifiedTagList() -> None:
     tl: TagList = TagList("hi")
     # A bare TagList means TagList[TagNode], which may still contain Tagifiables.

@@ -662,8 +662,28 @@ class TagifiedTagList(TagList["TagifiedNode"]):
     on it first: ``tl.append(div("x").tagify())``.
     """
 
-    # No body yet — overrides added in Task 7. Subclass exists for runtime
-    # isinstance() and as the static return type of `.tagify()`.
+    def __init__(self, *args: "TagifiedChild") -> None:
+        # cast: pass through to parent; the parent constructor accepts the
+        # wider TagChild union, of which TagifiedChild is a subset.
+        super().__init__(*cast("tuple[TagChild, ...]", args))
+
+    def append(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, item: "TagifiedChild", *args: "TagifiedChild"
+    ) -> None:
+        super().append(
+            cast("TagChild", item),
+            *cast("tuple[TagChild, ...]", args),
+        )
+
+    def extend(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, other: Iterable["TagifiedChild"]
+    ) -> None:
+        super().extend(cast("Iterable[TagChild]", other))
+
+    def insert(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, i: SupportsIndex, item: "TagifiedChild"
+    ) -> None:
+        super().insert(i, cast("TagChild", item))
 
 
 # =============================================================================
