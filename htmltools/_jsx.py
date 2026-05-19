@@ -164,11 +164,9 @@ class JSXTag:
             ]
         )
 
-        # Was: cast("Tag[TagifiedNode]", Tag("script", ...))
-        # Now: build a TagifiedTag directly. The children passed in (HTML,
-        # script-attr dict, lib-dependency metadata nodes) are all
-        # already TagifiedNode-shaped, so the constructor produces a
-        # legitimate tagified tag.
+        # The children passed in (HTML, script-attr dict, lib-dependency
+        # metadata nodes) are all already TagifiedNode-shaped, so the
+        # constructor produces a legitimate tagified tag.
         return TagifiedTag(
             "script",
             {
