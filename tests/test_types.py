@@ -128,6 +128,40 @@ def test_TagifiedTagList_append_accepts_Tagifiable() -> None:
     tl.append(_SomeTagifiable())
 
 
+def test_TagifiedTag_append_rejects_Tagifiable_statically() -> None:
+    from htmltools._core import TagifiedTag
+
+    class _SomeTagifiable:
+        def tagify(self) -> Tagified:
+            return "x"
+
+    tag: TagifiedTag = div("hi").tagify()
+    tag.append("ok")
+    tag.append(_SomeTagifiable())  # pyright: ignore[reportArgumentType]
+
+
+def test_TagifiedTag_extend_rejects_Tagifiable_statically() -> None:
+    from htmltools._core import TagifiedTag
+
+    class _SomeTagifiable:
+        def tagify(self) -> Tagified:
+            return "x"
+
+    tag: TagifiedTag = div("hi").tagify()
+    tag.extend([_SomeTagifiable()])  # pyright: ignore[reportArgumentType]
+
+
+def test_TagifiedTag_insert_rejects_Tagifiable_statically() -> None:
+    from htmltools._core import TagifiedTag
+
+    class _SomeTagifiable:
+        def tagify(self) -> Tagified:
+            return "x"
+
+    tag: TagifiedTag = div("hi").tagify()
+    tag.insert(0, _SomeTagifiable())  # pyright: ignore[reportArgumentType]
+
+
 def test_bare_TagList_append_accepts_Tagifiable() -> None:
     class _OkTagifiable:
         def tagify(self) -> Tagified:

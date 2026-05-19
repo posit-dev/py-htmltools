@@ -1172,9 +1172,46 @@ class TagifiedTag(Tag["TagifiedNode"]):
     Returned by `Tag.tagify()`. Mutators are narrowed to `TagifiedChild` so
     pyright rejects un-tagified inputs at the call site. To append a
     non-tagified child, call `.tagify()` on it first.
+
+    Note on overrides: each mutator narrows its input from ``TagChild``
+    to ``TagifiedChild``. This is contravariant narrowing (LSP-unsafe in
+    the abstract — a caller holding a ``Tag`` reference could pass
+    inputs the ``TagifiedTag`` no longer accepts), so pyright flags
+    each override with ``reportIncompatibleMethodOverride``. The
+    suppression is deliberate: in this codebase, ``TagifiedTag`` is
+    only ever obtained via ``.tagify()``, never by upcasting a
+    pre-existing ``Tag`` reference, so the LSP failure mode does
+    not occur in practice.
     """
 
-    # No body yet — overrides added in Task 8.
+    def __init__(
+        self,
+        _name: str,
+        *args: TagifiedChild | TagAttrs,
+        _add_ws: TagAttrValue = True,
+        **kwargs: TagAttrValue,
+    ) -> None:
+        super().__init__(
+            _name,
+            *cast("tuple[TagChild | TagAttrs, ...]", args),
+            _add_ws=_add_ws,
+            **kwargs,
+        )
+
+    def append(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, *args: TagifiedChild
+    ) -> None:
+        super().append(*cast("tuple[TagChild, ...]", args))
+
+    def extend(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, x: Iterable[TagifiedChild]
+    ) -> None:
+        super().extend(cast("Iterable[TagChild]", x))
+
+    def insert(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, index: SupportsIndex, x: TagifiedChild
+    ) -> None:
+        super().insert(index, cast("TagChild", x))
 
 
 # Tags that have the form <tagname />
