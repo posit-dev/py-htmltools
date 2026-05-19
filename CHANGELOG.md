@@ -9,47 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
-* `Tagifiable.tagify()` now returns `Tagified`, a tighter type that
-  excludes the un-resolved `Tagifiable` arm of `TagNode`. Custom
-  `.tagify()` implementations annotated with bare `TagList` or `Tag`
-  return types will fail static type checking; update them to
-  `-> Tagified` (or omit the return annotation). Runtime behavior of
-  correct `.tagify()` implementations is unchanged. (#105)
+* `Tagifiable.tagify()` now returns `Tagified` — a non-generic union
+  that mirrors `TagChild`'s shape (including the flattening
+  conveniences `float`, `None`, `Sequence[Tagified]`) but excludes the
+  un-resolved `Tagifiable` arm. Custom `.tagify()` implementations
+  annotated with bare `TagList` or `Tag` return types will fail
+  static type checking; update them to `-> Tagified` (or omit the
+  return annotation). Runtime behavior of correct implementations is
+  unchanged. (#105, #116, #117)
 
 * `Tag.tagify()` no longer preserves the caller's `Tag` subclass in
   its return type. Code relying on the previous subclass-preserving
   signature should `cast` the result. (#105)
 
 * `TagifiedTagList` is now a real subclass of `TagList["TagifiedNode"]`
-  rather than a `TypeAliasType` alias. `TagifiedTag` is a new parallel
+  (previously a `TypeAliasType` alias). `TagifiedTag` is a new parallel
   subclass of `Tag["TagifiedNode"]`. Both are returned by `.tagify()`
-  and are runtime-`isinstance`-checkable. Code that depended on
-  `TagifiedTagList` being an alias (e.g., `typing.get_type_hints`
-  introspection) needs to treat it as a class instead. The classes
-  themselves are kept internal to `htmltools._core` — they're not
+  and are runtime-`isinstance`-checkable. Their `__init__` / `append`
+  / `extend` / `insert` are statically narrowed to `Tagified`, so
+  pyright flags `tagified.append(SomeTagifiable())` at the call site.
+  The classes stay internal to `htmltools._core` — they are not
   re-exported from the top-level `htmltools` namespace — so code that
-  wants to `isinstance`-check explicitly imports them from
-  `htmltools._core`.
+  wants to `isinstance`-check imports them explicitly from there.
+  Code that depended on `TagifiedTagList` being an alias (e.g.,
+  `typing.get_type_hints` introspection) needs to treat it as a
+  class instead.
 
   In practice, pyright remains permissive about flowing a
   `TagifiedTagList` into a parameter typed as bare `TagList` (or
   `TagList[TagNode]`), so most downstream consumers of `.tagify()`'s
   return do NOT need migration. (#116)
-
-* `TagifiedTagList.append` / `.extend` / `.insert` / `__init__`, and
-  the parallel methods on `TagifiedTag`, are now statically narrowed
-  to `Tagified` (which excludes the `Tagifiable` arm of `TagChild`).
-  Pyright now flags `tagified.append(SomeTagifiable())` as a type
-  error at the call site. The existing tagify-boundary `TypeError`
-  and render-time `RuntimeError` remain the runtime safety net for
-  code that uses `# pyright: ignore` to bypass the static check. (#116)
-
-* `Tagified` (the return type of `Tagifiable.tagify()`) is now a
-  non-generic union that mirrors `TagChild`'s shape — including the
-  flattening conveniences `float`, `None`, and `Sequence[Tagified]`.
-  Custom `.tagify()` implementations may return any of those shapes;
-  the framework normalizes them at the boundary (drops `None`,
-  str-ifies `float`/`int`, flattens `Sequence`). (#116, #117)
 
 ### New features
 
@@ -58,15 +47,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bug fixes
 
-* `TagList.tagify()` now raises `TypeError` at the boundary when a child's `.tagify()` returns a `TagList` containing an un-tagified `Tagifiable` object. The error names the offending class and slot index so buggy `.tagify()` implementations surface at the source rather than later at render time. The render-time `RuntimeError` raised by `get_html_string()` for an un-tagified child has also been clarified to include the offending class name and a hint that the tree was likely mutated after `.tagify()` was called. (#7, #105, #112)
-
-* `TagList.tagify()` now normalizes every return from a child's
-  `.tagify()` through the same path as un-tagified inputs
-  (`_tagchilds_to_tagnodes`). `None` is dropped, `float` and `int` are
-  str-ified, and `Sequence` returns are flattened — previously these
-  shapes slipped past the boundary check and either crashed the render
-  path (`None` → `TypeError` deep in `html_escape`) or silently
-  corrupted the tag tree. (#117)
+* `TagList.tagify()` now defensively normalizes every shape a child's
+  `.tagify()` can return. A return whose contents still include an
+  un-tagified `Tagifiable` raises `TypeError` at the boundary, naming
+  the offending class and slot index so buggy `.tagify()`
+  implementations surface at their source rather than later at render
+  time. `None` is dropped, `float`/`int` is str-ified, and `Sequence`
+  is flattened — previously these last three shapes either crashed
+  the render path (`None` → `TypeError` in `html_escape`) or silently
+  corrupted the tag tree. The render-time `RuntimeError` raised by
+  `get_html_string()` for an un-tagified child has also been
+  clarified to include the offending class name and a hint that the
+  tree was likely mutated after `.tagify()` was called. (#7, #105,
+  #112, #117)
 
 ### Dependencies
 
