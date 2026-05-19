@@ -70,7 +70,6 @@ __all__ = (
     "TagFunction",
     "Tagifiable",
     "Tagified",
-    "TagifiedChild",
     "TagifiedTag",
     "TagifiedTagList",
     "consolidate_attrs",
@@ -122,7 +121,7 @@ unnamed arguments to Tag functions like `div()`.
 #
 # Why subclasses rather than `TypeAliasType` aliases: a subclass is runtime-
 # `isinstance`-checkable, and we can override `append` / `extend` / `insert` /
-# `__init__` with narrow `TagifiedChild`-only signatures so pyright rejects
+# `__init__` with narrow `Tagified`-only signatures so pyright rejects
 # un-tagified inputs at the call site (closing the gap that motivated #115).
 
 # Kept as a plain `Union` (not `TypeAliasType`) so the arms are visible
@@ -152,26 +151,31 @@ slot items are all `TagifiedNode`.
 # recursive-alias resolution leaks `Unknown` when downstream packages
 # inspect the type in strict mode. The alias name is then lost in
 # diagnostics, but downstream pyright stays clean.
-Tagified = Union["TagifiedTagList", TagifiedNode]
-"""
-Anything `.tagify()` is permitted to return: either a top-level
-`TagifiedTagList`, or one of the `TagifiedNode` shapes (a fully-tagified
-`Tag` or a leaf).
-"""
-
-# Parallel to `TagChild` but with no `Tagifiable` arm. Non-generic for the
-# same reason `TagChild` is non-generic (see comment near the `TagChild`
+# `Tagified` plays two roles: it's the return type of
+# `Tagifiable.tagify()` AND the input-side type for mutators on
+# `TagifiedTagList` / `TagifiedTag`. Mirrors `TagChild` but excludes
+# the un-resolved `Tagifiable` arm. Non-generic for the same reason
+# `TagChild` is non-generic (see the comment near `TagChild`'s
 # definition below).
-TagifiedChild = Union[
+Tagified = Union[
     TagifiedNode,
     "TagifiedTagList",
     float,
     None,
-    Sequence["TagifiedChild"],
+    Sequence["Tagified"],
 ]
 """
-The static-input type for mutation methods on `TagifiedTagList` /
-`TagifiedTag`. Mirrors `TagChild` but excludes the `Tagifiable` arm.
+The shape contract for fully-tagified content. Used as:
+
+- the return type of `Tagifiable.tagify()` (and the protocol it satisfies),
+- the input-side type for mutation methods on `TagifiedTagList` /
+  `TagifiedTag` (`append` / `extend` / `insert` / `__init__`).
+
+Mirrors `TagChild` (the un-tagified input type) but excludes the
+`Tagifiable` arm — values typed `Tagified` are post-`.tagify()` shapes.
+The flattening conveniences (`float`, `None`, `Sequence[Tagified]`)
+match `TagChild`'s shape so the input-normalization machinery can be
+reused on both sides.
 """
 
 
@@ -212,7 +216,7 @@ Type parameter for `Tag` and `TagList`. Defaults to `TagNode`, so bare
 # (`TagifiedTagList.append(some_tagifiable)` must error) is provided
 # instead by the narrow-signature mutator overrides on
 # `TagifiedTagList` / `TagifiedTag`, which accept the non-generic
-# parallel union `TagifiedChild` (defined above). See #116.
+# parallel union `Tagified` (defined above). See #116.
 TagChild = Union[
     TagNode,
     "TagList",
@@ -436,20 +440,22 @@ class TagList(UserList[TagNodeT]):
 
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
-                if isinstance(tagified_child, TagList):
-                    # Flatten the returned TagList into this one. Two casts:
-                    # (1) pyright cannot fully resolve `TagifiedTagList`'s
-                    # recursive child alias, leaving a `TagList[Unknown]` arm;
-                    # (2) _tagchilds_to_tagnodes returns list[TagNode] but the
-                    # slice target on TagifiedTagList expects Iterable[TagifiedNode].
-                    cp[i : i + 1] = cast(
-                        "list[TagifiedNode]",
-                        _tagchilds_to_tagnodes(
-                            cast("TagList[TagNode]", tagified_child)
-                        ),
-                    )
-                else:
-                    cp[i] = tagified_child
+                # Normalize the return through `_tagchilds_to_tagnodes`, which
+                # uniformly handles every shape `Tagified` permits:
+                #   - `TagList`              -> flattened into this slot
+                #   - `Sequence[Tagified]`   -> flattened
+                #   - `None`                 -> dropped
+                #   - `float` / `int`        -> str-ified
+                #   - tagified leaf or Tag   -> passthrough
+                # The cast widens the input to the helper (which expects
+                # `Iterable[TagChild]`); the helper's runtime branches accept
+                # the wider `Tagified` shape because `Tagified` is a subset.
+                cp[i : i + 1] = cast(
+                    "list[TagifiedNode]",
+                    _tagchilds_to_tagnodes(
+                        cast("Iterable[TagChild]", [tagified_child])
+                    ),
+                )
 
             elif isinstance(child, MetadataNode):
                 cp[i] = copy(child)
@@ -657,14 +663,14 @@ class TagifiedTagList(TagList["TagifiedNode"]):
     A `TagList` whose items are all fully tagified.
 
     Returned by `TagList.tagify()` and by `.tagify()` implementations that
-    produce a list of tagified nodes. Mutators are narrowed to `TagifiedChild`
+    produce a list of tagified nodes. Mutators are narrowed to `Tagified`
     so pyright rejects un-tagified inputs at the call site.
 
     To append a non-tagified child to a `TagifiedTagList`, call `.tagify()`
     on it first: ``tl.append(div("x").tagify())``.
 
     Note on overrides: each mutator narrows its input from ``TagChild``
-    to ``TagifiedChild``. This is contravariant narrowing (LSP-unsafe in
+    to ``Tagified``. This is contravariant narrowing (LSP-unsafe in
     the abstract — a caller holding a ``TagList`` reference could pass
     inputs the ``TagifiedTagList`` no longer accepts), so pyright flags
     each override with ``reportIncompatibleMethodOverride``. The
@@ -674,13 +680,13 @@ class TagifiedTagList(TagList["TagifiedNode"]):
     not occur in practice.
     """
 
-    def __init__(self, *args: TagifiedChild) -> None:
+    def __init__(self, *args: Tagified) -> None:
         # cast: pass through to parent; the parent constructor accepts the
-        # wider TagChild union, of which TagifiedChild is a subset.
+        # wider TagChild union, of which Tagified is a subset.
         super().__init__(*cast("tuple[TagChild, ...]", args))
 
     def append(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, item: TagifiedChild, *args: TagifiedChild
+        self, item: Tagified, *args: Tagified
     ) -> None:
         super().append(
             cast("TagChild", item),
@@ -688,12 +694,12 @@ class TagifiedTagList(TagList["TagifiedNode"]):
         )
 
     def extend(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, other: Iterable[TagifiedChild]
+        self, other: Iterable[Tagified]
     ) -> None:
         super().extend(cast("Iterable[TagChild]", other))
 
     def insert(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, i: SupportsIndex, item: TagifiedChild
+        self, i: SupportsIndex, item: Tagified
     ) -> None:
         super().insert(i, cast("TagChild", item))
 
@@ -1171,12 +1177,12 @@ class TagifiedTag(Tag["TagifiedNode"]):
     """
     A `Tag` whose children are all fully tagified.
 
-    Returned by `Tag.tagify()`. Mutators are narrowed to `TagifiedChild` so
+    Returned by `Tag.tagify()`. Mutators are narrowed to `Tagified` so
     pyright rejects un-tagified inputs at the call site. To append a
     non-tagified child, call `.tagify()` on it first.
 
     Note on overrides: each mutator narrows its input from ``TagChild``
-    to ``TagifiedChild``. This is contravariant narrowing (LSP-unsafe in
+    to ``Tagified``. This is contravariant narrowing (LSP-unsafe in
     the abstract — a caller holding a ``Tag`` reference could pass
     inputs the ``TagifiedTag`` no longer accepts), so pyright flags
     each override with ``reportIncompatibleMethodOverride``. The
@@ -1189,7 +1195,7 @@ class TagifiedTag(Tag["TagifiedNode"]):
     def __init__(
         self,
         _name: str,
-        *args: TagifiedChild | TagAttrs,
+        *args: Tagified | TagAttrs,
         _add_ws: TagAttrValue = True,
         **kwargs: TagAttrValue,
     ) -> None:
@@ -1201,17 +1207,17 @@ class TagifiedTag(Tag["TagifiedNode"]):
         )
 
     def append(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, *args: TagifiedChild
+        self, *args: Tagified
     ) -> None:
         super().append(*cast("tuple[TagChild, ...]", args))
 
     def extend(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, x: Iterable[TagifiedChild]
+        self, x: Iterable[Tagified]
     ) -> None:
         super().extend(cast("Iterable[TagChild]", x))
 
     def insert(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, index: SupportsIndex, x: TagifiedChild
+        self, index: SupportsIndex, x: Tagified
     ) -> None:
         super().insert(index, cast("TagChild", x))
 

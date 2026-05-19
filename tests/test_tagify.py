@@ -1,6 +1,6 @@
 import pytest
 
-from htmltools import TagList, div, span
+from htmltools import Tagified, TagList, div, span
 
 
 class _ReturnsTagifiable:
@@ -46,3 +46,48 @@ def test_render_guard_catches_mutation_after_tagify() -> None:
     tagified.children.append(_NestedTagifiable())
     with pytest.raises(RuntimeError, match="_NestedTagifiable"):
         tagified.get_html_string()
+
+
+# -----------------------------------------------------------------------------
+# Boundary normalization of child.tagify() returns (closes #117)
+# -----------------------------------------------------------------------------
+# The `Tagified` union now permits `None`, `float`, and `Sequence[Tagified]`
+# returns from `.tagify()` (parallel to `TagChild` on the input side). The
+# `TagList.tagify()` boundary routes every return through
+# `_tagchilds_to_tagnodes`, which normalizes those shapes uniformly: drop
+# `None`, str-ify `float`/`int`, flatten `Sequence`.
+
+
+class _ReturnsNone:
+    def tagify(self) -> Tagified:
+        return None
+
+
+class _ReturnsFloat:
+    def tagify(self) -> Tagified:
+        return 3.14
+
+
+class _ReturnsList:
+    def tagify(self) -> Tagified:
+        return ["a", "b"]
+
+
+def test_tagify_returning_None_drops_the_slot() -> None:
+    tl = TagList(_ReturnsNone(), "after").tagify()
+    assert list(tl) == ["after"]
+    # Render must not crash.
+    assert tl.get_html_string() == "after"
+
+
+def test_tagify_returning_float_is_strified() -> None:
+    tl = TagList(_ReturnsFloat(), "after").tagify()
+    assert list(tl) == ["3.14", "after"]
+    assert "3.14" in tl.get_html_string()
+
+
+def test_tagify_returning_Sequence_flattens() -> None:
+    tl = TagList(_ReturnsList(), "after").tagify()
+    assert list(tl) == ["a", "b", "after"]
+    # Render: sibling text nodes concatenate without separators.
+    assert tl.get_html_string() == "abafter"

@@ -33,7 +33,7 @@ def test_taglist_tagify_returns_TagifiedTagList() -> None:
 
 
 def test_TagifiedTagList_append_rejects_Tagifiable_statically() -> None:
-    """Mutators on TagifiedTagList narrow input to TagifiedChild; appending
+    """Mutators on TagifiedTagList narrow input to Tagified; appending
     a Tagifiable must be a pyright error."""
 
     class _SomeTagifiable:
@@ -43,7 +43,7 @@ def test_TagifiedTagList_append_rejects_Tagifiable_statically() -> None:
     tl: TagifiedTagList = TagList("hi").tagify()
     # Acceptable: a tagified node
     tl.append("ok")
-    # Static error: bare Tagifiable is not in TagifiedChild.
+    # Static error: bare Tagifiable is not in Tagified.
     tl.append(_SomeTagifiable())  # pyright: ignore[reportArgumentType]
 
 
@@ -77,7 +77,7 @@ def test_TagifiedTagList_append_rejects_Tagifiable() -> None:
     Appending a ``Tagifiable`` to a ``TagifiedTagList`` is a *static* error.
 
     Enforced by ``TagifiedTagList.append``'s narrow signature, which accepts
-    only ``TagifiedChild`` (a non-generic union that excludes the
+    only ``Tagified`` (a non-generic union that excludes the
     ``Tagifiable`` arm of ``TagNode``). The previous design — a recursive
     generic ``TagChild[TagNodeT]`` — was abandoned in #105 because it
     leaked ``Sequence[Unknown]`` through downstream pyright in strict mode;
