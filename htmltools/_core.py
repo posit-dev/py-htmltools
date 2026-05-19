@@ -669,14 +669,21 @@ class TagifiedTagList(TagList["TagifiedNode"]):
     on it first: ``tl.append(div("x").tagify())``.
     """
 
-    # Note on overrides: each mutator narrows its input from `TagChild` to
-    # `TagifiedChild`. This is contravariant narrowing (LSP-unsafe in the
-    # abstract — a caller holding a `TagList` reference could pass inputs
-    # the `TagifiedTagList` no longer accepts), so pyright flags each
-    # override with `reportIncompatibleMethodOverride`. The suppression is
-    # deliberate: in this codebase, `TagifiedTagList` is only ever obtained
-    # via `.tagify()`, never by upcasting a pre-existing `TagList`
-    # reference, so the LSP failure mode does not occur in practice.
+    # Why these overrides exist, and why they're suppressed:
+    #
+    # The parent `TagList.append/extend/insert` accept any `TagChild` —
+    # including un-tagified `Tagifiable` objects. We narrow the subclass
+    # versions to `TagifiedChild`, which excludes the un-tagified arm.
+    # That's the whole point: pyright now flags
+    # `tagified.append(SomeTagifiable())` at the call site.
+    #
+    # Narrowing what a method accepts in a subclass is technically a
+    # Liskov violation — a caller holding a `TagList` reference could
+    # legally pass an argument the subclass refuses. Pyright reports
+    # this as `reportIncompatibleMethodOverride`. We suppress because
+    # the violating scenario doesn't happen here: `TagifiedTagList`
+    # only ever comes out of `.tagify()`, not from upcasting an
+    # existing `TagList`.
 
     def __init__(self, *args: TagifiedChild) -> None:
         # cast: pass through to parent; the parent constructor accepts the
@@ -1180,14 +1187,21 @@ class TagifiedTag(Tag["TagifiedNode"]):
     non-tagified child, call `.tagify()` on it first.
     """
 
-    # Note on overrides: each mutator narrows its input from `TagChild` to
-    # `TagifiedChild`. This is contravariant narrowing (LSP-unsafe in the
-    # abstract — a caller holding a `Tag` reference could pass inputs the
-    # `TagifiedTag` no longer accepts), so pyright flags each override with
-    # `reportIncompatibleMethodOverride`. The suppression is deliberate: in
-    # this codebase, `TagifiedTag` is only ever obtained via `.tagify()`,
-    # never by upcasting a pre-existing `Tag` reference, so the LSP failure
-    # mode does not occur in practice.
+    # Why these overrides exist, and why they're suppressed:
+    #
+    # The parent `Tag.append/extend/insert` accept any `TagChild` —
+    # including un-tagified `Tagifiable` objects. We narrow the subclass
+    # versions to `TagifiedChild`, which excludes the un-tagified arm.
+    # That's the whole point: pyright now flags
+    # `tagified.append(SomeTagifiable())` at the call site.
+    #
+    # Narrowing what a method accepts in a subclass is technically a
+    # Liskov violation — a caller holding a `Tag` reference could
+    # legally pass an argument the subclass refuses. Pyright reports
+    # this as `reportIncompatibleMethodOverride`. We suppress because
+    # the violating scenario doesn't happen here: `TagifiedTag` only
+    # ever comes out of `.tagify()`, not from upcasting an existing
+    # `Tag`.
 
     def __init__(
         self,
