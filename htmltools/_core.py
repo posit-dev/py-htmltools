@@ -461,9 +461,13 @@ class TagList(UserList[TagNodeT]):
         # waiting for the render-time guard in `get_html_string` to raise
         # a less-actionable error. Tag and TagList are themselves
         # Tagifiable but are valid tagified shapes, so they are excluded.
-        # Cast cp to TagList[TagNode] so the isinstance guard below is not
-        # flagged as redundant — at runtime cp.data may still hold pre-tagified
-        # items if a child's .tagify() violated the protocol.
+        # Cast `cp` to the wider parent type so pyright keeps the isinstance
+        # guard below reachable. Statically, `cp`'s items are `TagifiedNode`
+        # (which excludes the bare-`Tagifiable` arm), so pyright would flag
+        # the check as `reportUnnecessaryIsInstance`. The guard exists to
+        # catch runtime protocol violations — a misbehaving `.tagify()` may
+        # still place a bare `Tagifiable` in the list — so the cast preserves
+        # the defensive intent without weakening the runtime check.
         for i, child in enumerate(cast("TagList[TagNode]", cp)):
             if isinstance(child, Tagifiable) and not isinstance(child, (Tag, TagList)):
                 raise TypeError(
