@@ -19,7 +19,7 @@ from ._core import (
     Tag,
     TagAttrValue,
     Tagifiable,
-    TagifiedNode,
+    TagifiedTag,
     TagList,
     TagNode,
 )
@@ -111,7 +111,7 @@ class JSXTag:
     def append(self, *args: TagNode) -> None:
         self.children.append(*args)
 
-    def tagify(self) -> "Tag[TagifiedNode]":
+    def tagify(self) -> "TagifiedTag":
         metadata_nodes: list[MetadataNode] = []
 
         # This function is recursively applied to the attributes and children. It does
@@ -164,21 +164,21 @@ class JSXTag:
             ]
         )
 
-        return cast(
-            "Tag[TagifiedNode]",
-            Tag(
-                "script",
-                {
-                    "type": "text/javascript",
-                    "data_needs_render": True,
-                },
-                HTML("\n" + js + "\n"),
-                _lib_dependency("react", script={"src": "react.production.min.js"}),
-                _lib_dependency(
-                    "react-dom", script={"src": "react-dom.production.min.js"}
-                ),
-                *metadata_nodes,
-            ),
+        # Was: cast("Tag[TagifiedNode]", Tag("script", ...))
+        # Now: build a TagifiedTag directly. The children passed in (HTML,
+        # script-attr dict, lib-dependency metadata nodes) are all
+        # already TagifiedNode-shaped, so the constructor produces a
+        # legitimate tagified tag.
+        return TagifiedTag(
+            "script",
+            {
+                "type": "text/javascript",
+                "data_needs_render": True,
+            },
+            HTML("\n" + js + "\n"),
+            _lib_dependency("react", script={"src": "react.production.min.js"}),
+            _lib_dependency("react-dom", script={"src": "react-dom.production.min.js"}),
+            *metadata_nodes,
         )
 
     def __str__(self) -> str:

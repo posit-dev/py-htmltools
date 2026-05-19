@@ -36,3 +36,12 @@ def test_TagifiedTagList_children_are_TagifiedTag() -> None:
     inner = result[0]
     assert isinstance(inner, TagifiedTag)
     assert isinstance(inner.children[0], TagifiedTag)
+
+
+def test_JSXTag_tagify_returns_TagifiedTag() -> None:
+    # Import locally because JSXTag is not in the top-level htmltools namespace.
+    from htmltools._jsx import JSXTag
+
+    jsx = JSXTag("MyComponent")
+    result = jsx.tagify()
+    assert isinstance(result, TagifiedTag)
