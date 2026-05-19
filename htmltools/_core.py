@@ -70,6 +70,9 @@ __all__ = (
     "TagFunction",
     "Tagifiable",
     "Tagified",
+    "TagifiedChild",
+    "TagifiedTag",
+    "TagifiedTagList",
     "consolidate_attrs",
     "head_content",
     "is_tag_child",
@@ -160,7 +163,7 @@ Anything `.tagify()` is permitted to return: either a top-level
 # same reason `TagChild` is non-generic (see comment near the `TagChild`
 # definition below).
 TagifiedChild = Union[
-    "TagifiedNode",
+    TagifiedNode,
     "TagifiedTagList",
     float,
     None,
