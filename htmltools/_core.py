@@ -999,14 +999,19 @@ class Tag(Generic[TagNodeT]):
             self.attrs.update({"style": self.attrs.get("style")}, {"style": style})
         return self
 
-    def tagify(self) -> "Tag[TagifiedNode]":
+    def tagify(self) -> "TagifiedTag":
         """
         Convert any tagifiable children to Tag/TagList objects.
         """
 
-        cp = copy(self)
-        cp.children = cast("TagList[TagNodeT]", cp.children.tagify())
-        return cast("Tag[TagifiedNode]", cp)
+        # Construct a TagifiedTag directly (not a cast over copy(self)) so the
+        # runtime instance is the subclass. Mirror Tag.__copy__'s shallow-copy
+        # behavior, then overwrite .children with the tagified result.
+        cp = TagifiedTag.__new__(TagifiedTag)
+        new_dict = {key: copy(value) for key, value in self.__dict__.items()}
+        cp.__dict__.update(new_dict)
+        cp.children = self.children.tagify()
+        return cp
 
     def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
         """

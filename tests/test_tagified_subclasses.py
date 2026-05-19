@@ -21,3 +21,18 @@ def test_TagList_tagify_returns_TagifiedTagList_instance() -> None:
     assert isinstance(result, TagifiedTagList)
     # Verify it's the actual class, not the base TagList
     assert type(result) is TagifiedTagList
+
+
+def test_Tag_tagify_returns_TagifiedTag_instance() -> None:
+    result = div("hi").tagify()
+    assert isinstance(result, TagifiedTag)
+    assert type(result) is TagifiedTag
+
+
+def test_TagifiedTagList_children_are_TagifiedTag() -> None:
+    # Recursive guarantee: nested children inside a tagified result are also
+    # TagifiedTag instances, not bare Tag.
+    result = TagList(div(div("inner"))).tagify()
+    inner = result[0]
+    assert isinstance(inner, TagifiedTag)
+    assert isinstance(inner.children[0], TagifiedTag)
