@@ -20,19 +20,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   its return type. Code relying on the previous subclass-preserving
   signature should `cast` the result. (#105)
 
+* `TagifiedTagList` is now a real subclass of `TagList["TagifiedNode"]`
+  rather than a `TypeAliasType` alias. `TagifiedTag` is a new parallel
+  subclass of `Tag["TagifiedNode"]`. Both are returned by `.tagify()`
+  and are runtime-`isinstance`-checkable. Code that depended on
+  `TagifiedTagList` being an alias (e.g., `typing.get_type_hints`
+  introspection) needs to treat it as a class instead.
+
+  In practice, pyright remains permissive about flowing a
+  `TagifiedTagList` into a parameter typed as bare `TagList` (or
+  `TagList[TagNode]`), so most downstream consumers of `.tagify()`'s
+  return do NOT need migration. (#116)
+
+* `TagifiedTagList.append` / `.extend` / `.insert` / `__init__`, and
+  the parallel methods on `TagifiedTag`, are now statically narrowed
+  to `TagifiedChild` (a new non-generic union parallel to `TagChild`
+  that excludes the `Tagifiable` arm). Pyright now flags
+  `tagified.append(SomeTagifiable())` as a type error at the call
+  site. The existing tagify-boundary `TypeError` and render-time
+  `RuntimeError` remain the runtime safety net for code that uses
+  `# pyright: ignore` to bypass the static check. (#116)
+
 ### New features
 
 * `Tag` and `TagList` are now generic in their child type, defaulting
-  to `TagNode`. Bare `Tag` / `TagList` retain today's meaning. Mutation
-  methods (`append` / `extend` / `insert`) still accept `Tagifiable` at
-  static-type-check time even on tagified containers — the invariant
-  is enforced at runtime instead (`TagList.tagify()` raises `TypeError`
-  and `get_html_string` raises `RuntimeError` for an un-tagified
-  subtree). See `tests/test_types.py` for the rationale. (#105)
+  to `TagNode`. Bare `Tag` / `TagList` retain today's meaning. (#105)
 
 * Added the public type alias `Tagified` — the union of all
   fully-tagified shapes — for use as the return annotation of
   `Tagifiable.tagify()` implementations. (#105)
+
+* New public types `TagifiedTag` (subclass of `Tag["TagifiedNode"]`)
+  and `TagifiedTagList` (subclass of `TagList["TagifiedNode"]`),
+  returned by `Tag.tagify()` and `TagList.tagify()` respectively.
+  Runtime-`isinstance`-checkable; useful for narrowing tagified
+  values from a mixed pipeline. (#116)
+
+* New public type alias `TagifiedChild` — the non-generic input-side
+  parallel of `TagChild` used by `TagifiedTagList` / `TagifiedTag`
+  mutators. (#116)
 
 ### Bug fixes
 
