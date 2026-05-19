@@ -660,15 +660,25 @@ class TagifiedTagList(TagList["TagifiedNode"]):
 
     To append a non-tagified child to a `TagifiedTagList`, call `.tagify()`
     on it first: ``tl.append(div("x").tagify())``.
+
+    Note on overrides: each mutator narrows its input from ``TagChild``
+    to ``TagifiedChild``. This is contravariant narrowing (LSP-unsafe in
+    the abstract — a caller holding a ``TagList`` reference could pass
+    inputs the ``TagifiedTagList`` no longer accepts), so pyright flags
+    each override with ``reportIncompatibleMethodOverride``. The
+    suppression is deliberate: in this codebase, ``TagifiedTagList`` is
+    only ever obtained via ``.tagify()``, never by upcasting a
+    pre-existing ``TagList`` reference, so the LSP failure mode does
+    not occur in practice.
     """
 
-    def __init__(self, *args: "TagifiedChild") -> None:
+    def __init__(self, *args: TagifiedChild) -> None:
         # cast: pass through to parent; the parent constructor accepts the
         # wider TagChild union, of which TagifiedChild is a subset.
         super().__init__(*cast("tuple[TagChild, ...]", args))
 
     def append(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, item: "TagifiedChild", *args: "TagifiedChild"
+        self, item: TagifiedChild, *args: TagifiedChild
     ) -> None:
         super().append(
             cast("TagChild", item),
@@ -676,12 +686,12 @@ class TagifiedTagList(TagList["TagifiedNode"]):
         )
 
     def extend(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, other: Iterable["TagifiedChild"]
+        self, other: Iterable[TagifiedChild]
     ) -> None:
         super().extend(cast("Iterable[TagChild]", other))
 
     def insert(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, i: SupportsIndex, item: "TagifiedChild"
+        self, i: SupportsIndex, item: TagifiedChild
     ) -> None:
         super().insert(i, cast("TagChild", item))
 
