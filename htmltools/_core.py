@@ -205,12 +205,14 @@ Type parameter for `Tag` and `TagList`. Defaults to `TagNode`, so bare
 # arm caused pyright to leak `Sequence[Unknown]` into every `Tag`
 # function signature when inspected from a downstream module in
 # strict mode (e.g. Shiny's CI reported 2500+
-# `reportUnknownMemberType` errors). The trade-off is that
-# `TagList[TagifiedNode].append(some_tagifiable)` no longer
-# static-errors — the runtime guard in `TagList.get_html_string`
-# still catches it at render time. See
-# `tests/test_types.py::test_TagifiedTagList_append_accepts_Tagifiable`
-# for the full rationale.
+# `reportUnknownMemberType` errors). The non-generic alias is the
+# only form that doesn't leak.
+#
+# Static input enforcement on tagified containers
+# (`TagifiedTagList.append(some_tagifiable)` must error) is provided
+# instead by the narrow-signature mutator overrides on
+# `TagifiedTagList` / `TagifiedTag`, which accept the non-generic
+# parallel union `TagifiedChild` (defined above). See #116.
 TagChild = Union[
     TagNode,
     "TagList",
