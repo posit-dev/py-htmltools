@@ -14,17 +14,16 @@ from __future__ import annotations
 from typing_extensions import assert_type
 
 from htmltools import (
-    Tag,
     Tagifiable,
     Tagified,
     TagList,
     div,
 )
-from htmltools._core import TagifiedNode, TagifiedTagList
+from htmltools._core import TagifiedTag, TagifiedTagList
 
 
-def test_tag_tagify_returns_Tag_TagifiedNode() -> None:
-    assert_type(div("hi").tagify(), Tag[TagifiedNode])
+def test_tag_tagify_returns_TagifiedTag() -> None:
+    assert_type(div("hi").tagify(), TagifiedTag)
 
 
 def test_taglist_tagify_returns_TagifiedTagList() -> None:
@@ -71,51 +70,21 @@ def test_bare_TagList_is_not_assignable_to_TagifiedTagList() -> None:
     _: TagifiedTagList = tl  # pyright: ignore[reportAssignmentType]
 
 
-def test_TagifiedTagList_append_accepts_Tagifiable() -> None:
+def test_TagifiedTagList_append_rejects_Tagifiable() -> None:
     """
-    Documents a deliberate static-typing gap: appending a ``Tagifiable``
-    to a ``TagList[TagifiedNode]`` is **not** a static error today, even
-    though ``TagifiedNode`` does not include the ``Tagifiable`` arm of
-    ``TagNode``. The runtime catches it instead.
+    Appending a ``Tagifiable`` to a ``TagifiedTagList`` is a *static* error.
 
-    Why we can't enforce it statically
-    ----------------------------------
-    The natural enforcement would parameterize ``TagChild`` itself —
-    ``TagChild[TagNodeT] = TagNodeT | TagList[TagNodeT] | float | None |
-    Sequence[TagChild[TagNodeT]]`` — and use it in mutation signatures so
-    that ``TagList[TagifiedNode].append`` only accepts ``TagifiedNode``
-    -shaped values. We tried that. Pyright (tested through 1.1.409)
-    does not fully re-bind ``TagNodeT`` through the recursive
-    ``Sequence["TagChild[TagNodeT]"]`` arm when a *downstream* module
-    imports the symbols in strict mode. Every ``Tag``-function signature
-    then leaks a ``Sequence[Unknown]`` arm, which surfaced as thousands
-    of ``reportUnknownMemberType`` errors in Shiny's CI — far more noise
-    than the win was worth.
+    Enforced by ``TagifiedTagList.append``'s narrow signature, which accepts
+    only ``TagifiedChild`` (a non-generic union that excludes the
+    ``Tagifiable`` arm of ``TagNode``). The previous design — a recursive
+    generic ``TagChild[TagNodeT]`` — was abandoned in #105 because it
+    leaked ``Sequence[Unknown]`` through downstream pyright in strict mode;
+    the subclass-with-narrow-overrides approach (#116) closes the gap
+    without parameterizing ``TagChild``.
 
-    What we do instead
-    ------------------
-    - ``TagChild`` is a plain non-generic ``Union`` (including the
-      recursive ``Sequence["TagChild"]`` arm for nested-list flattening).
-    - Mutation methods on ``TagList[TagNodeT]`` and ``Tag[TagNodeT]`` accept
-      bare ``TagChild`` (wide). This preserves the nested-list
-      ergonomics like ``tl.append([a, b, [c, d]])``.
-    - The "no un-tagified children in a tagified tree" invariant is
-      enforced at runtime:
-        * ``TagList.tagify()`` raises ``TypeError`` at the boundary
-          when a child's ``.tagify()`` returns a ``TagList`` containing
-          a ``Tagifiable``, naming the offending class and slot index.
-        * ``TagList.get_html_string`` raises ``RuntimeError`` at render
-          time if a ``Tagifiable`` is still in the tree (covers
-          mutation-after-tagify; see
-          ``test_tagify.py::test_render_guard_catches_mutation_after_tagify``).
-
-    When to revisit
-    ---------------
-    If a future pyright/typing release handles recursive generic
-    ``TypeAliasType`` cleanly across module boundaries, flip this test
-    to a *negative* form (``# pyright: ignore[reportArgumentType]`` on
-    the ``tl.append(...)`` call) and reinstate ``TagChild[TagNodeT]`` on
-    ``TagList`` / ``Tag`` mutation-method signatures.
+    The runtime guards in ``TagList.tagify`` (boundary ``TypeError``) and
+    ``get_html_string`` (render-time ``RuntimeError``) remain the safety
+    net for code that uses ``# pyright: ignore`` to bypass the static check.
     """
 
     class _SomeTagifiable:
@@ -123,14 +92,10 @@ def test_TagifiedTagList_append_accepts_Tagifiable() -> None:
             return "x"
 
     tl: TagifiedTagList = TagList("hi").tagify()
-    # This currently type-checks. In an ideal world it would static-error;
-    # see the docstring for why we accept the gap.
-    tl.append(_SomeTagifiable())
+    tl.append(_SomeTagifiable())  # pyright: ignore[reportArgumentType]
 
 
 def test_TagifiedTag_append_rejects_Tagifiable_statically() -> None:
-    from htmltools._core import TagifiedTag
-
     class _SomeTagifiable:
         def tagify(self) -> Tagified:
             return "x"
@@ -141,8 +106,6 @@ def test_TagifiedTag_append_rejects_Tagifiable_statically() -> None:
 
 
 def test_TagifiedTag_extend_rejects_Tagifiable_statically() -> None:
-    from htmltools._core import TagifiedTag
-
     class _SomeTagifiable:
         def tagify(self) -> Tagified:
             return "x"
@@ -152,8 +115,6 @@ def test_TagifiedTag_extend_rejects_Tagifiable_statically() -> None:
 
 
 def test_TagifiedTag_insert_rejects_Tagifiable_statically() -> None:
-    from htmltools._core import TagifiedTag
-
     class _SomeTagifiable:
         def tagify(self) -> Tagified:
             return "x"
