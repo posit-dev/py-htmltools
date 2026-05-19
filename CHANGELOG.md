@@ -38,12 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * `TagifiedTagList.append` / `.extend` / `.insert` / `__init__`, and
   the parallel methods on `TagifiedTag`, are now statically narrowed
-  to `Tagified` (now widened to a non-generic union parallel to
-  `TagChild` that excludes the `Tagifiable` arm). Pyright now flags
-  `tagified.append(SomeTagifiable())` as a type error at the call
-  site. The existing tagify-boundary `TypeError` and render-time
-  `RuntimeError` remain the runtime safety net for code that uses
-  `# pyright: ignore` to bypass the static check. (#116)
+  to `Tagified` (which excludes the `Tagifiable` arm of `TagChild`).
+  Pyright now flags `tagified.append(SomeTagifiable())` as a type
+  error at the call site. The existing tagify-boundary `TypeError`
+  and render-time `RuntimeError` remain the runtime safety net for
+  code that uses `# pyright: ignore` to bypass the static check. (#116)
 
 * `Tagified` (the return type of `Tagifiable.tagify()`) is now a
   non-generic union that mirrors `TagChild`'s shape — including the
