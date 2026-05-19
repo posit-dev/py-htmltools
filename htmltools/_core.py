@@ -151,19 +151,24 @@ slot items are all `TagifiedNode`.
 # recursive-alias resolution leaks `Unknown` when downstream packages
 # inspect the type in strict mode. The alias name is then lost in
 # diagnostics, but downstream pyright stays clean.
-# `Tagified` plays two roles: it's the return type of
-# `Tagifiable.tagify()` AND the input-side type for mutators on
-# `TagifiedTagList` / `TagifiedTag`. Mirrors `TagChild` but excludes
-# the un-resolved `Tagifiable` arm. Non-generic for the same reason
-# `TagChild` is non-generic (see the comment near `TagChild`'s
-# definition below).
-Tagified = Union[
+#
+# `TagifiedChild` is the input-side type for mutators on `TagifiedTagList`
+# / `TagifiedTag` — it parallels `TagChild` (the input type for
+# `TagList` / `Tag` mutators) but excludes the un-resolved `Tagifiable`
+# arm. Non-generic for the same reason `TagChild` is non-generic (see
+# the comment near `TagChild`'s definition below). Defined here as an
+# internal name so maintainers reading this file can see the structural
+# parallel to `TagChild`; the publicly-exported name is `Tagified`,
+# aliased below.
+TagifiedChild = Union[
     TagifiedNode,
     "TagifiedTagList",
     float,
     None,
-    Sequence["Tagified"],
+    Sequence["TagifiedChild"],
 ]
+
+Tagified = TagifiedChild
 """
 The shape contract for fully-tagified content. Used as:
 
@@ -682,13 +687,13 @@ class TagifiedTagList(TagList["TagifiedNode"]):
     not occur in practice.
     """
 
-    def __init__(self, *args: Tagified) -> None:
+    def __init__(self, *args: TagifiedChild) -> None:
         # cast: pass through to parent; the parent constructor accepts the
-        # wider TagChild union, of which Tagified is a subset.
+        # wider TagChild union, of which TagifiedChild is a subset.
         super().__init__(*cast("tuple[TagChild, ...]", args))
 
     def append(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, item: Tagified, *args: Tagified
+        self, item: TagifiedChild, *args: TagifiedChild
     ) -> None:
         super().append(
             cast("TagChild", item),
@@ -696,12 +701,12 @@ class TagifiedTagList(TagList["TagifiedNode"]):
         )
 
     def extend(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, other: Iterable[Tagified]
+        self, other: Iterable[TagifiedChild]
     ) -> None:
         super().extend(cast("Iterable[TagChild]", other))
 
     def insert(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, i: SupportsIndex, item: Tagified
+        self, i: SupportsIndex, item: TagifiedChild
     ) -> None:
         super().insert(i, cast("TagChild", item))
 
@@ -1197,7 +1202,7 @@ class TagifiedTag(Tag["TagifiedNode"]):
     def __init__(
         self,
         _name: str,
-        *args: Tagified | TagAttrs,
+        *args: TagifiedChild | TagAttrs,
         _add_ws: TagAttrValue = True,
         **kwargs: TagAttrValue,
     ) -> None:
@@ -1209,17 +1214,17 @@ class TagifiedTag(Tag["TagifiedNode"]):
         )
 
     def append(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, *args: Tagified
+        self, *args: TagifiedChild
     ) -> None:
         super().append(*cast("tuple[TagChild, ...]", args))
 
     def extend(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, x: Iterable[Tagified]
+        self, x: Iterable[TagifiedChild]
     ) -> None:
         super().extend(cast("Iterable[TagChild]", x))
 
     def insert(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, index: SupportsIndex, x: Tagified
+        self, index: SupportsIndex, x: TagifiedChild
     ) -> None:
         super().insert(index, cast("TagChild", x))
 
