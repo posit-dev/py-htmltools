@@ -192,7 +192,10 @@ def test_tagify_first():
         )
 
         def tagify(self):
-            return div("delayed dependency", self.dep)
+            # Must return a fully-tagified value (TagifiedTag), not a bare
+            # Tag. Calling `.tagify()` on `div(...)` produces the required
+            # subclass — see #116's tightened post-tagify boundary check.
+            return div("delayed dependency", self.dep).tagify()
 
     x = TagList(div("Hello", DelayedDep()), "world")
 

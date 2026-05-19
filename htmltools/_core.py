@@ -460,30 +460,32 @@ class TagList(UserList[TagNodeT]):
             elif isinstance(child, MetadataNode):
                 cp[i] = copy(child)
 
-        # Boundary check: after the recursion above, every child should be
-        # a fully-tagified shape (Tag, TagList, MetadataNode, ReprHtml, str,
-        # or HTML). A bare Tagifiable still present here means some child's
-        # `.tagify()` returned a TagList containing un-tagified objects —
-        # which violates the Tagifiable protocol. Surface that here, where
-        # the offending class and index are still in scope, instead of
-        # waiting for the render-time guard in `get_html_string` to raise
-        # a less-actionable error. Tag and TagList are themselves
-        # Tagifiable but are valid tagified shapes, so they are excluded.
-        # Cast `cp` to the wider parent type so pyright keeps the isinstance
-        # guard below reachable. Statically, `cp`'s items are `TagifiedNode`
-        # (which excludes the bare-`Tagifiable` arm), so pyright would flag
-        # the check as `reportUnnecessaryIsInstance`. The guard exists to
-        # catch runtime protocol violations — a misbehaving `.tagify()` may
-        # still place a bare `Tagifiable` in the list — so the cast preserves
-        # the defensive intent without weakening the runtime check.
+        # Boundary check: every item in `cp` should now be a fully-tagified
+        # shape — `TagifiedTag` (NOT bare `Tag`), `TagifiedTagList` (NOT
+        # bare `TagList`), or a `TagNodeLeaf` (`MetadataNode`, `ReprHtml`,
+        # `str`, `HTML`). Anything `Tagifiable` that isn't one of the
+        # tagified subclasses means a child's `.tagify()` returned content
+        # that violates the `Tagified` contract — either a bare `Tag` /
+        # `TagList` (rather than `.tagify()`'d), or a `TagList` whose
+        # contents include un-tagified objects (e.g. a stray custom
+        # `Tagifiable`). Surface that here, where the offending class and
+        # index are still in scope, instead of waiting for the render-time
+        # guard in `get_html_string` to raise a less-actionable error.
+        # Cast `cp` to the wider parent type so pyright keeps the
+        # isinstance guard reachable; statically, `cp`'s items are
+        # `TagifiedNode` and pyright would flag the check as
+        # `reportUnnecessaryIsInstance`. The guard exists to catch runtime
+        # protocol violations — a misbehaving `.tagify()` can still place
+        # an un-tagified value in the list.
         for i, child in enumerate(cast("TagList[TagNode]", cp)):
-            if isinstance(child, Tagifiable) and not isinstance(child, (Tag, TagList)):
+            if isinstance(child, Tagifiable) and not isinstance(
+                child, (TagifiedTag, TagifiedTagList)
+            ):
                 raise TypeError(
                     "Expected a fully tagified value, but a child .tagify() "
-                    "returned a TagList containing an un-tagified "
-                    f"{type(child).__name__} at index {i}. "
-                    "A .tagify() implementation must recursively tagify its "
-                    "return value (consider returning `something.tagify()` "
+                    f"returned an un-tagified {type(child).__name__} at index "
+                    f"{i}. A .tagify() implementation must return a fully-"
+                    "tagified value (consider returning `something.tagify()` "
                     "instead of `something`)."
                 )
 

@@ -91,3 +91,63 @@ def test_tagify_returning_Sequence_flattens() -> None:
     assert list(tl) == ["a", "b", "after"]
     # Render: sibling text nodes concatenate without separators.
     assert tl.get_html_string() == "abafter"
+
+
+# -----------------------------------------------------------------------------
+# Strict post-tagify boundary: bare `Tag` / `TagList` returns are rejected.
+# -----------------------------------------------------------------------------
+# `Tagified` permits `TagifiedTag` (not bare `Tag`) and `TagifiedTagList`
+# (not bare `TagList`). A `.tagify()` that returns `div(some_tagifiable)`
+# without calling `.tagify()` on the result will leave un-tagified content
+# in the tree — the bare-Tag shape passes runtime `isinstance(_, Tag)`
+# checks but fails the `Tagified` contract. The boundary catches this
+# before render time, where the error message would otherwise be the
+# misleading "tree was mutated to add a Tagifiable object after
+# .tagify() was called."
+
+
+class _ReturnsBareTagWithTagifiableChild:
+    """Wraps a Tagifiable in a bare div() — does NOT call .tagify() on result."""
+
+    def tagify(
+        self,
+    ):  # intentionally unannotated; pyright would catch the contract violation
+        return div(_NestedTagifiable())
+
+
+class _ReturnsBareTagWithLeafChild:
+    """Even a bare Tag whose contents are leaves violates the contract."""
+
+    def tagify(self):
+        return div("leaf")
+
+
+def test_taglist_tagify_raises_on_bare_Tag_return_with_tagifiable_child() -> None:
+    # Direct reproducer of the bug Copilot flagged on PR #118: a bare Tag
+    # carrying an un-tagified child slipped past the boundary and only
+    # failed at render time with a misleading "tree was mutated" error.
+    tl = TagList(_ReturnsBareTagWithTagifiableChild())
+    with pytest.raises(TypeError, match=r"Tag at index"):
+        tl.tagify()
+
+
+def test_taglist_tagify_raises_on_bare_Tag_return_with_leaf_child() -> None:
+    # Even when the bare Tag's children are leaves, the strict boundary
+    # raises — matching the static `Tagified` contract (which excludes bare
+    # `Tag`). Easy fix at the call site: append `.tagify()` to the return.
+    tl = TagList(_ReturnsBareTagWithLeafChild())
+    with pytest.raises(TypeError, match=r"Tag at index"):
+        tl.tagify()
+
+
+def test_taglist_tagify_accepts_self_tagified_Tag_return() -> None:
+    # The recommended fix: call `.tagify()` on the wrapping Tag before returning.
+    class _ReturnsTagifiedTag:
+        def tagify(self):
+            return div(_NestedTagifiable()).tagify()
+
+    tl = TagList(_ReturnsTagifiedTag()).tagify()
+    html = tl.get_html_string()
+    assert "<div>" in html
+    assert "bar" in html
+    assert "</div>" in html

@@ -49,13 +49,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * `TagList.tagify()` now defensively normalizes every shape a child's
   `.tagify()` can return. A return whose contents still include an
-  un-tagified `Tagifiable` raises `TypeError` at the boundary, naming
-  the offending class and slot index so buggy `.tagify()`
-  implementations surface at their source rather than later at render
-  time. `None` is dropped, `float`/`int` is str-ified, and `Sequence`
-  is flattened — previously these last three shapes either crashed
-  the render path (`None` → `TypeError` in `html_escape`) or silently
-  corrupted the tag tree. The render-time `RuntimeError` raised by
+  un-tagified `Tagifiable`, or a return that is itself a bare `Tag` /
+  `TagList` rather than a `TagifiedTag` / `TagifiedTagList`, raises
+  `TypeError` at the boundary, naming the offending class and slot
+  index. (Pyright already rejects these at the call site via the
+  `Tagified` return-type annotation; the runtime guard catches
+  implementations that bypass static checking.) `None` is dropped,
+  `float`/`int` is str-ified, and `Sequence` is flattened —
+  previously these last three shapes either crashed the render path
+  (`None` → `TypeError` in `html_escape`) or silently corrupted the
+  tag tree. The render-time `RuntimeError` raised by
   `get_html_string()` for an un-tagified child has also been
   clarified to include the offending class name and a hint that the
   tree was likely mutated after `.tagify()` was called. (#7, #105,
