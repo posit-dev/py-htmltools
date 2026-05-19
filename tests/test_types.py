@@ -1,3 +1,4 @@
+# pyright: reportUnnecessaryTypeIgnoreComment=error, reportIncompatibleMethodOverride=error
 """
 Static-type assertions for the tagified type contract.
 
@@ -6,10 +7,16 @@ not contain runtime assertions; the `assert_type` calls are no-ops at runtime
 but produce type errors if the inferred types are wrong.
 
 Lines marked `# pyright: ignore[<rule>]` are *intentional* — they assert that
-pyright would refuse the indicated assignment.
+pyright would refuse the indicated assignment. The file-level
+`reportUnnecessaryTypeIgnoreComment=error` setting above makes the assertions
+self-checking: if pyright ever stops flagging a rule we expect, the now-
+unused `# pyright: ignore` fails CI, signaling the typing landscape has
+shifted and the suppression in `htmltools._core` may be removable.
 """
 
 from __future__ import annotations
+
+from collections.abc import Iterable
 
 from typing_extensions import assert_type
 
@@ -21,7 +28,13 @@ from htmltools import (
     TagNode,
     div,
 )
-from htmltools._core import TagifiedTag, TagifiedTagList
+from htmltools._core import (
+    TagChild,
+    TagifiedChild,
+    TagifiedNode,  # noqa: F401 — used in `class _LSPNarrowingCanary(TagList["TagifiedNode"])`'s string-quoted base
+    TagifiedTag,
+    TagifiedTagList,
+)
 
 
 def test_tag_tagify_returns_TagifiedTag() -> None:
@@ -136,15 +149,22 @@ def test_bare_TagList_append_accepts_Tagifiable() -> None:
     tl.append(_OkTagifiable())
 
 
-def test_user_tagify_returning_bare_TagList_violates_Tagifiable() -> None:
+def test_user_tagify_returning_bare_TagList_is_structurally_Tagifiable() -> None:
+    # Returning a bare `TagList` (instead of `TagifiedTagList`) from
+    # `.tagify()` is a contract violation — `Tagified` excludes bare
+    # `TagList` and `TagList` may carry un-tagified content. The
+    # runtime boundary in `TagList.tagify()` raises a clear `TypeError`
+    # when this happens. **Pyright does not currently catch the
+    # violation at the protocol assignment site** — `TagList` is a
+    # `Sequence`-like, and `Tagified`'s widened shape (which now
+    # includes `Sequence[Tagified]`) makes pyright accept the
+    # structural match. Documenting the observed leniency here; the
+    # runtime guard is the load-bearing check.
     class _Bad:
-        # Bare TagList annotation means TagList[TagNode], which is wider than
-        # TagifiedTagList. So this class is NOT structurally a Tagifiable
-        # under the new (tightened) protocol.
         def tagify(self) -> TagList:
             return TagList("x")
 
-    _: Tagifiable = _Bad()  # pyright: ignore[reportAssignmentType]
+    _: Tagifiable = _Bad()
 
 
 def test_user_tagify_returning_TagifiedTagList_is_Tagifiable() -> None:
@@ -205,3 +225,54 @@ def test_TagifiedTag_to_bare_Tag_is_accepted() -> None:
     f_bare_tag(tagified)
     f_explicit_tag(tagified)
     _: Tag[TagNode] = tagified
+
+
+## ----------------------------------------------------------------------------
+## Canary for the Liskov-violation suppression in `htmltools._core`.
+## ----------------------------------------------------------------------------
+## `TagifiedTagList` / `TagifiedTag` narrow their mutators' input from `TagChild`
+## to `TagifiedChild` — pyright flags each override with
+## `reportIncompatibleMethodOverride` because narrowing input is contravariantly
+## LSP-unsafe. We suppress those in `_core.py` because the violating scenario
+## doesn't occur in this codebase.
+##
+## The class below replicates the override pattern at module scope (pyright
+## checks `reportIncompatibleMethodOverride` differently for nested classes —
+## verified empirically) and carries the same suppression. The file-level
+## `reportUnnecessaryTypeIgnoreComment=error` setting means: if pyright ever
+## stops flagging input-narrowing this way (because the typing community
+## settles on a different rule, or pyright's handling of recursive generics
+## improves enough that the `TagChild[TagNodeT]` parameterized-parent approach
+## from #105 becomes viable), the `# pyright: ignore` lines below become
+## unnecessary and CI fails. That's the signal to revisit the suppression in
+## `_core.py` and the rationale comments next to it.
+class _LSPNarrowingCanary(TagList["TagifiedNode"]):
+    def append(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, item: TagifiedChild, *args: TagifiedChild
+    ) -> None:
+        from typing import cast
+
+        super().append(
+            cast("TagChild", item),
+            *cast("tuple[TagChild, ...]", args),
+        )
+
+    def extend(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, other: Iterable[TagifiedChild]
+    ) -> None:
+        from typing import cast
+
+        super().extend(cast("Iterable[TagChild]", other))
+
+
+def test_LSP_narrowing_override_canary_exists() -> None:
+    """Runtime smoke that the canary class is importable / instantiable.
+
+    The static-type assertion is the file-level
+    `reportUnnecessaryTypeIgnoreComment=error` plus the `# pyright: ignore`
+    lines on `_LSPNarrowingCanary` above — this runtime body just exists so
+    pytest exercises the class.
+    """
+    canary = _LSPNarrowingCanary()
+    canary.append("ok")
+    assert list(canary) == ["ok"]
