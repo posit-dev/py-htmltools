@@ -115,14 +115,6 @@ unnamed arguments to Tag functions like `div()`.
 # -----------------------------------------------------------------------------
 # Tagified shape aliases
 # -----------------------------------------------------------------------------
-# `TagifiedTagList` and `TagifiedTag` are real subclasses (defined later in
-# this file, after their parent classes). The Union aliases below are forward
-# references to them.
-#
-# Why subclasses rather than `TypeAliasType` aliases: a subclass is runtime-
-# `isinstance`-checkable, and we can override `append` / `extend` / `insert` /
-# `__init__` with narrow `Tagified`-only signatures so pyright rejects
-# un-tagified inputs at the call site (closing the gap that motivated #115).
 
 # Kept as a plain `Union` (not `TypeAliasType`) so the arms are visible
 # in pyright diagnostics — a value typed as `TagNodeLeaf` shows up as
@@ -675,17 +667,16 @@ class TagifiedTagList(TagList["TagifiedNode"]):
 
     To append a non-tagified child to a `TagifiedTagList`, call `.tagify()`
     on it first: ``tl.append(div("x").tagify())``.
-
-    Note on overrides: each mutator narrows its input from ``TagChild``
-    to ``Tagified``. This is contravariant narrowing (LSP-unsafe in
-    the abstract — a caller holding a ``TagList`` reference could pass
-    inputs the ``TagifiedTagList`` no longer accepts), so pyright flags
-    each override with ``reportIncompatibleMethodOverride``. The
-    suppression is deliberate: in this codebase, ``TagifiedTagList`` is
-    only ever obtained via ``.tagify()``, never by upcasting a
-    pre-existing ``TagList`` reference, so the LSP failure mode does
-    not occur in practice.
     """
+
+    # Note on overrides: each mutator narrows its input from `TagChild` to
+    # `TagifiedChild`. This is contravariant narrowing (LSP-unsafe in the
+    # abstract — a caller holding a `TagList` reference could pass inputs
+    # the `TagifiedTagList` no longer accepts), so pyright flags each
+    # override with `reportIncompatibleMethodOverride`. The suppression is
+    # deliberate: in this codebase, `TagifiedTagList` is only ever obtained
+    # via `.tagify()`, never by upcasting a pre-existing `TagList`
+    # reference, so the LSP failure mode does not occur in practice.
 
     def __init__(self, *args: TagifiedChild) -> None:
         # cast: pass through to parent; the parent constructor accepts the
@@ -1187,17 +1178,16 @@ class TagifiedTag(Tag["TagifiedNode"]):
     Returned by `Tag.tagify()`. Mutators are narrowed to `Tagified` so
     pyright rejects un-tagified inputs at the call site. To append a
     non-tagified child, call `.tagify()` on it first.
-
-    Note on overrides: each mutator narrows its input from ``TagChild``
-    to ``Tagified``. This is contravariant narrowing (LSP-unsafe in
-    the abstract — a caller holding a ``Tag`` reference could pass
-    inputs the ``TagifiedTag`` no longer accepts), so pyright flags
-    each override with ``reportIncompatibleMethodOverride``. The
-    suppression is deliberate: in this codebase, ``TagifiedTag`` is
-    only ever obtained via ``.tagify()``, never by upcasting a
-    pre-existing ``Tag`` reference, so the LSP failure mode does
-    not occur in practice.
     """
+
+    # Note on overrides: each mutator narrows its input from `TagChild` to
+    # `TagifiedChild`. This is contravariant narrowing (LSP-unsafe in the
+    # abstract — a caller holding a `Tag` reference could pass inputs the
+    # `TagifiedTag` no longer accepts), so pyright flags each override with
+    # `reportIncompatibleMethodOverride`. The suppression is deliberate: in
+    # this codebase, `TagifiedTag` is only ever obtained via `.tagify()`,
+    # never by upcasting a pre-existing `Tag` reference, so the LSP failure
+    # mode does not occur in practice.
 
     def __init__(
         self,
