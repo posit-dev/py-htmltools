@@ -2170,7 +2170,12 @@ def _normalize_text(txt: str | HTML) -> str:
 
 
 def _equals_impl(x: Any, y: Any) -> bool:
-    if not isinstance(y, type(x)):
+    # Symmetric class check: accept if either argument is an instance of
+    # the other's class. This handles the TagifiedTag / Tag (and
+    # TagifiedTagList / TagList) cases introduced by #116 — the subclass
+    # adds no instance attributes, so a tagified value with matching
+    # __dict__ is structurally equal to its un-tagified counterpart.
+    if not (isinstance(y, type(x)) or isinstance(x, type(y))):
         return False
     for key in x.__dict__.keys():
         if getattr(x, key, None) != getattr(y, key, None):
