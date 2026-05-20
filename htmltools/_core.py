@@ -75,6 +75,7 @@ __all__ = (
     "is_tag_child",
     "is_tag_like",
     "is_tag_node",
+    "is_tagified",
     "is_taglist_like",
     "wrap_displayhook_handler",
 )
@@ -286,6 +287,17 @@ def is_taglist_like(x: object) -> TypeIs["TagList | TagifiedTagList"]:
     at call sites that handle either form.
     """
     return isinstance(x, (TagList, TagifiedTagList))
+
+
+def is_tagified(x: object) -> TypeIs["TagifiedTag | TagifiedTagList"]:
+    """
+    True if `x` is a fully-tagified container (`TagifiedTag` or `TagifiedTagList`).
+
+    Useful for distinguishing post-`.tagify()` values from buildable
+    `Tag` / `TagList` instances at runtime. Symmetric with `is_tag_like`
+    and `is_taglist_like`.
+    """
+    return isinstance(x, (TagifiedTag, TagifiedTagList))
 
 
 @runtime_checkable
