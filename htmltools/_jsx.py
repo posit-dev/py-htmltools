@@ -120,7 +120,9 @@ class JSXTag:
         # metadata nodes. This could be done in two separate passes, but it's more
         # efficient to do it in one pass.
         def tagify_tagifiable_and_get_metadata(x: Any) -> Any:
-            if isinstance(x, Tagifiable) and not isinstance(x, (Tag, JSXTag)):
+            if isinstance(x, Tagifiable) and not isinstance(
+                x, (Tag, TagifiedTag, JSXTag)
+            ):
                 x = x.tagify()
             else:
                 # cast: narrowed `x` carries Tag[Unknown] (because the source
