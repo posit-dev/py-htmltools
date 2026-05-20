@@ -126,7 +126,7 @@ children. `MetadataNode` carries non-rendered metadata, `ReprHtml` and
 # .tagify() still needs to be called. Recursive — a tagified Tag's children
 # are themselves tagified. TagList is NOT a member because TagList children
 # are flattened (a TagList never appears as a child slot of another TagList).
-TagifiedNode = Union["TagifiedTag", TagNodeLeaf]  # noqa: F821
+TagifiedNode = Union["TagifiedTag", TagNodeLeaf]
 """
 A fully-tagified child-slot type. References the `TagifiedTag` class by
 forward reference (defined below). Calling `.tagify()` on a node tree
@@ -677,7 +677,22 @@ class TagAttrDict(Dict[str, "str | HTML"]):
 # =============================================================================
 # Tag class
 # =============================================================================
-class Tag(Generic[TagNodeT]):
+class _TagBase:
+    """Shared state between Tag (buildable) and TagifiedTag (rendered).
+
+    Both subclasses carry the same surface attributes (name, attrs,
+    add_ws, children). The children attribute is narrowed to the
+    concrete TagList / TagifiedTagList type in each subclass.
+    """
+
+    name: str
+    attrs: "TagAttrDict"
+    add_ws: bool
+    # children is declared in subclasses with its concrete type
+    # (TagList for Tag, TagifiedTagList for TagifiedTag).
+
+
+class Tag(Generic[TagNodeT], _TagBase):
     """
     The HTML tag class.
 
@@ -1041,6 +1056,150 @@ class Tag(Generic[TagNodeT]):
         ----------
         renderer
             The renderer to use.
+        """
+        _tag_show(self, renderer)
+
+    def __eq__(self, other: Any) -> bool:
+        return _equals_impl(self, other)
+
+    def __str__(self) -> str:
+        return _render_tag_or_taglist(self)
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def _repr_html_(self) -> str:
+        return str(self)
+
+
+class TagifiedTag(_TagBase):
+    """
+    A fully-tagified `Tag`. Immutable: no mutators, no add_class, no
+    context-manager use. Construct via `Tag.tagify()` or directly with
+    pre-tagified arguments.
+    """
+
+    children: "TagifiedTagList"  # noqa: F821
+
+    def __init__(
+        self,
+        _name: str,
+        *args: "Tagified | TagAttrs",
+        _add_ws: TagAttrValue = True,
+        **kwargs: TagAttrValue,
+    ) -> None:
+        self.name = _name
+
+        # Note that _add_ws is marked as a TagAttrValue for the sake of static type
+        # checking, but it must in fact be a bool.
+        if not isinstance(_add_ws, bool):
+            raise TypeError("`_add_ws` must be `True` or `False`")
+
+        self.add_ws = _add_ws
+
+        attrs = [x for x in args if isinstance(x, dict)]
+        self.attrs = TagAttrDict(*attrs, **kwargs)
+
+        kids = [x for x in args if not isinstance(x, dict)]
+        # TagifiedTagList isn't defined until Task 4; construct a TagList
+        # and re-wrap once TagifiedTagList exists. Task 4 will swap this
+        # for `self.children = TagifiedTagList(*kids)`.
+        self.children = cast(
+            "TagifiedTagList",  # noqa: F821
+            TagList(*cast("list[TagChild]", kids)),
+        )
+
+    def tagify(self) -> "TagifiedTag":
+        return self
+
+    # --- Render / equality / repr methods: duplicate from Tag for now ---
+    # (Task 10 dedupes by extracting to free fns or moving to _TagBase.)
+
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
+        """
+        Get the HTML string representation of the tag.
+
+        Parameters
+        ----------
+        indent
+            The number of spaces to indent the tag.
+        eol
+            The end-of-line character(s).
+        """
+
+        indent_str = "  " * indent
+        html_ = indent_str + "<" + self.name
+
+        # Write attributes
+        for key, val in self.attrs.items():
+            if not isinstance(val, HTML):
+                val = html_escape(val, attr=True)
+            html_ += f' {key}="{val}"'
+
+        # Dependencies are ignored in the HTML output
+        children = [x for x in self.children if not isinstance(x, MetadataNode)]
+
+        # Don't enclose JSX/void elements if there are no children
+        if len(children) == 0 and self.name in _VOID_TAG_NAMES:
+            return html_ + "/>"
+
+        # Other empty tags are enclosed
+        html_ += ">"
+        close = "</" + self.name + ">"
+        if len(children) == 0:
+            return html_ + close
+
+        # Inline a single/empty child text node
+        if len(children) == 1 and isinstance(children[0], (str, HTML)):
+            if self.name in _NO_ESCAPE_TAG_NAMES:
+                return html_ + str(children[0]) + close
+            else:
+                return html_ + _normalize_text(children[0]) + close
+
+        # Write children
+        if self.add_ws:
+            html_ += eol
+
+        html_ += self.children.get_html_string(
+            indent=indent + 1,
+            eol=eol,
+            add_ws=self.add_ws,
+            _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES),
+        )
+
+        if self.add_ws:
+            html_ += eol + indent_str
+
+        return html_ + close
+
+    def get_dependencies(self, *, dedup: bool = True) -> list["HTMLDependency"]:
+        """
+        Get any HTML dependencies.
+        """
+        return self.children.get_dependencies(dedup=dedup)
+
+    def render(self) -> RenderedHTML:
+        """
+        Get string representation as well as its HTML dependencies.
+        """
+        # tagify() returns self (already in final form)
+        cp = self
+        deps = cp.get_dependencies()
+        return {"dependencies": deps, "html": cp.get_html_string()}
+
+    def save_html(
+        self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
+    ) -> str:
+        """
+        Save to a HTML file.
+        """
+        return HTMLDocument(self).save_html(
+            file, libdir=libdir, include_version=include_version
+        )
+
+    def show(self, renderer: Literal["auto", "ipython", "browser"] = "auto") -> object:
+        """
+        Preview as a complete HTML document.
         """
         _tag_show(self, renderer)
 
