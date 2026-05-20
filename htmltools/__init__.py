@@ -23,10 +23,8 @@ from ._core import (
     consolidate_attrs,
     head_content,
     is_tag_child,
-    is_tag_like,
     is_tag_node,
     is_tagified,
-    is_taglist_like,
     wrap_displayhook_handler,
 )
 from ._util import css, html_escape
@@ -72,10 +70,8 @@ __all__ = (
     "consolidate_attrs",
     "head_content",
     "is_tag_child",
-    "is_tag_like",
     "is_tag_node",
     "is_tagified",
-    "is_taglist_like",
     "wrap_displayhook_handler",
     "css",
     "html_escape",

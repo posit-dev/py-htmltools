@@ -99,9 +99,11 @@ The recommended public-facing path is:
 
 - Construct buildable forms (`Tag` / `TagList`) and call `.tagify()` rather than constructing tagified instances directly.
 - Annotate `.tagify()` return types as `Tagified` (the broad union, which IS exported).
-- Use the helpers `is_tag_like(x)`, `is_taglist_like(x)`, `is_tagified(x)` for runtime distinguishability — all exported, all return `TypeIs` for pyright narrowing.
+- Use `is_tagified(x)` for runtime distinguishability — exported, returns `TypeIs[TagifiedTag | TagifiedTagList]` so pyright narrows at call sites.
 
-Rationale: keeping the tagified classes internal pushes users toward `.tagify()` as the canonical construction path. Direct `TagifiedTag(...)` / `TagifiedTagList(...)` constructor calls are mainly an internal/test convenience; exposing them publicly invites confusion about whether to build directly or tagify.
+`is_tag_like` and `is_taglist_like` exist inside `htmltools._core` for internal use (the rendering plumbing that has to operate on either form) but are deliberately **not** exported. Code outside `htmltools` should distinguish between buildable and tagified forms via `is_tagified` only.
+
+Rationale: keeping the tagified classes internal pushes users toward `.tagify()` as the canonical construction path. Direct `TagifiedTag(...)` / `TagifiedTagList(...)` constructor calls are mainly an internal/test convenience; exposing them publicly invites confusion about whether to build directly or tagify. Similarly, `is_tag_like` / `is_taglist_like` would invite "is this either-form-of-Tag" runtime branching that's typically a smell — users almost always want either "is this tagified yet?" (`is_tagified`) or to operate on a known concrete type.
 
 ## Related
 
