@@ -14,29 +14,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.tagify()` implementations annotated with bare `TagList` or `Tag`
   return types will fail static type checking; update them to
   `-> Tagified` (or omit the return annotation). Runtime behavior of
-  correct `.tagify()` implementations is unchanged. (#105)
+  correct `.tagify()` implementations is unchanged. (#105, #116)
 
-* `Tag.tagify()` no longer preserves the caller's `Tag` subclass in
-  its return type. Code relying on the previous subclass-preserving
-  signature should `cast` the result. (#105)
+* `Tag` and `TagList` are no longer generic in their child type. The
+  `Tag[X]` / `TagList[X]` parameterization briefly introduced by #105
+  is removed. Code annotated with `Tag[TagifiedNode]` or
+  `TagList[TagifiedNode]` should switch to the new concrete classes
+  `TagifiedTag` / `TagifiedTagList` (see below). (#116)
+
+* `Tag.tagify()` now returns a `TagifiedTag` instance — a sibling
+  class of `Tag`, not a subclass. `TagList.tagify()` returns a
+  `TagifiedTagList`, a sibling of `TagList`. `isinstance(x, Tag)` is
+  `False` for tagified values; use the new `is_tagified(x)` helper to
+  distinguish, or accept either form with `Tag | TagifiedTag`. (#116)
+
+* `TagifiedTag` and `TagifiedTagList` are **immutable**: no `.append`,
+  `.extend`, `.insert`, `.add_class`, `.remove_class`, `__setitem__`,
+  or context-manager (`with t: ...`) support. Mutate the buildable
+  `Tag` / `TagList` and then call `.tagify()` to produce a frozen
+  result, or construct fresh sibling instances internally. (#116)
+
+* The render-time `RuntimeError` that `TagList.get_html_string` raised
+  for an un-tagified `Tagifiable` child is **removed**. With immutable
+  tagified containers, the situation it guarded against — appending a
+  `Tagifiable` to a tagified tree — is structurally impossible. The
+  construction-time `TypeError` in `TagList.tagify()` (for a child's
+  `.tagify()` returning un-tagified content) remains. (#116)
+
+* Downstream code that annotates `def f(t: Tag): ...` and passes
+  `.tagify()` output to it is now a static type error. Fix recipes:
+  * widen to `def f(t: Tag | TagifiedTag): ...` — minimal and explicit,
+  * use a Protocol or accept `Tagified` if the function is render-only,
+  * `cast("Tag", tagified)` as an escape hatch.
 
 ### New features
 
-* `Tag` and `TagList` are now generic in their child type, defaulting
-  to `TagNode`. Bare `Tag` / `TagList` retain today's meaning. Mutation
-  methods (`append` / `extend` / `insert`) still accept `Tagifiable` at
-  static-type-check time even on tagified containers — the invariant
-  is enforced at runtime instead (`TagList.tagify()` raises `TypeError`
-  and `get_html_string` raises `RuntimeError` for an un-tagified
-  subtree). See `tests/test_types.py` for the rationale. (#105)
-
 * Added the public type alias `Tagified` — the union of all
   fully-tagified shapes — for use as the return annotation of
-  `Tagifiable.tagify()` implementations. (#105)
+  `Tagifiable.tagify()` implementations. `Tagified` mirrors `TagChild`
+  in shape: `TagifiedNode | float | None | Sequence[Tagified]`.
+  (#105, #116)
+
+* Added the public helper `is_tagified(x) -> TypeIs[TagifiedTag |
+  TagifiedTagList]` for runtime distinguishability between buildable
+  and tagified containers. (#116)
 
 ### Bug fixes
 
-* `TagList.tagify()` now raises `TypeError` at the boundary when a child's `.tagify()` returns a `TagList` containing an un-tagified `Tagifiable` object. The error names the offending class and slot index so buggy `.tagify()` implementations surface at the source rather than later at render time. The render-time `RuntimeError` raised by `get_html_string()` for an un-tagified child has also been clarified to include the offending class name and a hint that the tree was likely mutated after `.tagify()` was called. (#7, #105, #112)
+* `TagList.tagify()` raises `TypeError` at the boundary when a child's
+  `.tagify()` returns un-tagified content. The error names the
+  offending class and slot index so buggy `.tagify()` implementations
+  surface at the source rather than later at render time.
+  (#7, #105, #112, #116)
 
 ### Dependencies
 
