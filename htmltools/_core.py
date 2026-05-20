@@ -972,6 +972,23 @@ def _parse_tag_args(
     return add_ws, attrs, kids
 
 
+def _thaw_top(x: "Tag | TagifiedTag") -> "Tag":
+    """Build a buildable `Tag` from `x`'s top-level data.
+
+    Only the top node is freshly mutable — children are passed by
+    reference (they may still be `TagifiedTag` instances). This is the
+    minimal "thaw" needed by `_hoist_head_content` to splice in head
+    content without mutating a frozen `TagifiedTag`.
+    """
+    res = Tag.__new__(Tag)
+    res.name = x.name
+    res.add_ws = x.add_ws
+    res.attrs = copy(x.attrs)
+    res.children = TagList(*x.children)
+    res.prev_displayhook = None
+    return res
+
+
 class Tag(_TagBase):
     """
     The HTML tag class.
@@ -1422,23 +1439,26 @@ class HTMLDocument:
     def _gen_html_tag_tree(
         self, lib_prefix: Optional[str], include_version: bool
     ) -> Tag:
+        # Tagify first so .get_dependencies() sees deps that only
+        # materialize during tagify (e.g. JSXTag injects its React
+        # dependencies on .tagify()). _hoist_head_content thaws the
+        # tagified wrapper into a buildable Tag so it can splice in
+        # the hoisted head content.
         content: TagList = self._content
-        # TODO(task-12): rewire through TagifiedTag once HTMLDocument's
-        # Tagified-side helpers exist. For now we cast .tagify() results
-        # back to Tag at the boundary, since `_hoist_head_content` was
-        # written against Tag and relies on its mutators.
         html: Tag
-        body: Tag
+        body: TagifiedTag
 
         if (
             len(content) == 1
             and isinstance(content[0], Tag)
             and cast(Tag, content[0]).name == "html"
         ):
-            html = cast(Tag, content[0])
-            html.attrs.update(**self._html_attr_args)
-            html = cast(Tag, html.tagify())
-            html = HTMLDocument._hoist_head_content(html, lib_prefix, include_version)
+            user_html = cast(Tag, content[0])
+            user_html.attrs.update(**self._html_attr_args)
+            tagified_html = user_html.tagify()
+            html = HTMLDocument._hoist_head_content(
+                tagified_html, lib_prefix, include_version
+            )
             return html
 
         if (
@@ -1446,37 +1466,41 @@ class HTMLDocument:
             and isinstance(content[0], Tag)
             and cast(Tag, content[0]).name == "body"
         ):
-            body = cast(Tag, content[0])
+            user_body = cast(Tag, content[0])
         else:
-            body = Tag("body", content)
+            user_body = Tag("body", content)
 
-        body = cast(Tag, body.tagify())
+        body = user_body.tagify()
 
-        html = Tag("html", Tag("head"), body, _add_ws=True, **self._html_attr_args)
-        html = HTMLDocument._hoist_head_content(html, lib_prefix, include_version)
+        tagified_html = Tag(
+            "html", Tag("head"), body, _add_ws=True, **self._html_attr_args
+        ).tagify()
+        html = HTMLDocument._hoist_head_content(
+            tagified_html, lib_prefix, include_version
+        )
         return html
 
-    # Given an <html> tag object, copies the top node, then extracts dependencies from
-    # the tree, and inserts the content from those dependencies into the <head>, such as
-    # <link> and <script> tags.
-    # TODO(task-12): retype as TagifiedTag and split into a tagified-aware
-    # variant. Today callers pass `.tagify()` output (a TagifiedTag) and
-    # rely on its structural similarity to Tag.
+    # Given a tagified <html> tag, build a fresh buildable copy of the top
+    # node (and its <head> child), extract dependencies from the tree, and
+    # splice the dependency tags into <head>.
     @staticmethod
     def _hoist_head_content(
-        x: Tag, lib_prefix: Optional[str], include_version: bool
+        x: TagifiedTag, lib_prefix: Optional[str], include_version: bool
     ) -> Tag:
         if x.name != "html":
             raise ValueError(f"Expected <html> tag, got <{x.name}>.")
 
-        res = copy(x)
+        # Thaw the tagified <html> wrapper into a buildable Tag so we can
+        # splice in the hoisted head content. Children stay tagified
+        # (TagifiedTag instances) — only the top node is freshly mutable.
+        res = _thaw_top(x)
 
         # <head> needs to be a direct child of <html>, but not necessarily the first
         # child (it would be suprising if you weren't able to, for example, have a
         # HTMLDependency() as the first child of <html>).
         head_index: Optional[int] = None
         for i, child in enumerate(res.children):
-            if isinstance(child, Tag) and child.name == "head":
+            if is_tag_like(child) and child.name == "head":
                 head_index = i
                 break
 
@@ -1484,8 +1508,10 @@ class HTMLDocument:
             res.insert(0, Tag("head"))
             head_index = 0
 
-        res.children[head_index] = copy(res.children[head_index])
-        head = cast(Tag, res.children[head_index])
+        # Thaw the <head> child too — we need to mutate it.
+        head_child = res.children[head_index]
+        head = _thaw_top(head_child) if is_tag_like(head_child) else Tag("head")
+        res.children[head_index] = head
         # Put <meta charset="utf-8"> at beginning of head, and other hoisted tags at the
         # end. This matters only if the <head> tag starts out with some children.
         head.insert(0, Tag("meta", charset="utf-8"))
