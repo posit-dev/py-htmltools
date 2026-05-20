@@ -9,47 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
-* `Tag.tagify()` no longer preserves the caller's class in its
-  return type. The return is now a separate runtime type — not a
-  `Tag` — so `isinstance(tag.tagify(), Tag)` is `False`. Code that
-  annotates `def f(t: Tag): ...` and passes `tag.tagify()` output to
-  it is now a static type error. Use `is_tagified(x)` to distinguish
-  at runtime, or widen the parameter to accept either form. The same
-  change applies to `TagList.tagify()`. (#116)
+* `Tagifiable.tagify()`'s return annotation is now `Tagified`, a new type alias for the union of fully-tagified shapes (`TagifiedNode | float | None | Sequence[Tagified]`, mirroring `TagChild`). Custom `.tagify()` implementations annotated with bare `TagList` / `Tag` return types should switch to `-> Tagified`, or drop the annotation. Runtime behavior of correct implementations is unchanged. (#105, #116)
 
-* The result of `.tagify()` is now **immutable**. Calling `.append`,
-  `.extend`, `.insert`, `.add_class`, `__setitem__`, or
-  context-manager `with` on a tagified value raises `AttributeError`
-  (and is a static type error). Build and mutate on the buildable
-  `Tag` / `TagList` side, then call `.tagify()` once to produce the
-  frozen rendering-ready form. (#116)
+* The result of `.tagify()` is now **immutable**. Calling `.append`, `.extend`, `.insert`, `.add_class`, `__setitem__`, or the context-manager `with` form on a tagified value raises `AttributeError` and is a static type error. Mutate on the buildable `Tag` / `TagList` side, then call `.tagify()` once to produce the render-ready result. (#116)
 
-* `Tagifiable.tagify()`'s return annotation is now `Tagified`, a
-  type alias for the union of fully-tagified shapes (mirrors
-  `TagChild` in shape: `TagifiedNode | float | None |
-  Sequence[Tagified]`). Custom `.tagify()` implementations
-  previously annotated with bare `TagList` / `Tag` return types
-  should be updated to `-> Tagified` (or have the annotation
-  removed). Runtime behavior of correct implementations is
-  unchanged. (#105, #116)
-
-* `TagList.tagify()` now raises `TypeError` at the boundary when a
-  child's `.tagify()` returns un-tagified content (e.g., a bare
-  `TagList` containing a still-`Tagifiable` object). The error
-  names the offending class and slot index so buggy `.tagify()`
-  implementations surface at the source. The render-time
-  `RuntimeError` message for the same family of violations has
-  also been clarified. (#7, #105, #112, #116)
+* `TagList.tagify()` now raises `TypeError` at the boundary when a child's `.tagify()` returns un-tagified content (e.g. a bare `TagList` containing a still-`Tagifiable` object). The error names the offending class and slot index so buggy `.tagify()` implementations surface at the source. The render-time `RuntimeError` for the same family of violations has been clarified. (#7, #105, #112, #116)
 
 ### New features
 
-* Added the public type alias `Tagified` — the union of all
-  fully-tagified shapes — for use as the return annotation of
-  `Tagifiable.tagify()` implementations. (#105, #116)
-
-* Added the public helper `is_tagified(x) -> TypeIs[...]` for
-  runtime distinguishability between buildable `Tag` / `TagList`
-  and their tagified counterparts. (#116)
+* Added `is_tagified(x)` for runtime distinguishability between buildable `Tag` / `TagList` and their tagified counterparts. Returns a `TypeIs[...]` so pyright narrows at call sites. (#116)
 
 ### Dependencies
 
