@@ -43,11 +43,16 @@ def test_TagifiedTag_has_no_mutators() -> None:
 
 def test_TagifiedTag_has_no_buildtime_helpers() -> None:
     tt = div("x").tagify()
+    # Mutators are gone.
     assert not hasattr(tt, "add_class")
     assert not hasattr(tt, "remove_class")
-    assert not hasattr(tt, "has_class")
+    # Context-manager (buildable-only) is gone.
     assert not hasattr(tt, "__enter__")
     assert not hasattr(tt, "__exit__")
+    # Read-only queries are still available — has_class returns a bool
+    # and doesn't mutate, so it's on the shared _TagBase.
+    assert hasattr(tt, "has_class")
+    assert tt.has_class("nonexistent") is False
 
 
 def test_TagifiedTagList_has_no_mutators() -> None:

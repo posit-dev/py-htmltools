@@ -956,6 +956,25 @@ class _TagBase:
     def _repr_html_(self) -> str:
         return str(self)
 
+    def has_class(self, class_: str) -> bool:
+        """
+        Check if the tag has a particular class value.
+
+        Parameters
+        ----------
+        class_
+            The class name to check for.
+
+        Returns
+        -------
+        :
+            ``True`` if the tag has the class, ``False`` otherwise.
+        """
+        cls = self.attrs.get("class")
+        if cls:
+            return class_ in cls.split()
+        return False
+
 
 def _parse_tag_args(
     args: tuple[Any, ...],
@@ -1191,26 +1210,6 @@ class Tag(_TagBase):
             # If no class values remain, remove the class attribute
             self.attrs.pop("class")
         return self
-
-    def has_class(self, class_: str) -> bool:
-        """
-        Check if the tag has a particular class value.
-
-        Parameters
-        ----------
-        class_
-            The class name to check for.
-
-        Returns
-        -------
-        :
-            ``True`` if the tag has the class, ``False`` otherwise.
-        """
-        cls = self.attrs.get("class")
-        if cls:
-            return class_ in cls.split()
-        else:
-            return False
 
     def add_style(self: TagT, style: str | HTML, *, prepend: bool = False) -> TagT:
         """
