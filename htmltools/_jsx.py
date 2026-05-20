@@ -22,6 +22,7 @@ from ._core import (
     TagifiedTag,
     TagList,
     TagNode,
+    is_tag_like,
 )
 from ._versions import versions
 
@@ -219,7 +220,7 @@ def _render_react_js(x: TagNode, indent: int, eol: str) -> str:
 
     if isinstance(x, JSXTag):
         nm = x.name
-    elif isinstance(x, (Tag, TagifiedTag)):
+    elif is_tag_like(x):
         # `Tag` and `TagifiedTag` both expose `.name` / `.attrs` / `.children`
         # via the shared `_TagBase`. `TagifiedTag` shows up here because
         # `_walk_attrs_and_children` calls `.tagify()` on bare `Tagifiable`
