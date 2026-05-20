@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### New features
 
+* Exported the new tagified sibling classes `TagifiedTag` and `TagifiedTagList`. Use them in narrow annotations (`def f(t: TagifiedTag): ...`) and `isinstance` checks on `.tagify()` output. (#116)
+
 * Added `is_tagified(x)` for runtime distinguishability between buildable `Tag` / `TagList` and their tagified counterparts. Returns a `TypeIs[...]` so pyright narrows at call sites. (#116)
 
 ### Dependencies

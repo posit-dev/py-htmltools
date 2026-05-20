@@ -93,17 +93,20 @@ Downstream fix recipes (also in `CHANGELOG.md` for 0.7.0):
 
 ## Public surface
 
-`TagifiedTag` and `TagifiedTagList` are **not** exported from `htmltools/__init__.py`. They live in `htmltools._core` and can be imported from there if a user genuinely needs the class names (e.g., for an `isinstance` check that doesn't fit `is_tagified`, or for a narrow annotation).
+`TagifiedTag` and `TagifiedTagList` ARE exported from `htmltools/__init__.py` (symmetric with `Tag` and `TagList`). Downstream code needs the class names for:
 
-The recommended public-facing path is:
+- `isinstance` checks after `.tagify()` (e.g., narrowing a Sequence-unpacked element to a known concrete type before reading its `.attrs`).
+- Narrow type annotations for functions that specifically receive tagified inputs (`def f(t: TagifiedTag): ...`).
 
-- Construct buildable forms (`Tag` / `TagList`) and call `.tagify()` rather than constructing tagified instances directly.
-- Annotate `.tagify()` return types as `Tagified` (the broad union, which IS exported).
-- Use `is_tagified(x)` for runtime distinguishability — exported, returns `TypeIs[TagifiedTag | TagifiedTagList]` so pyright narrows at call sites.
+The recommended public-facing path is still:
 
-`is_tag_like` and `is_taglist_like` exist inside `htmltools._core` for internal use (the rendering plumbing that has to operate on either form) but are deliberately **not** exported. Code outside `htmltools` should distinguish between buildable and tagified forms via `is_tagified` only.
+- Construct buildable forms (`Tag` / `TagList`) and call `.tagify()` rather than constructing tagified instances directly. (Direct construction works — the constructor's `*args: Tagified | TagAttrs` narrows input — but `.tagify()` is the canonical idiom.)
+- Annotate `.tagify()` return types in custom `Tagifiable` classes as `Tagified` (the broad union) rather than the concrete `TagifiedTag` / `TagifiedTagList`. Concrete-class annotations work too but are unnecessarily narrow.
+- Use `is_tagified(x)` for runtime distinguishability when the concrete arm doesn't matter — exported, returns `TypeIs[TagifiedTag | TagifiedTagList]` so pyright narrows at call sites.
 
-Rationale: keeping the tagified classes internal pushes users toward `.tagify()` as the canonical construction path. Direct `TagifiedTag(...)` / `TagifiedTagList(...)` constructor calls are mainly an internal/test convenience; exposing them publicly invites confusion about whether to build directly or tagify. Similarly, `is_tag_like` / `is_taglist_like` would invite "is this either-form-of-Tag" runtime branching that's typically a smell — users almost always want either "is this tagified yet?" (`is_tagified`) or to operate on a known concrete type.
+`is_tag_like` and `is_taglist_like` exist inside `htmltools._core` for internal use (the rendering plumbing that has to operate on either form) but are deliberately **not** exported. Code outside `htmltools` should distinguish between buildable and tagified forms via `is_tagified` (or via direct `isinstance` against the now-exported sibling classes), not via the `*_like` helpers.
+
+History: an earlier version of this decision kept `TagifiedTag` / `TagifiedTagList` internal on the theory that exposing them invited confusion about direct construction. We reversed that when integrating the downstream py-shiny PR — every realistic downstream code pattern that walks a tagified tree needs to `isinstance`-check the elements at some point, and forcing those sites to import from `htmltools._core` (or duck-type) was strictly worse than just exporting. The construction-confusion concern is adequately addressed by documenting `.tagify()` as the canonical idiom rather than by hiding the class names.
 
 ## Related
 

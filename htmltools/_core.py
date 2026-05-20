@@ -70,6 +70,8 @@ __all__ = (
     "TagFunction",
     "Tagifiable",
     "Tagified",
+    "TagifiedTag",
+    "TagifiedTagList",
     "consolidate_attrs",
     "head_content",
     "is_tag_child",
