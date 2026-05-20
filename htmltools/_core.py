@@ -622,18 +622,13 @@ class TagList(_TagListBase, UserList[TagNode]):
 
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
-                # A .tagify() may return a TagList or TagifiedTagList; both
-                # should be flattened into this list. _tagchilds_to_tagnodes
-                # / flatten understand TagList but not the new sibling
-                # TagifiedTagList, so unwrap it to its contents before
-                # passing through.
-                if isinstance(tagified_child, TagifiedTagList):
-                    items_to_insert: list[Any] = list(tagified_child)
-                else:
-                    items_to_insert = _tagchilds_to_tagnodes(
-                        cast("Iterable[TagChild]", [tagified_child])
-                    )
-                new_data[i : i + 1] = items_to_insert
+                # _tagchilds_to_tagnodes flattens TagList and
+                # TagifiedTagList equivalently (both are handled by
+                # `flatten`), normalizes float/None/Sequence, and
+                # passes leaf nodes through.
+                new_data[i : i + 1] = _tagchilds_to_tagnodes(
+                    cast("Iterable[TagChild]", [tagified_child])
+                )
 
             elif isinstance(child, MetadataNode):
                 new_data[i] = copy(child)
@@ -718,9 +713,16 @@ class TagifiedTagList(_TagListBase, Sequence["TagifiedNode"]):
     # Construction-not-mutation arithmetic --------------------------------------
 
     def __add__(self, item: "Iterable[Tagified]") -> "TagifiedTagList":
+        # Mirror TagList.__add__'s str guard: a str is an Iterable, so a
+        # naive splat would iterate it character-by-character. Treat it
+        # as a single tagified leaf instead.
+        if isinstance(item, str):
+            return TagifiedTagList(*self._data, item)
         return TagifiedTagList(*self._data, *item)
 
     def __radd__(self, item: "Iterable[Tagified]") -> "TagifiedTagList":
+        if isinstance(item, str):
+            return TagifiedTagList(item, *self._data)
         return TagifiedTagList(*item, *self._data)
 
     # Idempotent tagify --------------------------------------------------------

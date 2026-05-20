@@ -82,3 +82,31 @@ def test_is_tagified_helper() -> None:
     assert not is_tagified("plain string")
     assert not is_tagified(None)
     assert not is_tagified(42)
+
+
+def test_TagifiedTagList_add_str_not_iterated() -> None:
+    # Defense against str-iteration footgun: ttl + "bar" must add the
+    # whole string as one child, not 'b','a','r'. Mirrors TagList's
+    # `_should_not_expand` guard.
+    ttl = TagList("a").tagify()
+    result = ttl + "bar"  # type: ignore[operator]
+    assert isinstance(result, TagifiedTagList)
+    assert list(result) == ["a", "bar"]
+
+    result2 = "lead" + ttl  # type: ignore[operator]
+    assert isinstance(result2, TagifiedTagList)
+    assert list(result2) == ["lead", "a"]
+
+
+def test_tagify_flattens_TagifiedTagList_returned_by_child() -> None:
+    # If a custom Tagifiable returns a TagifiedTagList from .tagify(),
+    # TagList.tagify must flatten it into the parent's contents (the
+    # same way TagList returns get flattened). Regression test for
+    # the flatten/normalize pipeline not understanding TagifiedTagList.
+    class _ReturnsTagifiedTagList:
+        def tagify(self):
+            return TagList("a", "b").tagify()  # returns TagifiedTagList
+
+    parent = TagList("start", _ReturnsTagifiedTagList(), "end")
+    out = parent.tagify()
+    assert list(out) == ["start", "a", "b", "end"]
