@@ -126,25 +126,32 @@ children. `MetadataNode` carries non-rendered metadata, `ReprHtml` and
 
 # A node that has already been fully tagified: no Tagifiable objects whose
 # .tagify() still needs to be called. Recursive — a tagified Tag's children
-# are themselves tagified. TagList is NOT a member because TagList children
-# are flattened (a TagList never appears as a child slot of another TagList).
-TagifiedNode = Union["TagifiedTag", TagNodeLeaf]
+# are themselves tagified.
+TagifiedNode = Union["TagifiedTag", "TagifiedTagList", TagNodeLeaf]
 """
-A fully-tagified child-slot type. References the `TagifiedTag` class by
-forward reference (defined below). Calling `.tagify()` on a node tree
-returns a structure whose slot items are all `TagifiedNode`.
+A fully-tagified child-slot type. References the `TagifiedTag` and
+`TagifiedTagList` classes by forward reference (defined below). Calling
+`.tagify()` on a node tree returns a structure whose slot items are all
+`TagifiedNode`.
+
+`TagifiedTagList` is a type-level member here for parity with how
+`TagNode` contains `Tagifiable` (which subsumes both `Tag` and
+`TagList`). At runtime a `TagifiedTagList` never appears as a child
+slot of another `TagifiedTagList` — `_tagchilds_to_tagnodes` flattens
+nested lists — but the type allows it.
 """
 
 # Kept as a plain `Union` (not `TypeAliasType`) because pyright's
 # recursive-alias resolution leaks `Unknown` when downstream packages
 # inspect the type in strict mode. The alias name is then lost in
 # diagnostics, but downstream pyright stays clean.
-Tagified = Union[TagifiedNode, "TagifiedTagList", float, None, Sequence["Tagified"]]
+Tagified = Union[TagifiedNode, float, None, Sequence["Tagified"]]
 """
 Anything `.tagify()` is permitted to return: a fully-tagified node, a
-numeric/None leaf, or a recursive sequence thereof. `TagifiedTagList`
-is listed as an explicit arm for clarity even though `Sequence[Tagified]`
-would cover it structurally.
+numeric/None leaf, or a recursive sequence thereof. `Tagified` mirrors
+`TagChild`'s structural shape (both are `Element | float | None |
+Sequence[recursive]`); the element-type unions (`TagifiedNode` /
+`TagNode`) carry the tagified-vs-buildable distinction.
 """
 
 
@@ -928,6 +935,39 @@ class _TagBase:
         return str(self)
 
 
+def _parse_tag_args(
+    args: tuple[Any, ...],
+    kwargs: dict[str, TagAttrValue],
+    add_ws: TagAttrValue,
+) -> tuple[bool, TagAttrDict, list[Any]]:
+    """Parse the positional+kwarg arguments to `Tag` / `TagifiedTag`.
+
+    Shared between both constructors: validates `_add_ws` is `bool`,
+    extracts dict-shaped attrs from positional args (per the documented
+    `Tag(...)` calling convention), folds them with `**kwargs` into a
+    `TagAttrDict`, and returns the remaining positional args (the
+    children) untouched.
+
+    The children list is intentionally returned as `list[Any]` — each
+    subclass narrows it to its own constructor's argument type
+    (`TagChild` for `TagList`, `Tagified` for `TagifiedTagList`) at the
+    call site.
+    """
+    # Note that _add_ws is marked as a TagAttrValue for the sake of static type
+    # checking, but it must in fact be a bool. This is due to limitations in
+    # Python's type system when passing along **kwargs.
+    # https://github.com/posit-dev/py-htmltools/pull/67
+    if not isinstance(add_ws, bool):
+        raise TypeError("`_add_ws` must be `True` or `False`")
+    attrs_dicts = cast(
+        "list[Mapping[str, TagAttrValue]]",
+        [x for x in args if isinstance(x, dict)],
+    )
+    attrs = TagAttrDict(*attrs_dicts, **kwargs)
+    kids = [x for x in args if not isinstance(x, dict)]
+    return add_ws, attrs, kids
+
+
 class Tag(_TagBase):
     """
     The HTML tag class.
@@ -1001,21 +1041,8 @@ class Tag(_TagBase):
         **kwargs: TagAttrValue,
     ) -> None:
         self.name = _name
-
-        # Note that _add_ws is marked as a TagAttrValue for the sake of static type
-        # checking, but it must in fact be a bool. This is due to limitations in
-        # Python's type system when passing along **kwargs.
-        # https://github.com/posit-dev/py-htmltools/pull/67
-        if not isinstance(_add_ws, bool):
-            raise TypeError("`_add_ws` must be `True` or `False`")
-
-        self.add_ws = _add_ws
-
-        attrs = [x for x in args if isinstance(x, dict)]
-        self.attrs = TagAttrDict(*attrs, **kwargs)
-
-        kids = [x for x in args if not isinstance(x, dict)]
-        self.children = TagList(*kids)  # pyright: ignore[reportIncompatibleVariableOverride]
+        self.add_ws, self.attrs, kids = _parse_tag_args(args, kwargs, _add_ws)
+        self.children = TagList(*cast("list[TagChild]", kids))  # pyright: ignore[reportIncompatibleVariableOverride]
 
         self.prev_displayhook: Callable[[object], None] | None = None
 
@@ -1213,18 +1240,7 @@ class TagifiedTag(_TagBase):
         **kwargs: TagAttrValue,
     ) -> None:
         self.name = _name
-
-        # Note that _add_ws is marked as a TagAttrValue for the sake of static type
-        # checking, but it must in fact be a bool.
-        if not isinstance(_add_ws, bool):
-            raise TypeError("`_add_ws` must be `True` or `False`")
-
-        self.add_ws = _add_ws
-
-        attrs = [x for x in args if isinstance(x, dict)]
-        self.attrs = TagAttrDict(*attrs, **kwargs)
-
-        kids = [x for x in args if not isinstance(x, dict)]
+        self.add_ws, self.attrs, kids = _parse_tag_args(args, kwargs, _add_ws)
         self.children = TagifiedTagList(  # pyright: ignore[reportIncompatibleVariableOverride]
             *cast("tuple[Tagified, ...]", tuple(kids))
         )
