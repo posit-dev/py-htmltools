@@ -91,6 +91,18 @@ Downstream fix recipes (also in `CHANGELOG.md` for 0.7.0):
 - **Use a Protocol or the shared `_TagBase`** if the function only needs render-time methods.
 - **Cast at the call site:** `cast("Tag", tagified)` — escape hatch for one-off mismatches.
 
+## Public surface
+
+`TagifiedTag` and `TagifiedTagList` are **not** exported from `htmltools/__init__.py`. They live in `htmltools._core` and can be imported from there if a user genuinely needs the class names (e.g., for an `isinstance` check that doesn't fit `is_tagified`, or for a narrow annotation).
+
+The recommended public-facing path is:
+
+- Construct buildable forms (`Tag` / `TagList`) and call `.tagify()` rather than constructing tagified instances directly.
+- Annotate `.tagify()` return types as `Tagified` (the broad union, which IS exported).
+- Use the helpers `is_tag_like(x)`, `is_taglist_like(x)`, `is_tagified(x)` for runtime distinguishability — all exported, all return `TypeIs` for pyright narrowing.
+
+Rationale: keeping the tagified classes internal pushes users toward `.tagify()` as the canonical construction path. Direct `TagifiedTag(...)` / `TagifiedTagList(...)` constructor calls are mainly an internal/test convenience; exposing them publicly invites confusion about whether to build directly or tagify.
+
 ## Related
 
 - Issue #115 — https://github.com/posit-dev/py-htmltools/issues/115 (Self-typed overload alternative, abandoned)
