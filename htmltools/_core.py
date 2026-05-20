@@ -418,14 +418,6 @@ class _TagListBase:
 
                 prev_was_add_ws = False
 
-            elif isinstance(child, Tagifiable):
-                raise RuntimeError(
-                    f"Encountered an un-tagified {type(child).__name__} at render time. "
-                    "This usually means the tag tree was mutated to add a "
-                    "Tagifiable object after .tagify() was called. Call "
-                    ".tagify() again before rendering."
-                )
-
             else:
                 # If we get here, x must be a string.
                 if prev_was_add_ws:
