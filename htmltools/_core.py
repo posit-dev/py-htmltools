@@ -44,7 +44,7 @@ else:
 from typing import Literal, Protocol, SupportsIndex, runtime_checkable
 
 from packaging.version import Version
-from typing_extensions import TypeAliasType, TypeVar
+from typing_extensions import TypeVar
 
 from ._util import (
     ensure_http_server,
@@ -110,22 +110,6 @@ For dictionaries of tag attributes (e.g., `{"id": "foo"}`), which can be passed 
 unnamed arguments to Tag functions like `div()`.
 """
 
-# -----------------------------------------------------------------------------
-# Tagified shape aliases
-# -----------------------------------------------------------------------------
-# `TagifiedTagList` uses `TypeAliasType` so that the alias *name*
-# survives in pyright diagnostics (users see `TagifiedTagList` rather
-# than the expanded structural union) and so its forward reference to
-# `TagifiedNode` (defined later in the file) is resolved lazily.
-# (Contrast `Tagified` below, which is a plain `Union` because
-# `TypeAliasType` over its recursive arm leaks `Unknown` through
-# downstream pyright analysis — see the comment above that definition.)
-TagifiedTagList = TypeAliasType("TagifiedTagList", "TagList[TagifiedNode]")
-"""
-A `TagList` whose items are all tagified. This is the return type of
-`TagList.tagify()`.
-"""
-
 # Kept as a plain `Union` (not `TypeAliasType`) so the arms are visible
 # in pyright diagnostics — a value typed as `TagNodeLeaf` shows up as
 # `MetadataNode | ReprHtml | str | HTML` directly instead of as an
@@ -142,22 +126,23 @@ children. `MetadataNode` carries non-rendered metadata, `ReprHtml` and
 # .tagify() still needs to be called. Recursive — a tagified Tag's children
 # are themselves tagified. TagList is NOT a member because TagList children
 # are flattened (a TagList never appears as a child slot of another TagList).
-TagifiedNode = Union["Tag[TagifiedNode]", TagNodeLeaf]
+TagifiedNode = Union["TagifiedTag", TagNodeLeaf]  # noqa: F821
 """
-A fully-tagified child-slot type. Members never include an un-resolved
-`Tagifiable`; calling `.tagify()` on a node tree returns a structure whose
-slot items are all `TagifiedNode`.
+A fully-tagified child-slot type. References the `TagifiedTag` class by
+forward reference (defined below). Calling `.tagify()` on a node tree
+returns a structure whose slot items are all `TagifiedNode`.
 """
 
 # Kept as a plain `Union` (not `TypeAliasType`) because pyright's
 # recursive-alias resolution leaks `Unknown` when downstream packages
 # inspect the type in strict mode. The alias name is then lost in
 # diagnostics, but downstream pyright stays clean.
-Tagified = Union[TagifiedTagList, TagifiedNode]
+Tagified = Union[TagifiedNode, float, None, Sequence["Tagified"]]
 """
-Anything `.tagify()` is permitted to return: either a top-level
-`TagifiedTagList`, or one of the `TagifiedNode` shapes (a fully-tagified
-`Tag` or a leaf).
+Anything `.tagify()` is permitted to return: a fully-tagified node, a
+numeric/None leaf, or a recursive sequence thereof. `TagifiedTagList`
+(defined below) is structurally `Sequence[TagifiedNode]` and therefore
+matches the recursive `Sequence[Tagified]` arm — no explicit arm needed.
 """
 
 
@@ -197,13 +182,7 @@ Type parameter for `Tag` and `TagList`. Defaults to `TagNode`, so bare
 # still catches it at render time. See
 # `tests/test_types.py::test_TagifiedTagList_append_accepts_Tagifiable`
 # for the full rationale.
-TagChild = Union[
-    TagNode,
-    "TagList",
-    float,
-    None,
-    Sequence["TagChild"],
-]
+TagChild = Union[TagNode, float, None, Sequence["TagChild"]]
 """
 Types of objects that can be passed as children to Tag functions like
 `div()`. The `Tag` functions and the `TagList()` constructor can accept
@@ -273,7 +252,6 @@ def is_tag_child(x: object) -> TypeIs[TagChild]:
         x,
         (
             # TagNode, # Handled above
-            TagList,
             float,
             # None, # Handled above
             Sequence,
@@ -391,7 +369,7 @@ class TagList(UserList[TagNodeT]):
 
         return TagList(*item, self)
 
-    def tagify(self) -> "TagifiedTagList":
+    def tagify(self) -> "TagifiedTagList":  # noqa: F821
         """
         Convert any tagifiable children to Tag/TagList objects.
 
