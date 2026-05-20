@@ -251,31 +251,44 @@ def test_tag_shallow_copy():
 
 
 def test_tagify_deep_copy():
-    # Each call to .tagify() should do a shallow copy, but since it recurses, the result
-    # is a deep copy.
+    # Each call to .tagify() should do a shallow copy, but since it recurses, the
+    # result is a deep copy. Because TagifiedTag/TagifiedTagList are immutable, we
+    # verify deep-copy semantics by checking that nested nodes are not the same
+    # object identity as the originals, and that mutating the original Tag does
+    # not affect the previously-tagified result.
+    from htmltools._core import TagifiedTag
+
     dep = HTMLDependency(
         "a", "1.1", source={"package": None, "subdir": "foo"}, script={"src": "a1.js"}
     )
     x = div(tags.i("hello", prop="value"), "world", dep, class_="myclass")
 
     y = x.tagify()
-    cast_tag(y.children[0]).children[0] = "HELLO"
-    cast_tag(y.children[0]).attrs["prop"] = "VALUE"
-    y.children[1] = "WORLD"
-    y.attrs["class"] = "MYCLASS"
-    cast(HTMLDependency, y.children[2]).name = "A"
+    assert isinstance(y, TagifiedTag)
 
-    assert x.attrs == {"class": "myclass"}
-    assert y.attrs == {"class": "MYCLASS"}
-    assert cast_tag(x.children[0]).attrs == {"prop": "value"}
-    assert cast_tag(y.children[0]).attrs == {"prop": "VALUE"}
-    assert cast_tag(x.children[0]).children[0] == "hello"
-    assert cast_tag(y.children[0]).children[0] == "HELLO"
-    assert x.children[1] == "world"
-    assert y.children[1] == "WORLD"
-    assert cast(HTMLDependency, x.children[2]).name == "a"
-    assert cast(HTMLDependency, y.children[2]).name == "A"
+    # Each (mutable) nested node is a fresh object on the tagified side.
+    assert x.children[0] is not y.children[0]
+    assert isinstance(y.children[0], TagifiedTag)
+    # HTMLDependency is mutable, so .tagify() also copies it.
     assert x.children[2] is not y.children[2]
+
+    # Mutate the original; the tagified copy is unaffected (deep copy).
+    cast_tag(x.children[0]).children[0] = "HELLO"
+    cast_tag(x.children[0]).attrs["prop"] = "VALUE"
+    x.children[1] = "WORLD"
+    x.attrs["class"] = "MYCLASS"
+    cast(HTMLDependency, x.children[2]).name = "A"
+
+    assert x.attrs == {"class": "MYCLASS"}
+    assert y.attrs == {"class": "myclass"}
+    assert cast_tag(x.children[0]).attrs == {"prop": "VALUE"}
+    assert cast(TagifiedTag, y.children[0]).attrs == {"prop": "value"}
+    assert cast_tag(x.children[0]).children[0] == "HELLO"
+    assert cast(TagifiedTag, y.children[0]).children[0] == "hello"
+    assert x.children[1] == "WORLD"
+    assert y.children[1] == "world"
+    assert cast(HTMLDependency, x.children[2]).name == "A"
+    assert cast(HTMLDependency, y.children[2]).name == "a"
 
 
 def test_tag_writing():
@@ -698,7 +711,7 @@ def test_taglist_add():
     tl_foo = TagList("foo")
     tl_bar = TagList("bar")
 
-    def assert_tag_list(x: "TagList[Any]", contents: list[str]) -> None:
+    def assert_tag_list(x: "TagList", contents: list[str]) -> None:
         assert isinstance(x, TagList)
         assert len(x) == len(contents)
         for i, content_item in enumerate(contents):
@@ -837,7 +850,13 @@ def test_taglist_tagifiable():
     assert list(x.tagify()) == ["1", "foo", "2"]
 
     x = TagList(1, Foo("foo", span("bar")), 2)
-    assert list(x.tagify()) == ["1", "foo", span("bar"), "2"]
+    # Compare via rendered HTML because Tag and TagifiedTag are disjoint sibling
+    # classes (see decisions/2026-05-20-tagified-as-classes.md), so equality
+    # between a tagified span and a build-time span is always False.
+    assert (
+        x.tagify().get_html_string()
+        == TagList("1", "foo", span("bar"), "2").get_html_string()
+    )
 
     # Recursive tagify()
     x = TagList(1, Foo("foo", Foo("bar")), 2)

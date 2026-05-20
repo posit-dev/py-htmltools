@@ -20,11 +20,11 @@ from htmltools import (
     TagList,
     div,
 )
-from htmltools._core import TagifiedNode, TagifiedTagList
+from htmltools._core import TagifiedTag, TagifiedTagList
 
 
-def test_tag_tagify_returns_Tag_TagifiedNode() -> None:
-    assert_type(div("hi").tagify(), Tag[TagifiedNode])
+def test_tag_tagify_returns_TagifiedTag() -> None:
+    assert_type(div("hi").tagify(), TagifiedTag)
 
 
 def test_taglist_tagify_returns_TagifiedTagList() -> None:
@@ -38,61 +38,41 @@ def test_bare_TagList_is_not_assignable_to_TagifiedTagList() -> None:
     _: TagifiedTagList = tl  # pyright: ignore[reportAssignmentType]
 
 
-def test_TagifiedTagList_append_accepts_Tagifiable() -> None:
+def test_TagifiedTag_append_is_static_error() -> None:
+    """TagifiedTag has no .append — static-error path.
+
+    The body runs at runtime and *also* raises AttributeError, but this
+    module is primarily exercised by pyright. The `# pyright: ignore`
+    asserts the static error fires; the `pytest.raises` keeps the test
+    green at runtime so it travels through CI's pytest run too.
     """
-    Documents a deliberate static-typing gap: appending a ``Tagifiable``
-    to a ``TagList[TagifiedNode]`` is **not** a static error today, even
-    though ``TagifiedNode`` does not include the ``Tagifiable`` arm of
-    ``TagNode``. The runtime catches it instead.
+    import pytest
 
-    Why we can't enforce it statically
-    ----------------------------------
-    The natural enforcement would parameterize ``TagChild`` itself —
-    ``TagChild[TagNodeT] = TagNodeT | TagList[TagNodeT] | float | None |
-    Sequence[TagChild[TagNodeT]]`` — and use it in mutation signatures so
-    that ``TagList[TagifiedNode].append`` only accepts ``TagifiedNode``
-    -shaped values. We tried that. Pyright (tested through 1.1.409)
-    does not fully re-bind ``TagNodeT`` through the recursive
-    ``Sequence["TagChild[TagNodeT]"]`` arm when a *downstream* module
-    imports the symbols in strict mode. Every ``Tag``-function signature
-    then leaks a ``Sequence[Unknown]`` arm, which surfaced as thousands
-    of ``reportUnknownMemberType`` errors in Shiny's CI — far more noise
-    than the win was worth.
+    tt: TagifiedTag = div("hi").tagify()
+    with pytest.raises(AttributeError):
+        tt.append("x")  # pyright: ignore[reportAttributeAccessIssue]
 
-    What we do instead
-    ------------------
-    - ``TagChild`` is a plain non-generic ``Union`` (including the
-      recursive ``Sequence["TagChild"]`` arm for nested-list flattening).
-    - Mutation methods on ``TagList[TagNodeT]`` and ``Tag[TagNodeT]`` accept
-      bare ``TagChild`` (wide). This preserves the nested-list
-      ergonomics like ``tl.append([a, b, [c, d]])``.
-    - The "no un-tagified children in a tagified tree" invariant is
-      enforced at runtime:
-        * ``TagList.tagify()`` raises ``TypeError`` at the boundary
-          when a child's ``.tagify()`` returns a ``TagList`` containing
-          a ``Tagifiable``, naming the offending class and slot index.
-        * ``TagList.get_html_string`` raises ``RuntimeError`` at render
-          time if a ``Tagifiable`` is still in the tree (covers
-          mutation-after-tagify; see
-          ``test_tagify.py::test_render_guard_catches_mutation_after_tagify``).
 
-    When to revisit
-    ---------------
-    If a future pyright/typing release handles recursive generic
-    ``TypeAliasType`` cleanly across module boundaries, flip this test
-    to a *negative* form (``# pyright: ignore[reportArgumentType]`` on
-    the ``tl.append(...)`` call) and reinstate ``TagChild[TagNodeT]`` on
-    ``TagList`` / ``Tag`` mutation-method signatures.
-    """
+def test_TagifiedTagList_append_is_static_error() -> None:
+    """TagifiedTagList has no .append — static-error path."""
+    import pytest
 
-    class _SomeTagifiable:
-        def tagify(self) -> Tagified:
-            return "x"
+    ttl: TagifiedTagList = TagList("hi").tagify()
+    with pytest.raises(AttributeError):
+        ttl.append("x")  # pyright: ignore[reportAttributeAccessIssue]
 
-    tl: TagifiedTagList = TagList("hi").tagify()
-    # This currently type-checks. In an ideal world it would static-error;
-    # see the docstring for why we accept the gap.
-    tl.append(_SomeTagifiable())
+
+def test_Tag_does_not_accept_TagifiedTag() -> None:
+    """Tag and TagifiedTag are disjoint — variance honest."""
+
+    def f(t: Tag) -> str:
+        return t.name
+
+    tagified = div("hi").tagify()
+    # This call would runtime-succeed (TagifiedTag has a .name attribute),
+    # but pyright must reject the argument type since Tag and TagifiedTag
+    # are sibling classes (neither subclasses the other).
+    f(tagified)  # pyright: ignore[reportArgumentType]
 
 
 def test_bare_TagList_append_accepts_Tagifiable() -> None:
