@@ -147,7 +147,7 @@ matches the recursive `Sequence[Tagified]` arm — no explicit arm needed.
 
 
 # -----------------------------------------------------------------------------
-# TagNode / TagChild (generic) and the TagNodeT TypeVar
+# TagNode / TagChild
 # -----------------------------------------------------------------------------
 # NOTE: If this type is updated, please update `is_tag_node()`
 TagNode = Union["Tagifiable", TagNodeLeaf]
@@ -163,12 +163,6 @@ their tagified specializations. Only the leaf arm is spelled out
 explicitly.
 """
 
-TagNodeT = TypeVar("TagNodeT", bound=TagNode, default=TagNode)
-"""
-Type parameter for `Tag` and `TagList`. Defaults to `TagNode`, so bare
-`Tag` / `TagList` keep their pre-#105 meaning.
-"""
-
 # NOTE: If this type is updated, please update `is_tag_child()`.
 #
 # `TagChild` is intentionally NOT generic. Making it a generic
@@ -177,8 +171,8 @@ Type parameter for `Tag` and `TagList`. Defaults to `TagNode`, so bare
 # function signature when inspected from a downstream module in
 # strict mode (e.g. Shiny's CI reported 2500+
 # `reportUnknownMemberType` errors). The trade-off is that
-# `TagList[TagifiedNode].append(some_tagifiable)` no longer
-# static-errors — the runtime guard in `TagList.get_html_string`
+# `TagList.append(some_tagifiable)` on a tagified-flavored list no
+# longer static-errors — the runtime guard in `TagList.get_html_string`
 # still catches it at render time. See
 # `tests/test_types.py::test_TagifiedTagList_append_accepts_Tagifiable`
 # for the full rationale.
@@ -300,7 +294,7 @@ class ReprHtml(Protocol):
 # =============================================================================
 # TagList class
 # =============================================================================
-class TagList(UserList[TagNodeT]):
+class TagList(UserList[TagNode]):
     """
     Create an HTML tag list (i.e., a fragment of HTML)
 
@@ -324,15 +318,13 @@ class TagList(UserList[TagNodeT]):
         return isinstance(x, str)
 
     def __init__(self, *args: TagChild) -> None:
-        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than TagNodeT
-        super().__init__(cast(list[TagNodeT], _tagchilds_to_tagnodes(args)))
+        super().__init__(_tagchilds_to_tagnodes(args))
 
     def extend(self, other: Iterable[TagChild]) -> None:
         """
         Extend the children by appending an iterable of children.
         """
-        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than TagNodeT
-        super().extend(cast(list[TagNodeT], _tagchilds_to_tagnodes(other)))
+        super().extend(_tagchilds_to_tagnodes(other))
 
     def append(self, item: TagChild, *args: TagChild) -> None:
         """
@@ -346,10 +338,9 @@ class TagList(UserList[TagNodeT]):
         Insert tag children before a given index.
         """
 
-        # cast: _tagchilds_to_tagnodes returns list[TagNode], wider than TagNodeT
-        self[i:i] = cast(list[TagNodeT], _tagchilds_to_tagnodes([item]))
+        self[i:i] = _tagchilds_to_tagnodes([item])
 
-    def __add__(self, item: Iterable[TagChild]) -> "TagList[TagNodeT]":
+    def __add__(self, item: Iterable[TagChild]) -> "TagList":
         """
         Return a new TagList with the item added at the end.
         """
@@ -359,7 +350,7 @@ class TagList(UserList[TagNodeT]):
 
         return TagList(self, *item)
 
-    def __radd__(self, item: Iterable[TagChild]) -> "TagList[TagNodeT]":
+    def __radd__(self, item: Iterable[TagChild]) -> "TagList":
         """
         Return a new TagList with the item added to the beginning.
         """
@@ -371,7 +362,7 @@ class TagList(UserList[TagNodeT]):
 
     def tagify(self) -> "TagifiedTagList":
         """
-        Convert any tagifiable children to Tag/TagList objects.
+        Convert any tagifiable children to TagifiedTag/TagifiedTagList objects.
 
         Raises
         ------
@@ -382,53 +373,62 @@ class TagList(UserList[TagNodeT]):
             slot index so the broken ``.tagify()`` is easy to find.
         """
 
-        # Internally work with `TagList[Any]` so the loop body's assignments
-        # don't need per-line casts. The runtime invariants are checked by
-        # the post-condition loop below; the final `cast` narrows back to
-        # `TagifiedTagList` for the public return type.
-        cp: "TagList[Any]" = cast("TagList[Any]", copy(self))
+        # Work on a private list that we'll wrap into a TagifiedTagList at
+        # the end. Use a plain list because items may expand (a child's
+        # .tagify() can return a TagList which gets flattened in place).
+        new_data: list[Any] = list(self.data)
 
-        # Iterate backwards because if we hit a Tagifiable object, it may be replaced
-        # with 0, 1, or more items (if it returns TagList).
-        for i in reversed(range(len(cp))):
-            child = cp[i]
+        # Iterate backwards because if we hit a Tagifiable object, it may be
+        # replaced with 0, 1, or more items (if it returns TagList).
+        for i in reversed(range(len(new_data))):
+            child = new_data[i]
 
             if isinstance(child, Tagifiable):
                 tagified_child = child.tagify()
-                if isinstance(tagified_child, TagList):
-                    # Flatten the returned TagList into this one. Cast: pyright
-                    # cannot fully resolve `TagifiedTagList`'s recursive child
-                    # alias here, leaving a `TagList[Unknown]` arm.
-                    cp[i : i + 1] = _tagchilds_to_tagnodes(
-                        cast("TagList[TagNode]", tagified_child)
-                    )
+                # A .tagify() may return a TagList or TagifiedTagList; both
+                # should be flattened into this list. _tagchilds_to_tagnodes
+                # / flatten understand TagList but not the new sibling
+                # TagifiedTagList, so unwrap it to its contents before
+                # passing through.
+                if isinstance(tagified_child, TagifiedTagList):
+                    items_to_insert: list[Any] = list(tagified_child)
                 else:
-                    cp[i] = tagified_child
+                    items_to_insert = _tagchilds_to_tagnodes(
+                        cast("Iterable[TagChild]", [tagified_child])
+                    )
+                new_data[i : i + 1] = items_to_insert
 
             elif isinstance(child, MetadataNode):
-                cp[i] = copy(child)
+                new_data[i] = copy(child)
 
         # Boundary check: after the recursion above, every child should be
-        # a fully-tagified shape (Tag, TagList, MetadataNode, ReprHtml, str,
-        # or HTML). A bare Tagifiable still present here means some child's
-        # `.tagify()` returned a TagList containing un-tagified objects —
-        # which violates the Tagifiable protocol. Surface that here, where
-        # the offending class and index are still in scope, instead of
-        # waiting for the render-time guard in `get_html_string` to raise
-        # a less-actionable error. Tag and TagList are themselves
-        # Tagifiable but are valid tagified shapes, so they are excluded.
-        for i, child in enumerate(cp):
-            if isinstance(child, Tagifiable) and not isinstance(child, (Tag, TagList)):
+        # a fully-tagified shape (TagifiedTag, TagifiedTagList, MetadataNode,
+        # ReprHtml, str, or HTML). A bare Tagifiable still present here means
+        # some child's `.tagify()` returned a value containing un-tagified
+        # objects — which violates the Tagifiable protocol. Surface that
+        # here, where the offending class and index are still in scope,
+        # instead of waiting for the render-time guard in `get_html_string`
+        # to raise a less-actionable error.
+        for i, child in enumerate(new_data):
+            if isinstance(child, Tagifiable) and not isinstance(
+                child, (TagifiedTag, TagifiedTagList)
+            ):
                 raise TypeError(
                     "Expected a fully tagified value, but a child .tagify() "
-                    "returned a TagList containing an un-tagified "
-                    f"{type(child).__name__} at index {i}. "
-                    "A .tagify() implementation must recursively tagify its "
-                    "return value (consider returning `something.tagify()` "
+                    f"returned an un-tagified {type(child).__name__} at index "
+                    f"{i}. A .tagify() implementation must return a fully-"
+                    "tagified value (consider returning `something.tagify()` "
                     "instead of `something`)."
                 )
 
-        return cp
+        # Wrap in a TagifiedTagList. Use __new__ + direct _data assignment
+        # because we already normalized; running through __init__ would
+        # re-normalize unnecessarily.
+        out = TagifiedTagList.__new__(TagifiedTagList)
+        out._data = tuple(  # pyright: ignore[reportPrivateUsage]
+            cast("list[TagifiedNode]", new_data)
+        )
+        return out
 
     def save_html(
         self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
@@ -498,7 +498,7 @@ class TagList(UserList[TagNodeT]):
             # True if the previous and current node are inline; False otherwise. This
             # affects whether or not we add whitespace and indentation.
             prev_or_current_add_ws = prev_was_add_ws or (
-                isinstance(child, Tag) and child.add_ws
+                isinstance(child, _TagBase) and child.add_ws
             )
 
             if first_child:
@@ -506,7 +506,7 @@ class TagList(UserList[TagNodeT]):
             elif prev_or_current_add_ws:
                 html_ += eol
 
-            if isinstance(child, Tag):
+            if isinstance(child, _TagBase):
                 # Note that we don't pass _escape_strings along, because that should
                 # only be set to True when <script> and <style> tags call
                 # self.children.get_html_string(), and those tags don't have children to
@@ -562,7 +562,7 @@ class TagList(UserList[TagNodeT]):
         for x in self:
             if isinstance(x, HTMLDependency):
                 deps.append(x)
-            elif isinstance(x, Tag):
+            elif isinstance(x, _TagBase):
                 # When we recurse, don't deduplicate at every node. We only need to do
                 # that once, at the top level.
                 deps.extend(x.get_dependencies(dedup=False))
@@ -693,7 +693,7 @@ class TagifiedTagList(Sequence["TagifiedNode"]):
             # True if the previous and current node are inline; False otherwise. This
             # affects whether or not we add whitespace and indentation.
             prev_or_current_add_ws = prev_was_add_ws or (
-                isinstance(child, Tag) and child.add_ws
+                isinstance(child, _TagBase) and child.add_ws
             )
 
             if first_child:
@@ -701,7 +701,7 @@ class TagifiedTagList(Sequence["TagifiedNode"]):
             elif prev_or_current_add_ws:
                 html_ += eol
 
-            if isinstance(child, Tag):
+            if isinstance(child, _TagBase):
                 # Note that we don't pass _escape_strings along, because that should
                 # only be set to True when <script> and <style> tags call
                 # self.children.get_html_string(), and those tags don't have children to
@@ -757,7 +757,7 @@ class TagifiedTagList(Sequence["TagifiedNode"]):
         for x in self:
             if isinstance(x, HTMLDependency):
                 deps.append(x)
-            elif isinstance(x, Tag):
+            elif isinstance(x, _TagBase):
                 # When we recurse, don't deduplicate at every node. We only need to do
                 # that once, at the top level.
                 deps.extend(x.get_dependencies(dedup=False))
@@ -1506,8 +1506,12 @@ class HTMLDocument:
         self, lib_prefix: Optional[str], include_version: bool
     ) -> Tag:
         content: TagList = self._content
-        html: Tag[Any]
-        body: Tag[Any]
+        # TODO(task-12): rewire through TagifiedTag once HTMLDocument's
+        # Tagified-side helpers exist. For now we cast .tagify() results
+        # back to Tag at the boundary, since `_hoist_head_content` was
+        # written against Tag and relies on its mutators.
+        html: Tag
+        body: Tag
 
         if (
             len(content) == 1
@@ -1516,7 +1520,7 @@ class HTMLDocument:
         ):
             html = cast(Tag, content[0])
             html.attrs.update(**self._html_attr_args)
-            html = html.tagify()
+            html = cast(Tag, html.tagify())
             html = HTMLDocument._hoist_head_content(html, lib_prefix, include_version)
             return html
 
@@ -1529,7 +1533,7 @@ class HTMLDocument:
         else:
             body = Tag("body", content)
 
-        body = body.tagify()
+        body = cast(Tag, body.tagify())
 
         html = Tag("html", Tag("head"), body, _add_ws=True, **self._html_attr_args)
         html = HTMLDocument._hoist_head_content(html, lib_prefix, include_version)
@@ -1538,6 +1542,9 @@ class HTMLDocument:
     # Given an <html> tag object, copies the top node, then extracts dependencies from
     # the tree, and inserts the content from those dependencies into the <head>, such as
     # <link> and <script> tags.
+    # TODO(task-12): retype as TagifiedTag and split into a tagified-aware
+    # variant. Today callers pass `.tagify()` output (a TagifiedTag) and
+    # rely on its structural similarity to Tag.
     @staticmethod
     def _hoist_head_content(
         x: Tag, lib_prefix: Optional[str], include_version: bool
