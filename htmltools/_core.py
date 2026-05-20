@@ -418,6 +418,22 @@ class _TagListBase:
 
                 prev_was_add_ws = False
 
+            elif isinstance(child, Tagifiable):
+                # Defense-in-depth: a buildable `TagList` containing an
+                # un-tagified `Tagifiable` would normally be tagified
+                # before reaching here (`.render()` calls `.tagify()`
+                # first). This guard catches the case where a caller
+                # invokes `.get_html_string()` directly on a buildable
+                # tree, or where the type system was bypassed (cast,
+                # __dict__ manipulation) to smuggle a `Tagifiable` into
+                # a tagified container's internal storage.
+                raise RuntimeError(
+                    f"Encountered an un-tagified {type(child).__name__} at render time. "
+                    "Call `.tagify()` (or `.render()`, which tagifies "
+                    "internally) before invoking `.get_html_string()` on "
+                    "a buildable tree."
+                )
+
             else:
                 # If we get here, x must be a string.
                 if prev_was_add_ws:

@@ -34,12 +34,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Tag` / `TagList` and then call `.tagify()` to produce a frozen
   result, or construct fresh sibling instances internally. (#116)
 
-* The render-time `RuntimeError` that `TagList.get_html_string` raised
-  for an un-tagified `Tagifiable` child is **removed**. With immutable
-  tagified containers, the situation it guarded against — appending a
-  `Tagifiable` to a tagified tree — is structurally impossible. The
-  construction-time `TypeError` in `TagList.tagify()` (for a child's
-  `.tagify()` returning un-tagified content) remains. (#116)
+* The render-time `RuntimeError` raised by `TagList.get_html_string`
+  for an un-tagified `Tagifiable` child is kept as defense-in-depth.
+  Its primary case (mutation-after-`.tagify()`) is now structurally
+  impossible thanks to immutable tagified containers; what remains is
+  catching direct `.get_html_string()` calls on a buildable tree that
+  bypass the normal `.render()` path (which tagifies first), and
+  type-system bypasses (`cast`, `__dict__` manipulation). The error
+  message is updated to point at calling `.tagify()` or `.render()`
+  first rather than at "tree was mutated". (#116)
 
 * Downstream code that annotates `def f(t: Tag): ...` and passes
   `.tagify()` output to it is now a static type error. Fix recipes:

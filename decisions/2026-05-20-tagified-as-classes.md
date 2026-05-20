@@ -78,7 +78,7 @@ The sibling design but with `.append(item: Tagified)` on the tagified side — n
 - **No LSP question** — no parent contract to violate.
 - **No `TagNodeT`** → no recursive `TypeAliasType` → no cross-module pyright leak.
 - **Static "no mutators" is stronger than "narrow mutators"** — categorical, not signature-dependent. Pyright reports `reportAttributeAccessIssue` (cleaner diagnostic) instead of `reportArgumentType`.
-- **Render-time `RuntimeError` guard becomes dead code** and is deleted along with mutators. Mutation-after-`.tagify()` is structurally impossible.
+- **Render-time `RuntimeError` guard kept as defense-in-depth.** Its original case — mutation-after-`.tagify()` — is now structurally impossible. The guard remains as a belt-and-suspenders catch for direct `.get_html_string()` calls on a buildable tree (which the normal `.render()` path avoids by tagifying first) and for type-system bypasses (`cast`, `__dict__` manipulation). Its error message points at calling `.tagify()` / `.render()` first rather than at the now-impossible mutation case.
 - **Boundary `TypeError` in `TagList.tagify()` stays** — that one guards the *construction* contract (a child's `.tagify()` returning un-tagified content), not mutation.
 
 ## Cost accepted
