@@ -18,7 +18,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Generic,
     Iterable,
     Iterator,
     Mapping,
@@ -888,21 +887,151 @@ class TagAttrDict(Dict[str, "str | HTML"]):
 # Tag class
 # =============================================================================
 class _TagBase:
-    """Shared state between Tag (buildable) and TagifiedTag (rendered).
+    """Shared state and render plumbing between Tag (buildable) and
+    TagifiedTag (rendered).
 
     Both subclasses carry the same surface attributes (name, attrs,
     add_ws, children). The children attribute is narrowed to the
     concrete TagList / TagifiedTagList type in each subclass.
+
+    Render / equality / repr methods live here so that both subclasses
+    inherit a single implementation.
     """
 
     name: str
     attrs: "TagAttrDict"
     add_ws: bool
-    # children is declared in subclasses with its concrete type
-    # (TagList for Tag, TagifiedTagList for TagifiedTag).
+    # children is also narrowed in subclasses to its concrete type
+    # (TagList for Tag, TagifiedTagList for TagifiedTag); we declare a
+    # union here so the shared methods below type-check.
+    children: "TagList | TagifiedTagList"
+
+    def tagify(self) -> "TagifiedTag":
+        """
+        Return a fully-tagified form of this tag. Implemented by subclasses.
+        """
+        raise NotImplementedError
+
+    def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
+        """
+        Get the HTML string representation of the tag.
+
+        Parameters
+        ----------
+        indent
+            The number of spaces to indent the tag.
+        eol
+            The end-of-line character(s).
+        """
+
+        indent_str = "  " * indent
+        html_ = indent_str + "<" + self.name
+
+        # Write attributes
+        for key, val in self.attrs.items():
+            if not isinstance(val, HTML):
+                val = html_escape(val, attr=True)
+            html_ += f' {key}="{val}"'
+
+        # Dependencies are ignored in the HTML output
+        children = [x for x in self.children if not isinstance(x, MetadataNode)]
+
+        # Don't enclose JSX/void elements if there are no children
+        if len(children) == 0 and self.name in _VOID_TAG_NAMES:
+            return html_ + "/>"
+
+        # Other empty tags are enclosed
+        html_ += ">"
+        close = "</" + self.name + ">"
+        if len(children) == 0:
+            return html_ + close
+
+        # Inline a single/empty child text node
+        if len(children) == 1 and isinstance(children[0], (str, HTML)):
+            if self.name in _NO_ESCAPE_TAG_NAMES:
+                return html_ + str(children[0]) + close
+            else:
+                return html_ + _normalize_text(children[0]) + close
+
+        # Write children
+        if self.add_ws:
+            html_ += eol
+
+        html_ += self.children.get_html_string(
+            indent=indent + 1,
+            eol=eol,
+            add_ws=self.add_ws,
+            _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES),
+        )
+
+        if self.add_ws:
+            html_ += eol + indent_str
+
+        return html_ + close
+
+    def get_dependencies(self, dedup: bool = True) -> list["HTMLDependency"]:
+        """
+        Get any HTML dependencies.
+        """
+        return self.children.get_dependencies(dedup=dedup)
+
+    def render(self) -> RenderedHTML:
+        """
+        Get string representation as well as its HTML dependencies.
+        """
+        cp = self.tagify()
+        deps = cp.get_dependencies()
+        return {"dependencies": deps, "html": cp.get_html_string()}
+
+    def save_html(
+        self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
+    ) -> str:
+        """
+        Save to a HTML file.
+
+        Parameters
+        ----------
+        file
+            The file to save to.
+        libdir
+            The directory to save the dependencies to.
+        include_version
+            Whether to include the version number in the dependency folder name.
+
+        Returns
+        -------
+        The path to the generated HTML file.
+        """
+
+        return HTMLDocument(self).save_html(
+            file, libdir=libdir, include_version=include_version
+        )
+
+    def show(self, renderer: Literal["auto", "ipython", "browser"] = "auto") -> object:
+        """
+        Preview as a complete HTML document.
+
+        Parameters
+        ----------
+        renderer
+            The renderer to use.
+        """
+        _tag_show(self, renderer)
+
+    def __eq__(self, other: Any) -> bool:
+        return _equals_impl(self, other)
+
+    def __str__(self) -> str:
+        return _render_tag_or_taglist(self)
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def _repr_html_(self) -> str:
+        return str(self)
 
 
-class Tag(Generic[TagNodeT], _TagBase):
+class Tag(_TagBase):
     """
     The HTML tag class.
 
@@ -965,7 +1094,7 @@ class Tag(Generic[TagNodeT], _TagBase):
     name: str
     add_ws: bool
     attrs: TagAttrDict
-    children: "TagList[TagNodeT]"
+    children: "TagList"
 
     def __init__(
         self,
@@ -989,7 +1118,7 @@ class Tag(Generic[TagNodeT], _TagBase):
         self.attrs = TagAttrDict(*attrs, **kwargs)
 
         kids = [x for x in args if not isinstance(x, dict)]
-        self.children = TagList(*kids)
+        self.children = TagList(*kids)  # pyright: ignore[reportIncompatibleVariableOverride]
 
         self.prev_displayhook: Callable[[object], None] | None = None
 
@@ -1154,132 +1283,20 @@ class Tag(Generic[TagNodeT], _TagBase):
             self.attrs.update({"style": self.attrs.get("style")}, {"style": style})
         return self
 
-    def tagify(self) -> "Tag[TagifiedNode]":
+    def tagify(self) -> "TagifiedTag":
         """
-        Convert any tagifiable children to Tag/TagList objects.
+        Convert any tagifiable children to TagifiedTag/TagifiedTagList objects.
         """
-
-        cp = copy(self)
-        cp.children = cast("TagList[TagNodeT]", cp.children.tagify())
-        return cast("Tag[TagifiedNode]", cp)
-
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
-        """
-        Get the HTML string representation of the tag.
-
-        Parameters
-        ----------
-        indent
-            The number of spaces to indent the tag.
-        eol
-            The end-of-line character(s).
-        """
-
-        indent_str = "  " * indent
-        html_ = indent_str + "<" + self.name
-
-        # Write attributes
-        for key, val in self.attrs.items():
-            if not isinstance(val, HTML):
-                val = html_escape(val, attr=True)
-            html_ += f' {key}="{val}"'
-
-        # Dependencies are ignored in the HTML output
-        children = [x for x in self.children if not isinstance(x, MetadataNode)]
-
-        # Don't enclose JSX/void elements if there are no children
-        if len(children) == 0 and self.name in _VOID_TAG_NAMES:
-            return html_ + "/>"
-
-        # Other empty tags are enclosed
-        html_ += ">"
-        close = "</" + self.name + ">"
-        if len(children) == 0:
-            return html_ + close
-
-        # Inline a single/empty child text node
-        if len(children) == 1 and isinstance(children[0], (str, HTML)):
-            if self.name in _NO_ESCAPE_TAG_NAMES:
-                return html_ + str(children[0]) + close
-            else:
-                return html_ + _normalize_text(children[0]) + close
-
-        # Write children
-        if self.add_ws:
-            html_ += eol
-
-        html_ += self.children.get_html_string(
-            indent=indent + 1,
-            eol=eol,
-            add_ws=self.add_ws,
-            _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES),
-        )
-
-        if self.add_ws:
-            html_ += eol + indent_str
-
-        return html_ + close
-
-    def render(self) -> RenderedHTML:
-        """
-        Get string representation as well as its HTML dependencies.
-        """
-        cp = self.tagify()
-        deps = cp.get_dependencies()
-        return {"dependencies": deps, "html": cp.get_html_string()}
-
-    def save_html(
-        self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
-    ) -> str:
-        """
-        Save to a HTML file.
-
-        Parameters
-        ----------
-        file
-            The file to save to.
-        libdir
-            The directory to save the dependencies to.
-        include_version
-            Whether to include the version number in the dependency folder name.
-
-        Returns
-        -------
-        The path to the generated HTML file.
-        """
-
-        return HTMLDocument(self).save_html(
-            file, libdir=libdir, include_version=include_version
-        )
-
-    def get_dependencies(self, dedup: bool = True) -> list["HTMLDependency"]:
-        """
-        Get any HTML dependencies.
-        """
-        return self.children.get_dependencies(dedup=dedup)
-
-    def show(self, renderer: Literal["auto", "ipython", "browser"] = "auto") -> object:
-        """
-        Preview as a complete HTML document.
-
-        Parameters
-        ----------
-        renderer
-            The renderer to use.
-        """
-        _tag_show(self, renderer)
-
-    def __eq__(self, other: Any) -> bool:
-        return _equals_impl(self, other)
-
-    def __str__(self) -> str:
-        return _render_tag_or_taglist(self)
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def _repr_html_(self) -> str:
-        return str(self)
+        # Build a fresh TagifiedTag with tagified children. Construct via
+        # __new__ + manual field population so we bypass the constructor's
+        # argument-parsing logic. TagifiedTag is not a context manager, so
+        # don't copy `prev_displayhook`.
+        out = TagifiedTag.__new__(TagifiedTag)
+        out.name = self.name
+        out.add_ws = self.add_ws
+        out.attrs = copy(self.attrs)
+        out.children = self.children.tagify()
+        return out
 
 
 class TagifiedTag(_TagBase):
@@ -1311,113 +1328,12 @@ class TagifiedTag(_TagBase):
         self.attrs = TagAttrDict(*attrs, **kwargs)
 
         kids = [x for x in args if not isinstance(x, dict)]
-        self.children = TagifiedTagList(*cast("tuple[Tagified, ...]", tuple(kids)))
+        self.children = TagifiedTagList(  # pyright: ignore[reportIncompatibleVariableOverride]
+            *cast("tuple[Tagified, ...]", tuple(kids))
+        )
 
     def tagify(self) -> "TagifiedTag":
         return self
-
-    # --- Render / equality / repr methods: duplicate from Tag for now ---
-    # (Task 10 dedupes by extracting to free fns or moving to _TagBase.)
-
-    def get_html_string(self, indent: int = 0, eol: str = "\n") -> str:
-        """
-        Get the HTML string representation of the tag.
-
-        Parameters
-        ----------
-        indent
-            The number of spaces to indent the tag.
-        eol
-            The end-of-line character(s).
-        """
-
-        indent_str = "  " * indent
-        html_ = indent_str + "<" + self.name
-
-        # Write attributes
-        for key, val in self.attrs.items():
-            if not isinstance(val, HTML):
-                val = html_escape(val, attr=True)
-            html_ += f' {key}="{val}"'
-
-        # Dependencies are ignored in the HTML output
-        children = [x for x in self.children if not isinstance(x, MetadataNode)]
-
-        # Don't enclose JSX/void elements if there are no children
-        if len(children) == 0 and self.name in _VOID_TAG_NAMES:
-            return html_ + "/>"
-
-        # Other empty tags are enclosed
-        html_ += ">"
-        close = "</" + self.name + ">"
-        if len(children) == 0:
-            return html_ + close
-
-        # Inline a single/empty child text node
-        if len(children) == 1 and isinstance(children[0], (str, HTML)):
-            if self.name in _NO_ESCAPE_TAG_NAMES:
-                return html_ + str(children[0]) + close
-            else:
-                return html_ + _normalize_text(children[0]) + close
-
-        # Write children
-        if self.add_ws:
-            html_ += eol
-
-        html_ += self.children.get_html_string(
-            indent=indent + 1,
-            eol=eol,
-            add_ws=self.add_ws,
-            _escape_strings=(self.name not in _NO_ESCAPE_TAG_NAMES),
-        )
-
-        if self.add_ws:
-            html_ += eol + indent_str
-
-        return html_ + close
-
-    def get_dependencies(self, *, dedup: bool = True) -> list["HTMLDependency"]:
-        """
-        Get any HTML dependencies.
-        """
-        return self.children.get_dependencies(dedup=dedup)
-
-    def render(self) -> RenderedHTML:
-        """
-        Get string representation as well as its HTML dependencies.
-        """
-        # tagify() returns self (already in final form)
-        cp = self
-        deps = cp.get_dependencies()
-        return {"dependencies": deps, "html": cp.get_html_string()}
-
-    def save_html(
-        self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
-    ) -> str:
-        """
-        Save to a HTML file.
-        """
-        return HTMLDocument(self).save_html(
-            file, libdir=libdir, include_version=include_version
-        )
-
-    def show(self, renderer: Literal["auto", "ipython", "browser"] = "auto") -> object:
-        """
-        Preview as a complete HTML document.
-        """
-        _tag_show(self, renderer)
-
-    def __eq__(self, other: Any) -> bool:
-        return _equals_impl(self, other)
-
-    def __str__(self) -> str:
-        return _render_tag_or_taglist(self)
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def _repr_html_(self) -> str:
-        return str(self)
 
 
 # Tags that have the form <tagname />
@@ -1443,7 +1359,7 @@ _VOID_TAG_NAMES = {
 _NO_ESCAPE_TAG_NAMES = {"script", "style"}
 
 
-def _render_tag_or_taglist(x: Tag | TagList) -> str:
+def _render_tag_or_taglist(x: "_TagBase | TagList | TagifiedTagList") -> str:
     """Render a Tag or TagList to a string.
 
     This looks at html_dependency_render_mode to see if HTMLDependency objects should be
@@ -2396,7 +2312,7 @@ def _tagchilds_to_tagnodes(x: Iterable[TagChild]) -> list[TagNode]:
 
 
 def _tag_show(
-    self: "TagList | Tag",
+    self: "_TagBase | TagList | TagifiedTagList",
     renderer: Literal["auto", "ipython", "browser"] = "auto",
 ) -> object:
     if renderer == "auto":
