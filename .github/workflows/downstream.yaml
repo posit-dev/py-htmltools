@@ -31,7 +31,6 @@ jobs:
         include:
           - repo: posit-dev/py-shiny
           - repo: posit-dev/shinychat
-            ref: schloerke/htmltools-105-tagified-types  # PR #226
           - repo: posit-dev/chatlas
           - repo: posit-dev/brand-yml
     defaults:
