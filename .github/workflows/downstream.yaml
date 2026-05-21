@@ -34,7 +34,7 @@ jobs:
           - repo: posit-dev/shinychat
             ref: schloerke/htmltools-105-tagified-types  # PR #226
           - repo: posit-dev/chatlas
-            ref: schloerke/htmltools-105-tagified-types  # PR #311
+            ref: main
           - repo: posit-dev/brand-yml
             ref: main
     defaults:
