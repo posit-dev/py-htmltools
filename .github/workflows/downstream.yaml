@@ -30,7 +30,7 @@ jobs:
       matrix:
         include:
           - repo: posit-dev/py-shiny
-            ref: schloerke/htmltools-105-tagified-types  # PR #2244
+            ref: main
           - repo: posit-dev/shinychat
             ref: schloerke/htmltools-105-tagified-types  # PR #226
           - repo: posit-dev/chatlas
