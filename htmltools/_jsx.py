@@ -19,9 +19,10 @@ from ._core import (
     Tag,
     TagAttrValue,
     Tagifiable,
-    TagifiedNode,
+    TagifiedTag,
     TagList,
     TagNode,
+    is_tag_like,
 )
 from ._versions import versions
 
@@ -111,7 +112,7 @@ class JSXTag:
     def append(self, *args: TagNode) -> None:
         self.children.append(*args)
 
-    def tagify(self) -> "Tag[TagifiedNode]":
+    def tagify(self) -> "TagifiedTag":
         metadata_nodes: list[MetadataNode] = []
 
         # This function is recursively applied to the attributes and children. It does
@@ -120,7 +121,9 @@ class JSXTag:
         # metadata nodes. This could be done in two separate passes, but it's more
         # efficient to do it in one pass.
         def tagify_tagifiable_and_get_metadata(x: Any) -> Any:
-            if isinstance(x, Tagifiable) and not isinstance(x, (Tag, JSXTag)):
+            if isinstance(x, Tagifiable) and not isinstance(
+                x, (Tag, TagifiedTag, JSXTag)
+            ):
                 x = x.tagify()
             else:
                 # cast: narrowed `x` carries Tag[Unknown] (because the source
@@ -164,21 +167,16 @@ class JSXTag:
             ]
         )
 
-        return cast(
-            "Tag[TagifiedNode]",
-            Tag(
-                "script",
-                {
-                    "type": "text/javascript",
-                    "data_needs_render": True,
-                },
-                HTML("\n" + js + "\n"),
-                _lib_dependency("react", script={"src": "react.production.min.js"}),
-                _lib_dependency(
-                    "react-dom", script={"src": "react-dom.production.min.js"}
-                ),
-                *metadata_nodes,
-            ),
+        return TagifiedTag(
+            "script",
+            {
+                "type": "text/javascript",
+                "data_needs_render": True,
+            },
+            HTML("\n" + js + "\n"),
+            _lib_dependency("react", script={"src": "react.production.min.js"}),
+            _lib_dependency("react-dom", script={"src": "react-dom.production.min.js"}),
+            *metadata_nodes,
         )
 
     def __str__(self) -> str:
@@ -195,10 +193,6 @@ def _walk_attrs_and_children(x: Any, fn: Callable[[Any], Any]) -> Any:
     x = fn(x)
 
     if isinstance(x, Tag):
-        # cast: narrowing `Any` via `isinstance(x, Tag)` yields `Tag[Unknown]`;
-        # widen back to the default `Tag[TagNode]` so pyright keeps tracking
-        # the child type instead of leaking `Unknown` into the recursion.
-        x = cast("Tag[TagNode]", x)
         for i, child in enumerate(x.children):
             x.children[i] = _walk_attrs_and_children(child, fn)
     elif isinstance(x, JSXTag):
@@ -226,11 +220,11 @@ def _render_react_js(x: TagNode, indent: int, eol: str) -> str:
 
     if isinstance(x, JSXTag):
         nm = x.name
-    elif isinstance(x, Tag):
-        # cast: narrowing from `TagNode` (which includes the `Tagifiable`
-        # arm) leaks `Tag[Unknown]` into the union; widen to `Tag[TagNode]`
-        # so `.children` / `.attrs` access types resolve cleanly.
-        x = cast("Tag[TagNode]", x)
+    elif is_tag_like(x):
+        # `Tag` and `TagifiedTag` both expose `.name` / `.attrs` / `.children`
+        # via the shared `_TagBase`. `TagifiedTag` shows up here because
+        # `_walk_attrs_and_children` calls `.tagify()` on bare `Tagifiable`
+        # subtrees and writes the results back into JSXTag children.
         nm = "'" + x.name + "'"
     else:
         raise TypeError("x must be a tag or JSXTag object. Did you run tagify()?")
@@ -271,9 +265,8 @@ def _render_react_js(x: TagNode, indent: int, eol: str) -> str:
 def _serialize_attr(x: object) -> str:
     if x is None:
         return "null"
-    if isinstance(x, Tag) or isinstance(x, JSXTag):
-        # cast: narrowing from `object` leaks Tag[Unknown]; widen to default.
-        return _render_react_js(cast("Tag[TagNode] | JSXTag", x), 0, "\n")
+    if isinstance(x, (Tag, TagifiedTag, JSXTag)):
+        return _render_react_js(x, 0, "\n")
     if isinstance(x, (list, tuple)):
         return (
             "[" + ", ".join([_serialize_attr(y) for y in cast(Iterable[Any], x)]) + "]"

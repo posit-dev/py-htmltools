@@ -39,10 +39,11 @@ def test_tagify_is_idempotent() -> None:
     assert once.get_html_string() == twice.get_html_string()
 
 
-def test_render_guard_catches_mutation_after_tagify() -> None:
-    # The static guarantee is a snapshot at .tagify() time; if a Tagifiable
-    # is appended afterwards, the render-time guard must catch it.
-    tagified = div("hello").tagify()
-    tagified.children.append(_NestedTagifiable())
+def test_render_guard_catches_untagified_tagifiable() -> None:
+    # Defense-in-depth: calling .get_html_string() directly on a buildable
+    # tree that contains an un-tagified Tagifiable raises with an
+    # actionable message. The normal render path (.render()) tagifies
+    # first and avoids this; this guard catches the direct-call case.
+    tl = TagList(_NestedTagifiable())
     with pytest.raises(RuntimeError, match="_NestedTagifiable"):
-        tagified.get_html_string()
+        tl.get_html_string()

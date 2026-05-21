@@ -192,7 +192,7 @@ def test_tagify_first():
         )
 
         def tagify(self):
-            return div("delayed dependency", self.dep)
+            return div("delayed dependency", self.dep).tagify()
 
     x = TagList(div("Hello", DelayedDep()), "world")
 
