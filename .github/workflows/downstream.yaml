@@ -36,7 +36,7 @@ jobs:
           - repo: posit-dev/chatlas
             ref: schloerke/htmltools-105-tagified-types  # PR #311
           - repo: posit-dev/brand-yml
-            ref: schloerke/htmltools-105-tagified-types  # PR #115
+            ref: main
     defaults:
       run:
         shell: bash
