@@ -5,8 +5,8 @@ name: Downstream
 # downstream is an independent matrix entry — failures are localized.
 #
 # Each entry's `ref` may pin to a PR branch that absorbs upstream type-
-# system changes. When the corresponding downstream PR merges, flip the
-# `ref` back to `main` (or delete it to use the default).
+# system changes. When the corresponding downstream PR merges, drop the
+# `ref` line — the step defaults to `main` when `ref` is not set.
 #
 # Candidates to consider adding later (Posit-owned consumers that import
 # htmltools symbols but don't currently have custom .tagify()):
@@ -23,30 +23,27 @@ on:
 
 jobs:
   downstream:
-    name: ${{ matrix.repo }}@${{ matrix.ref }}
+    name: ${{ matrix.repo }}@${{ matrix.ref || 'main' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
           - repo: posit-dev/py-shiny
-            ref: main
           - repo: posit-dev/shinychat
             ref: schloerke/htmltools-105-tagified-types  # PR #226
           - repo: posit-dev/chatlas
-            ref: main
           - repo: posit-dev/brand-yml
-            ref: main
     defaults:
       run:
         shell: bash
 
     steps:
-      - name: Checkout ${{ matrix.repo }}@${{ matrix.ref }}
+      - name: Checkout ${{ matrix.repo }}@${{ matrix.ref || 'main' }}
         uses: actions/checkout@v6
         with:
           repository: ${{ matrix.repo }}
-          ref: ${{ matrix.ref }}
+          ref: ${{ matrix.ref || 'main' }}
           fetch-depth: 0 # required by some downstreams' versioning
 
       - name: Checkout dev branch of py-htmltools
