@@ -1,8 +1,116 @@
+import json
 import tempfile
 import textwrap
 from pathlib import Path
 
-from htmltools import HTMLDependency, HTMLDocument, TagList, div, tags
+from htmltools import (
+    HTML,
+    HTMLDependency,
+    HTMLDocument,
+    TagList,
+    deserialize_html,
+    div,
+    serialize_html,
+    tags,
+)
+
+
+def test_serialize_html_round_trip_preserves_dependency_source(tmp_path: Path):
+    (tmp_path / "widget.js").write_text(
+        "window.widgetLoaded = true",
+        encoding="utf-8",
+    )
+    (tmp_path / "widget.css").write_text(
+        ".widget { color: red; }",
+        encoding="utf-8",
+    )
+    dependency = HTMLDependency(
+        "widget",
+        "1.2.3",
+        source={"subdir": str(tmp_path)},
+        script={"src": "widget.js"},
+        stylesheet={"href": "widget.css"},
+        meta={"name": "widget", "content": "enabled"},
+        all_files=True,
+        head=tags.meta(name="widget-head", content="yes"),
+    )
+
+    serialized = serialize_html(tags.div({"class": "widget"}, "Widget", dependency))
+    json_value = json.loads(json.dumps(serialized))
+    restored = deserialize_html(json_value)
+    rendered = restored.render()
+    restored_dependency = rendered["dependencies"][0]
+
+    assert serialized["html"] == '<div class="widget">Widget</div>'
+    assert serialized["dependencies"] == [
+        {
+            "name": "widget",
+            "version": "1.2.3",
+            "source": {"subdir": str(tmp_path)},
+            "script": [{"src": "widget.js"}],
+            "stylesheet": [{"href": "widget.css", "rel": "stylesheet"}],
+            "meta": [{"name": "widget", "content": "enabled"}],
+            "all_files": True,
+            "head": '<meta name="widget-head" content="yes"/>',
+        }
+    ]
+    assert rendered["html"] == '<div class="widget">Widget</div>'
+    assert restored_dependency.source_path_map() == dependency.source_path_map()
+    assert restored_dependency.as_dict() == dependency.as_dict()
+
+
+def test_serialize_html_round_trip_supports_url_and_sourceless_deps():
+    url_dependency = HTMLDependency(
+        "remote-widget",
+        "2.0.0",
+        source={"href": "https://example.com/widget"},
+        script={"src": "widget.js"},
+    )
+    head_dependency = HTMLDependency(
+        "head-only",
+        "1.0.0",
+        head=tags.meta(name="head-only", content="yes"),
+    )
+
+    serialized = serialize_html(
+        TagList(url_dependency, head_dependency, tags.span("content"))
+    )
+    restored = deserialize_html(json.loads(json.dumps(serialized))).render()
+
+    assert [dep.source for dep in restored["dependencies"]] == [
+        {"href": "https://example.com/widget"},
+        None,
+    ]
+    assert restored["dependencies"][0].script == [{"src": "widget.js"}]
+    assert restored["dependencies"][1].head is not None
+
+
+def test_serialized_html_does_not_share_mutable_dependency_state():
+    dependency = HTMLDependency(
+        "widget",
+        "1.0.0",
+        source={"subdir": "assets"},
+        script={"src": "widget.js"},
+        stylesheet={"href": "widget.css"},
+    )
+
+    serialized = serialize_html(TagList(dependency))
+    serialized["dependencies"][0]["script"][0]["src"] = "changed.js"
+    source = serialized["dependencies"][0]["source"]
+    assert source is not None and "subdir" in source
+    source["subdir"] = "changed"
+
+    assert dependency.script == [{"src": "widget.js"}]
+    assert dependency.source == {"subdir": "assets"}
+
+    clean = serialize_html(TagList(dependency))
+    restored = deserialize_html(clean)
+    clean["dependencies"][0]["stylesheet"][0]["href"] = "changed.css"
+
+    restored_dependency = restored.render()["dependencies"][0]
+    assert restored_dependency.stylesheet == [
+        {"href": "widget.css", "rel": "stylesheet"}
+    ]
 
 
 def test_init_errors():
