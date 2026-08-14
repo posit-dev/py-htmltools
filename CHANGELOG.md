@@ -11,10 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### New features
 
-* Added `serialize_html()` and `deserialize_html()` for JSON-safe,
-  source-preserving round trips of rendered HTML and `HTMLDependency`
-  definitions. This is distinct from `HTMLDependency.as_dict()`, which remains
-  the browser-oriented representation with resolved asset URLs.
+* `RenderedHTML`, the value returned by `render()`, can now serialize and
+  restore itself with source-preserving `HTMLDependency` definitions. Added
+  `serialize_html()` and `deserialize_html()` as convenience functions for the
+  same JSON-safe round trip. This is distinct from `HTMLDependency.as_dict()`,
+  which remains the browser-oriented representation with resolved asset URLs.
 
 ### Bug fixes
 

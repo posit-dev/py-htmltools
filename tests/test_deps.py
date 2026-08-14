@@ -6,12 +6,79 @@ from pathlib import Path
 from htmltools import (
     HTMLDependency,
     HTMLDocument,
+    HTMLTextDocument,
+    RenderedHTML,
+    SerializedHTML,
     TagList,
     deserialize_html,
     div,
     serialize_html,
     tags,
 )
+
+
+def test_render_methods_return_rendered_html():
+    tag_rendered = tags.div("content").render()
+    tag_list_rendered = TagList(tags.div("content")).render()
+    document_rendered = HTMLDocument(tags.div("content")).render()
+    text_document_rendered = HTMLTextDocument(
+        "<main><dependency-placeholder></main>",
+        deps=[],
+        deps_replace_pattern="<dependency-placeholder>",
+    ).render()
+
+    assert type(tag_rendered) is RenderedHTML
+    assert type(tag_list_rendered) is RenderedHTML
+    assert type(document_rendered) is RenderedHTML
+    assert type(text_document_rendered) is RenderedHTML
+    assert isinstance(tag_rendered, dict)
+    assert tag_rendered == {"html": "<div>content</div>", "dependencies": []}
+
+
+def test_rendered_html_serializes_dependency_source(tmp_path: Path):
+    dependency = HTMLDependency(
+        "widget",
+        "1.2.3",
+        source={"subdir": str(tmp_path)},
+        script={"src": "widget.js"},
+    )
+    rendered = TagList(tags.div("Widget", dependency)).render()
+
+    serialized = rendered.to_serialized()
+
+    assert serialized["dependencies"][0]["source"] == {"subdir": str(tmp_path)}
+
+
+def test_rendered_html_restores_serialized_dependencies(tmp_path: Path):
+    serialized: SerializedHTML = {
+        "html": "<div>Widget</div>",
+        "dependencies": [
+            {
+                "name": "widget",
+                "version": "1.2.3",
+                "source": {"subdir": str(tmp_path)},
+                "script": [{"src": "widget.js"}],
+                "stylesheet": [],
+                "meta": [],
+                "all_files": True,
+                "head": None,
+            }
+        ],
+    }
+
+    restored = RenderedHTML.from_serialized(json.loads(json.dumps(serialized)))
+
+    assert restored["html"] == "<div>Widget</div>"
+    assert restored["dependencies"][0].source == {"subdir": str(tmp_path)}
+
+
+def test_rendered_html_converts_to_tag_list():
+    restored = RenderedHTML(
+        html="<div>Widget</div>",
+        dependencies=[],
+    )
+
+    assert restored.to_tag_list().render()["html"] == "<div>Widget</div>"
 
 
 def test_serialize_html_round_trip_preserves_dependency_source(tmp_path: Path):
