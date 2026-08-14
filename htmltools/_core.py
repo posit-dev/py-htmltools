@@ -44,7 +44,7 @@ else:
 from typing import Literal, Protocol, SupportsIndex, runtime_checkable
 
 from packaging.version import Version
-from typing_extensions import TypeVar
+from typing_extensions import Self, TypeVar
 
 from ._util import (
     ensure_http_server,
@@ -63,6 +63,8 @@ __all__ = (
     "MetadataNode",
     "HTMLDependency",
     "RenderedHTML",
+    "SerializedHTML",
+    "SerializedHTMLDependency",
     "TagAttrs",
     "TagAttrValue",
     "TagChild",
@@ -79,13 +81,65 @@ __all__ = (
     "is_tag_node",
     "is_tagified",
     "is_taglist_like",
+    "deserialize_html",
+    "serialize_html",
     "wrap_displayhook_handler",
 )
 
 
-class RenderedHTML(TypedDict):
-    dependencies: list["HTMLDependency"]
+class RenderedHTML(dict[str, "str | list[HTMLDependency]"]):
+    """Rendered HTML text and the live dependencies needed to display it."""
+
+    def __init__(self, *, dependencies: list["HTMLDependency"], html: str) -> None:
+        super().__init__(dependencies=dependencies, html=html)
+
+    @overload
+    def __getitem__(self, key: Literal["dependencies"]) -> list["HTMLDependency"]: ...
+    @overload
+    def __getitem__(self, key: Literal["html"]) -> str: ...
+    def __getitem__(self, key: str) -> "str | list[HTMLDependency]":
+        return super().__getitem__(key)
+
+    def to_serialized(self) -> "SerializedHTML":
+        """Return a JSON-safe, source-preserving representation."""
+        return {
+            "html": self["html"],
+            "dependencies": [
+                serialize_html_dependency(dependency)
+                for dependency in self["dependencies"]
+            ],
+        }
+
+    @classmethod
+    def from_serialized(cls, value: "SerializedHTML") -> Self:
+        """Restore rendered HTML and its live dependency definitions."""
+        return cls(
+            html=value["html"],
+            dependencies=[
+                deserialize_html_dependency(dependency)
+                for dependency in value["dependencies"]
+            ],
+        )
+
+    def to_tag_list(self) -> "TagList":
+        """Convert the rendered HTML back to an htmltools tag list."""
+        return TagList(HTML(self["html"]), *self["dependencies"])
+
+
+class SerializedHTMLDependency(TypedDict):
+    name: str
+    version: str
+    source: "HTMLDependencySource | HTMLDependencyUrl | None"
+    script: list["ScriptItem"]
+    stylesheet: list["StylesheetItem"]
+    meta: list["MetaItem"]
+    all_files: bool
+    head: str | None
+
+
+class SerializedHTML(TypedDict):
     html: str
+    dependencies: list[SerializedHTMLDependency]
 
 
 # MetadataNode objects are not shown when a Tag tree is rendered to HTML text. They can
@@ -480,7 +534,7 @@ class _TagListBase:
         """
         cp = self.tagify()
         deps = cp.get_dependencies()
-        return {"dependencies": deps, "html": cp.get_html_string()}
+        return RenderedHTML(dependencies=deps, html=cp.get_html_string())
 
     def save_html(
         self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
@@ -909,7 +963,7 @@ class _TagBase:
         """
         cp = self.tagify()
         deps = cp.get_dependencies()
-        return {"dependencies": deps, "html": cp.get_html_string()}
+        return RenderedHTML(dependencies=deps, html=cp.get_html_string())
 
     def save_html(
         self, file: str, *, libdir: Optional[str] = "lib", include_version: bool = True
@@ -1650,7 +1704,7 @@ class HTMLTextDocument:
             1,
         )
 
-        return {"dependencies": deepcopy(self._deps), "html": html}
+        return RenderedHTML(dependencies=deepcopy(self._deps), html=html)
 
     def _extract_serialized_html_deps(self) -> None:
         """
@@ -1683,8 +1737,8 @@ class HTMLTextDocument:
         for dep_str in dep_strs:
             if dep_str in seen_deps:
                 continue
-            args = json.loads(dep_str)
-            dep = HTMLDependency(**args)
+            value: SerializedHTMLDependency = json.loads(dep_str)
+            dep = deserialize_html_dependency(value)
             deps.append(dep)
             seen_deps.add(dep_str)
 
@@ -2009,19 +2063,7 @@ class HTMLDependency(MetadataNode):
         return TagList(*metas, *links, *scripts, self.head)
 
     def serialize_to_script_json(self, indent: int | None = None) -> Tag:
-        res = {
-            "name": self.name,
-            "version": str(self.version),
-            "source": self.source,
-            "script": self.script,
-            "stylesheet": self.stylesheet,
-            "meta": self.meta,
-            "all_files": self.all_files,
-            # Tags cannot be serialized to JSON, so render to HTML
-            "head": (
-                TagList(self.head).get_html_string() if self.head is not None else None
-            ),
-        }
+        res = serialize_html_dependency(self)
 
         return Tag(
             "script",
@@ -2144,6 +2186,40 @@ class HTMLDependency(MetadataNode):
 
     def __eq__(self, other: Any) -> bool:
         return _equals_impl(self, other)
+
+
+def serialize_html(value: TagChild) -> SerializedHTML:
+    """Serialize HTML and its dependency definitions for later restoration."""
+    return TagList(value).render().to_serialized()
+
+
+def deserialize_html(value: SerializedHTML) -> TagList:
+    """Restore serialized HTML and its dependency definitions."""
+    return RenderedHTML.from_serialized(value).to_tag_list()
+
+
+def serialize_html_dependency(
+    dependency: HTMLDependency,
+) -> SerializedHTMLDependency:
+    return {
+        "name": dependency.name,
+        "version": str(dependency.version),
+        "source": deepcopy(dependency.source),
+        "script": deepcopy(dependency.script),
+        "stylesheet": deepcopy(dependency.stylesheet),
+        "meta": deepcopy(dependency.meta),
+        "all_files": dependency.all_files,
+        "head": (
+            dependency.head.get_html_string() if dependency.head is not None else None
+        ),
+    }
+
+
+def deserialize_html_dependency(
+    value: SerializedHTMLDependency,
+) -> HTMLDependency:
+    copied = deepcopy(value)
+    return HTMLDependency(**copied)
 
 
 def _resolve_dependencies(deps: list[HTMLDependency]) -> list[HTMLDependency]:
