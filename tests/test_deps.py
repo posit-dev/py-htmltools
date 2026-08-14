@@ -4,7 +4,6 @@ import textwrap
 from pathlib import Path
 
 from htmltools import (
-    HTML,
     HTMLDependency,
     HTMLDocument,
     TagList,
