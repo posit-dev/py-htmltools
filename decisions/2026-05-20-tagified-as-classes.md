@@ -35,7 +35,7 @@ This decision supersedes two earlier accepted decisions from 2026-05-18 (`tag-mu
 
 ```python
 TagifiedNode = Union[TagifiedTag, TagNodeLeaf]
-Tagified     = Union[TagifiedNode, float, None, Sequence[Tagified]]
+Tagified = Union[TagifiedNode, float, None, Sequence[Tagified]]
 ```
 
 Non-generic, recursive `Union` — the form pyright handles cleanly cross-module. `TagifiedTagList` is structurally `Sequence[TagifiedNode] <: Sequence[Tagified]` and matches the recursive arm.
