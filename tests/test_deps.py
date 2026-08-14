@@ -266,6 +266,16 @@ def test_head_output():
         head="<script>1 && 1</script>",
     )
     assert b.as_html_tags().get_html_string() == "<script>1 && 1</script>"
+    assert serialize_html(TagList(b))["dependencies"][0] == {
+        "name": "a",
+        "version": "1.0",
+        "source": {"subdir": "foo"},
+        "script": [],
+        "stylesheet": [],
+        "meta": [],
+        "all_files": False,
+        "head": "<script>1 && 1</script>",
+    }
 
     assert (
         b.serialize_to_script_json(indent=4).get_html_string()

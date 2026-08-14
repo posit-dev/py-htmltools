@@ -1703,8 +1703,8 @@ class HTMLTextDocument:
         for dep_str in dep_strs:
             if dep_str in seen_deps:
                 continue
-            args = json.loads(dep_str)
-            dep = HTMLDependency(**args)
+            value: SerializedHTMLDependency = json.loads(dep_str)
+            dep = deserialize_html_dependency(value)
             deps.append(dep)
             seen_deps.add(dep_str)
 
@@ -2029,19 +2029,7 @@ class HTMLDependency(MetadataNode):
         return TagList(*metas, *links, *scripts, self.head)
 
     def serialize_to_script_json(self, indent: int | None = None) -> Tag:
-        res = {
-            "name": self.name,
-            "version": str(self.version),
-            "source": self.source,
-            "script": self.script,
-            "stylesheet": self.stylesheet,
-            "meta": self.meta,
-            "all_files": self.all_files,
-            # Tags cannot be serialized to JSON, so render to HTML
-            "head": (
-                TagList(self.head).get_html_string() if self.head is not None else None
-            ),
-        }
+        res = serialize_html_dependency(self)
 
         return Tag(
             "script",
