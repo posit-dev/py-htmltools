@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
+* `RenderedHTML` is now a concrete `dict` subclass rather than a `TypedDict`.
+  Existing dictionary behavior is preserved at runtime, but typed code that
+  creates plain dictionaries should instead use
+  `RenderedHTML(html=..., dependencies=...)`.
+
 ### New features
 
 * `RenderedHTML`, the value returned by `render()`, can now serialize and
